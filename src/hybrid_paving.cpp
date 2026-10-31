@@ -1,5 +1,4 @@
 // Hybrid paving operations depending on a system specification.
-#include "config.hpp"
 #include "function/functional.hpp"
 #include "paving/grid_paving.hpp"
 #include "system/hybrid_paving.hpp"

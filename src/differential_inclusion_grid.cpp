@@ -1,7 +1,8 @@
-// The default spatial grid belongs to paving, not to system definitions.
-// Keep the legacy DifferentialInclusion::grid() API in the dynamics adapter
-// without making ariadne-system depend on the paving repository.
+// Construct the default Euclidean grid associated with a differential inclusion.
+// Grid is a representation supplied transitively by Hybrid's Paving dependency;
+// it does not introduce a dependency on evolution or analysis.
 #include "system/differential_inclusion.hpp"
+#include "paving/grid.hpp"
 
 namespace Ariadne {
 

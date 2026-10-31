@@ -2,6 +2,7 @@ include(CTest)
 set(UNIT_TESTS
     test_discrete_event
     test_hybrid_automaton
+    test_differential_inclusion_grid
     test_first_order_pde_model_header
     test_system_header
 )

@@ -7,13 +7,13 @@
 [![Coverage Status](https://github.com/ariadne-cps/system/actions/workflows/coverage.yml/badge.svg)](https://github.com/ariadne-cps/system/actions/workflows/coverage.yml)
 [![codecov](https://codecov.io/gh/ariadne-cps/system/branch/main/graph/badge.svg)](https://codecov.io/gh/ariadne-cps/system)
 
-Ariadne System is the standalone C++20 dynamical-system specification layer. It defines continuous vector fields, iterated maps, differential inclusions, hybrid automata and first-order PDE models. **Simulation, numerical PDE solvers, evolution and reachability analysis belong to higher-level repositories** and are deliberately absent.
+Ariadne System is the standalone C++20 dynamical-system specification layer. It defines continuous vector fields, iterated maps, differential inclusions, hybrid automata and first-order PDE models. 
 
 ## Layout
 
-Public headers live under `include/system`, implementations under `src`, C++ tests under `tests`, and the Python bindings and smoke tests under `python`. Pinned Git submodules live under `ss`. The umbrella header is `include/ariadne-system.hpp`.
+Public headers live under `include/system`, implementations under `src`, C++ tests under `tests`, and the Python bindings and smoke tests under `python`. The equivalent C++ and Python standalone examples live under `tutorial/`; pinned Git submodules live under `ss`. The umbrella header is `include/ariadne-system.hpp`.
 
-C++ and Python tutorials will be developed separately; this initial extraction contains no tutorial directory.
+The [System tutorial](tutorial/README.md) demonstrates a two-mode automaton and the same labelled transitions in C++ and Python.
 
 ## Dependencies
 
@@ -33,6 +33,8 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel --target everything
 ctest --test-dir build --output-on-failure
 ```
+
+The [System tutorial](tutorial/README.md) includes separate build/run instructions for the installed C++ library and Python extension.
 
 ## Python bindings
 

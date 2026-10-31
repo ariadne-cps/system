@@ -21,6 +21,16 @@ void system_submodule(pybind11::module& module) {
     automaton_class.def(pybind11::init<>());
     automaton_class.def("new_mode", [](HybridAutomaton& a, DiscreteLocation q) { a.new_mode(q); });
     automaton_class.def("has_mode", &HybridAutomaton::has_mode);
+    // Expose the unguarded discrete transition overload, with no reset.
+    // This form is intended for systems without continuous state variables.
+    automaton_class.def("new_transition",
+        [](HybridAutomaton& a, DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) {
+            a.new_transition(source,event,target);
+        });
+    automaton_class.def("has_transition", &HybridAutomaton::has_transition);
+    automaton_class.def("target", &HybridAutomaton::target);
+    automaton_class.def("number_of_modes",
+        [](HybridAutomaton const& a) { return a.locations().size(); });
     automaton_class.def("__str__", &__cstr__<HybridAutomaton>);
     automaton_class.def("__repr__", &__cstr__<HybridAutomaton>);
 }

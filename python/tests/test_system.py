@@ -19,3 +19,21 @@ def test_hybrid_automaton_mode():
     automaton.new_mode(location)
     assert automaton.has_mode(location)
     assert str(automaton)
+
+
+def test_unguarded_transition():
+    idle, active = DiscreteLocation(0), DiscreteLocation(1)
+    activate, deactivate = DiscreteEvent("activate"), DiscreteEvent("deactivate")
+    automaton = HybridAutomaton()
+    automaton.new_mode(idle)
+    automaton.new_mode(active)
+    automaton.new_transition(idle, activate, active)
+    automaton.new_transition(active, deactivate, idle)
+
+    assert automaton.number_of_modes() == 2
+    assert automaton.has_transition(idle, activate)
+    assert automaton.target(idle, activate) == active
+    assert automaton.has_transition(active, deactivate)
+    assert automaton.target(active, deactivate) == idle
+    assert not automaton.has_transition(idle, deactivate)
+    assert automaton.target(idle, deactivate) == idle

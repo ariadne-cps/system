@@ -13,7 +13,7 @@ Ariadne System is the standalone C++20 dynamical-system specification layer. It 
 
 Public headers live under `include/system`, implementations under `src`, C++ tests under `tests`, and the Python bindings and smoke tests under `python`. The equivalent C++ and Python standalone examples live under `tutorial/`; pinned Git submodules live under `ss`. The umbrella header is `include/ariadne-system.hpp`.
 
-The [System tutorial](tutorial/README.md) demonstrates a two-mode automaton and the same labelled transitions in C++ and Python.
+The [System tutorial](tutorial/README.md) covers hybrid automata, vector fields, iterated maps, differential inclusions, and first-order PDE models.
 
 ## Dependencies
 
@@ -22,7 +22,7 @@ System depends directly on:
 - [ariadne-cps/hybrid](https://github.com/ariadne-cps/hybrid), as a Git submodule.
 - [ariadne-cps/configuration](https://github.com/ariadne-cps/configuration), for shared CMake configuration.
 
-Hybrid supplies all lower-level Ariadne dependencies, including Labelled, Function, Symbolic, and Paving. The **only explicit same-commit dependency check** is for the Configuration submodule shared with Hybrid. Neither Evolution nor Analysis is a System dependency.
+Hybrid provides the lower-level Ariadne components used by System.
 
 ## Build
 

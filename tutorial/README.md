@@ -1,11 +1,10 @@
 # Ariadne System tutorial
 
-These two standalone programs specify the **same** discrete-only hybrid
-automaton, using C++ and Python. They construct two modes, add labelled
-unguarded transitions in both directions, and inspect the resulting
-transition relation.
+The C++ and Python tutorials construct the same hybrid automaton, a
+continuous-time `VectorField`, and a discrete-time `IteratedMap`. Both
+languages check the dimensions and print the models.
 
-The tutorial deliberately uses no continuous state variables. Transitions
+The hybrid automaton deliberately uses no continuous state variables. Transitions
 therefore need no reset assignments, and both languages can use the same
 System functionality without disguising any missing bindings. The examples
 define a system; they do not simulate its evolution.

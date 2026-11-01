@@ -45,12 +45,14 @@ void system_submodule(pybind11::module& module) {
     vector_field_class.def(pybind11::init([](std::vector<DottedRealAssignment> const& dynamics) {
         return VectorField(List<DottedRealAssignment>(dynamics));
     }));
+    vector_field_class.def("dimension", &VectorField::dimension);
     vector_field_class.def("__str__", &__cstr__<VectorField>);
 
     pybind11::class_<IteratedMap> iterated_map_class(module,"IteratedMap");
     iterated_map_class.def(pybind11::init([](std::vector<PrimedRealAssignment> const& updates) {
         return IteratedMap(List<PrimedRealAssignment>(updates));
     }));
+    iterated_map_class.def("dimension", &IteratedMap::dimension);
     iterated_map_class.def("__str__", &__cstr__<IteratedMap>);
 
 }

@@ -37,3 +37,13 @@ def test_unguarded_transition():
     assert automaton.target(active, deactivate) == idle
     assert not automaton.has_transition(idle, deactivate)
     assert automaton.target(idle, deactivate) == idle
+
+
+def test_vector_field_and_iterated_map():
+    from pyariadne import RealVariable, VectorField, IteratedMap, dot, next
+    x = RealVariable("x")
+    field = VectorField([dot(x) << -x])
+    mapping = IteratedMap([next(x) << x / 2])
+    assert field.dimension() == 1
+    assert mapping.dimension() == 1
+    assert str(field) and str(mapping)

@@ -58,5 +58,13 @@ int main() {
               << "idle --" << activate << "--> " << automaton.target(idle, activate) << "\n"
               << "active --" << deactivate << "--> " << automaton.target(active, deactivate) << "\n";
     std::cout << "automaton: " << automaton << "\n";
+    section("Continuous and discrete-time systems");
+    RealVariable x("x");
+    VectorField decay({dot(x)=-x});
+    IteratedMap contraction({next(x)=x/2});
+    assert(decay.dimension()==1u);
+    assert(contraction.dimension()==1u);
+    std::cout << "vector field: " << decay << "\n";
+    std::cout << "iterated map: " << contraction << "\n";
     return 0;
 }

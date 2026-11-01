@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The same two-mode system as tutorial_system.cpp, using pyariadne."""
 
-from pyariadne import DiscreteEvent, DiscreteLocation, HybridAutomaton
+from pyariadne import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
+                       RealVariable, VectorField, IteratedMap, dot, next)
 
 
 def section(title):
@@ -48,6 +49,15 @@ def tutorial_system():
     print(f"idle --{activate}--> {automaton.target(idle, activate)}")
     print(f"active --{deactivate}--> {automaton.target(active, deactivate)}")
     print(f"automaton: {automaton}")
+
+    section("Continuous and discrete-time systems")
+    x = RealVariable("x")
+    decay = VectorField([dot(x) << -x])
+    contraction = IteratedMap([next(x) << x / 2])
+    assert decay.dimension() == 1
+    assert contraction.dimension() == 1
+    print(f"vector field: {decay}")
+    print(f"iterated map: {contraction}")
 
 
 if __name__ == "__main__":

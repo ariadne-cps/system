@@ -1,8 +1,12 @@
 # Ariadne System tutorial
 
-The C++ and Python tutorials construct the same hybrid automaton, a
-continuous-time `VectorField`, and a discrete-time `IteratedMap`. Both
-languages check the dimensions and print the models.
+Both tutorials construct a hybrid automaton, a continuous-time `VectorField`,
+a discrete-time `IteratedMap`, and a bounded-input `DifferentialInclusion`.
+The C++ tutorial additionally builds a homogeneous two-dimensional
+`FirstOrderPDE` using `FirstOrderPDE::homogeneous()` and `add_direction()`.
+Its model owns its coefficient matrices and source function, instead of
+borrowing temporary references. The PDE API has not yet been exposed in
+Python because the requisite matrix/function types are not available there.
 
 The hybrid automaton deliberately uses no continuous state variables. Transitions
 therefore need no reset assignments, and both languages can use the same

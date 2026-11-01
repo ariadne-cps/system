@@ -71,5 +71,25 @@ int main() {
     assert(contraction.dimension()==1u);
     std::cout << "vector field: " << decay << "\n";
     std::cout << "iterated map: " << contraction << "\n";
+    section("Differential inclusion with bounded input");
+    RealVariable u("u");
+    DottedRealAssignments uncertain_dynamics={dot(x)=-x+u};
+    RealVariablesBox input_bounds={-1<=u<=1};
+    DifferentialInclusion inclusion(uncertain_dynamics,input_bounds);
+    assert(inclusion.dimension()==1u);
+    assert(inclusion.number_of_inputs()==1u);
+    std::cout << "differential inclusion: " << inclusion << "\n";
+
+    section("First-order PDE model (two spatial directions)");
+    const Matrix<Real> A=Matrix<Real>::identity(2);
+    const Matrix<Real> B=Matrix<Real>::identity(2);
+    const DiagonalMatrix<Real> eigenvalues(Array<Real>{1,-1});
+    FirstOrderPDE pde=FirstOrderPDE::homogeneous(A,2);
+    pde.add_direction(B,eigenvalues,B).add_direction(B,eigenvalues,B);
+    pde.validate();
+    assert(pde.number_of_components()==2u);
+    assert(pde.spatial_dimension()==2u);
+    std::cout << "PDE components: " << pde.number_of_components()
+              << ", spatial directions: " << pde.spatial_dimension() << "\n";
     return 0;
 }

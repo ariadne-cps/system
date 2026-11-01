@@ -2,7 +2,7 @@
 """The same two-mode system as tutorial_system.cpp, using pyariadne."""
 
 from pyariadne import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
-                       RealVariable, VectorField, IteratedMap, dot, next)
+                       RealVariable, VectorField, IteratedMap, DifferentialInclusion,\n                       RealVariablesBox, dot, next)
 
 
 def section(title):
@@ -58,6 +58,16 @@ def tutorial_system():
     assert contraction.dimension() == 1
     print(f"vector field: {decay}")
     print(f"iterated map: {contraction}")
+
+    section("Differential inclusion with bounded input")
+    u = RealVariable("u")
+    inclusion = DifferentialInclusion(
+        [dot(x) << (-x + u)], RealVariablesBox({u: (-1, 1)}))
+    assert inclusion.dimension() == 1
+    assert inclusion.number_of_inputs() == 1
+    print(f"differential inclusion: {inclusion}")
+    # PDE construction currently requires Matrix<Real>, DiagonalMatrix<Real>
+    # and function bindings not provided by the installed Python module.
 
 
 if __name__ == "__main__":

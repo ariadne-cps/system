@@ -47,3 +47,12 @@ def test_vector_field_and_iterated_map():
     assert field.dimension() == 1
     assert mapping.dimension() == 1
     assert str(field) and str(mapping)
+
+def test_differential_inclusion_inputs():
+    from pyariadne import DifferentialInclusion, RealVariable, RealVariablesBox, dot
+    x, u = RealVariable("x"), RealVariable("u")
+    model = DifferentialInclusion([dot(x) << (-x + u)], RealVariablesBox({u: (-1, 1)}))
+    assert model.dimension() == 1
+    assert model.number_of_inputs() == 1
+    assert model.is_input_affine()
+    assert model.is_input_additive()

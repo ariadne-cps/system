@@ -2,6 +2,7 @@
 #include <vector>
 #include "function-utilities.hpp"
 #include "system/discrete_event.hpp"
+#include "system/differential_inclusion.hpp"
 #include "system/hybrid_automaton.hpp"
 #include "system/iterated_map.hpp"
 #include "system/vector_field.hpp"
@@ -17,6 +18,19 @@ void system_submodule(pybind11::module& module) {
     event_class.def("__ne__", [](DiscreteEvent const& a, DiscreteEvent const& b) { return a != b; });
     event_class.def("__str__", &__cstr__<DiscreteEvent>);
     event_class.def("__repr__", &__cstr__<DiscreteEvent>);
+
+    pybind11::class_<DifferentialInclusion> inclusion_class(module,"DifferentialInclusion");
+    inclusion_class.def(pybind11::init([](
+        std::vector<DottedRealAssignment> const& dynamics, RealVariablesBox const& inputs) {
+        DottedRealAssignments assignments;
+        for (auto const& equation : dynamics) { assignments.append(equation); }
+        return DifferentialInclusion(assignments,inputs);
+    }));
+    inclusion_class.def("dimension",&DifferentialInclusion::dimension);
+    inclusion_class.def("number_of_inputs",&DifferentialInclusion::number_of_inputs);
+    inclusion_class.def("is_input_affine",&DifferentialInclusion::is_input_affine);
+    inclusion_class.def("is_input_additive",&DifferentialInclusion::is_input_additive);
+    inclusion_class.def("__str__",&__cstr__<DifferentialInclusion>);
 
     pybind11::class_<HybridAutomaton> automaton_class(module, "HybridAutomaton");
     automaton_class.def(pybind11::init<>());

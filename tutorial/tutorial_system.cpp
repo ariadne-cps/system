@@ -60,8 +60,13 @@ int main() {
     std::cout << "automaton: " << automaton << "\n";
     section("Continuous and discrete-time systems");
     RealVariable x("x");
-    VectorField decay({dot(x)=-x});
-    IteratedMap contraction({next(x)=x/2});
+    // A typed assignment list avoids ambiguous single-element brace initialization.
+    List<DottedRealAssignment> dynamics;
+    dynamics.append(dot(x)=-x);
+    VectorField decay(dynamics);
+    List<PrimedRealAssignment> updates;
+    updates.append(next(x)=x/2);
+    IteratedMap contraction(updates);
     assert(decay.dimension()==1u);
     assert(contraction.dimension()==1u);
     std::cout << "vector field: " << decay << "\n";

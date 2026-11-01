@@ -1,4 +1,5 @@
 #include "pybind11.hpp"
+#include <vector>
 #include "function-utilities.hpp"
 #include "system/discrete_event.hpp"
 #include "system/hybrid_automaton.hpp"
@@ -20,6 +21,10 @@ void system_submodule(pybind11::module& module) {
     pybind11::class_<HybridAutomaton> automaton_class(module, "HybridAutomaton");
     automaton_class.def(pybind11::init<>());
     automaton_class.def("new_mode", [](HybridAutomaton& a, DiscreteLocation q) { a.new_mode(q); });
+    automaton_class.def("new_mode", [](HybridAutomaton& a, DiscreteLocation q,
+                                       std::vector<DottedRealAssignment> const& dynamics) {
+        a.new_mode(q,List<DottedRealAssignment>(dynamics));
+    });
     automaton_class.def("has_mode", &HybridAutomaton::has_mode);
     // Expose the unguarded discrete transition overload, with no reset.
     // This form is intended for systems without continuous state variables.
@@ -33,4 +38,19 @@ void system_submodule(pybind11::module& module) {
         [](HybridAutomaton const& a) { return a.locations().size(); });
     automaton_class.def("__str__", &__cstr__<HybridAutomaton>);
     automaton_class.def("__repr__", &__cstr__<HybridAutomaton>);
+    
+    // Construct system models from the symbolic assignments already bound by
+    // symbolic_submodule.  The vector conversion is handled by pybind11.
+    pybind11::class_<VectorField> vector_field_class(module,"VectorField");
+    vector_field_class.def(pybind11::init([](std::vector<DottedRealAssignment> const& dynamics) {
+        return VectorField(List<DottedRealAssignment>(dynamics));
+    }));
+    vector_field_class.def("__str__", &__cstr__<VectorField>);
+
+    pybind11::class_<IteratedMap> iterated_map_class(module,"IteratedMap");
+    iterated_map_class.def(pybind11::init([](std::vector<PrimedRealAssignment> const& updates) {
+        return IteratedMap(List<PrimedRealAssignment>(updates));
+    }));
+    iterated_map_class.def("__str__", &__cstr__<IteratedMap>);
+
 }

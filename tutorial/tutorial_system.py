@@ -2,7 +2,8 @@
 """The same two-mode system as tutorial_system.cpp, using pyariadne."""
 
 from pyariadne import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
-                       RealVariable, VectorField, IteratedMap, DifferentialInclusion,\n                       RealVariablesBox, dot, next)
+                       RealVariable, VectorField, IteratedMap, DifferentialInclusion,
+                       RealVariablesBox, dot, next)
 
 
 def section(title):

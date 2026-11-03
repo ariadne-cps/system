@@ -44,10 +44,11 @@ algebraic_sort(const List<RealAssignment>& auxiliary) {
                 ++iter;
             }
         }
-        if(!found) {
+        if(!found) 
             ARIADNE_THROW(AlgebraicLoopError,"HybridAutomaton::sort(List<RealAssignment>)",
                           "Algebraic dependencies among variables "<<lhs_list<<" in auxiliary equations "<<auxiliary);
-        }
+        
+
     }
     ARIADNE_ASSERT(auxiliary.size()==sorted_auxiliary.size());
     return sorted_auxiliary;

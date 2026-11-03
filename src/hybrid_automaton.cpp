@@ -199,11 +199,12 @@ HybridAutomaton::_new_mode(DiscreteLocation location,
                            const List<DottedRealAssignment>& dynamic)
 {
     for(Map<DiscreteLocation,DiscreteMode>::ConstIterator mode_iter=this->_modes.begin(); mode_iter!=this->_modes.end(); ++mode_iter) {
-        if(!are_distinguishable(location,mode_iter->first)) {
+        if(!are_distinguishable(location,mode_iter->first)) 
             ARIADNE_THROW(IndistinguishableModeError,"HybridAutomaton::new_mode",
                           "Location "<<location<<" is indistinguishable from location "<<mode_iter->first<<
                           " in hybrid automaton with locations "<<this->locations());
-        }
+        
+
     }
 
     Set<UntypedVariable> defined_variables;
@@ -211,20 +212,22 @@ HybridAutomaton::_new_mode(DiscreteLocation location,
 
     // Compute the auxiliary variables ordered by the given equations
     for(SizeType i=0; i!=auxiliary.size(); ++i) {
-        if(defined_variables.contains(auxiliary[i].lhs)) {
+        if(defined_variables.contains(auxiliary[i].lhs)) 
             ARIADNE_THROW(SystemSpecificationError,"HybridAutomaton::new_mode",
                           "Variable "<<auxiliary[i].lhs<<" is defined twice by the algebraic equations "<<auxiliary<<" for mode "<<location);
-        }
+        
+
         defined_variables.insert(auxiliary[i].lhs);
         argument_variables.adjoin(auxiliary[i].rhs.arguments());
     }
 
     // Compute the state variables ordered by the given differential equations
     for(SizeType i=0; i!=dynamic.size(); ++i) {
-        if(defined_variables.contains(dynamic[i].lhs.base())) {
+        if(defined_variables.contains(dynamic[i].lhs.base())) 
             ARIADNE_THROW(SystemSpecificationError,"HybridAutomaton::new_mode",
                           "Variable "<<dynamic[i].lhs.base()<<" defined by the differential equations "<<dynamic<<" for mode "<<location<<" is also defined in the algebraic equations "<<auxiliary);
-        }
+        
+
         defined_variables.insert(dynamic[i].lhs.base());
         argument_variables.adjoin(dynamic[i].rhs.arguments());
     }
@@ -237,30 +240,34 @@ HybridAutomaton::_new_mode(DiscreteLocation location,
 
 Void HybridAutomaton::_new_invariant(DiscreteLocation location, ContinuousPredicate invariant, DiscreteEvent event)
 {
-    if(!this->has_location(location)) {
+    if(!this->has_location(location)) 
         ARIADNE_THROW(NonExistentModeError,"HybridAutomaton::new_invariant",
                       "mode "<<location<<" is not a location of the automaton with locations "<<this->locations());
-    }
+    
+
     DiscreteMode& mode=this->_modes.value(location);
-    if(mode._kinds.has_key(event)) {
+    if(mode._kinds.has_key(event)) 
         ARIADNE_THROW(MultipleGuardError,"HybridAutomaton::new_invariant",
                       "Constraint for event "<<event<<" is already defined in mode "<<mode);
-    }
+    
+
     mode._invariants.insert(event,invariant);
     mode._kinds.insert(event,EventKind::INVARIANT);
 }
 
 Void HybridAutomaton::_new_guard(DiscreteLocation location, DiscreteEvent event, ContinuousPredicate guard, EventKind kind)
 {
-    if(!this->has_location(location)) {
+    if(!this->has_location(location)) 
         ARIADNE_THROW(NonExistentModeError,"HybridAutomaton::new_guard",
                       "mode "<<location<<" is not a location of the automaton with locations "<<this->locations());
-    }
+    
+
     DiscreteMode& mode=this->_modes.value(location);
-    if(mode._kinds.has_key(event)) {
+    if(mode._kinds.has_key(event)) 
         ARIADNE_THROW(MultipleGuardError,"HybridAutomaton::new_guard",
                       "Constraint for event "<<event<<" is already defined in mode "<<mode);
-    }
+    
+
     mode._guards.insert(event,guard);
     mode._kinds.insert(event,kind);
 }
@@ -273,15 +280,17 @@ HybridAutomaton::_new_action(DiscreteLocation location,
                              ContinuousPredicate guard,
                              EventKind kind)
 {
-    if(!this->has_location(location)) {
+    if(!this->has_location(location)) 
         ARIADNE_THROW(NonExistentModeError,"HybridAutomaton::new_action",
                       "mode "<<location<<" is not a location of the automaton with locations "<<this->locations());
-    }
+    
+
     DiscreteMode& mode=this->_modes.value(location);
-    if(mode._kinds.has_key(event)) {
+    if(mode._kinds.has_key(event)) 
         ARIADNE_THROW(MultipleGuardError,"HybridAutomaton::new_action",
                       "Constraint for event "<<event<<" is already defined in mode "<<mode);
-    }
+    
+
     mode._invariants.insert(event,invariant);
     mode._guards.insert(event,guard);
     mode._kinds.insert(event,kind);
@@ -294,35 +303,40 @@ HybridAutomaton::_new_update(DiscreteLocation source,
                              DiscreteLocation target,
                              List<PrimedRealAssignment> const& reset)
 {
-    if(!this->has_location(source)) {
+    if(!this->has_location(source)) 
         ARIADNE_THROW(NonExistentModeError,"HybridAutomaton::new_reset",
                       "Source mode "<<source<<" is not a location of the automaton with locations "<<this->locations());
-    }
+    
 
-    if(!this->has_location(target)) {
+
+    if(!this->has_location(target)) 
         ARIADNE_THROW(NonExistentModeError,"HybridAutomaton::new_reset",
                       "Target mode "<<target<<" is not a location of the automaton with locations "<<this->locations());
-    }
+    
+
 
     DiscreteMode& source_mode=this->mode(source); // Non-constant since we may wish to update input variables
-    if(source_mode._targets.has_key(event)) {
+    if(source_mode._targets.has_key(event)) 
         ARIADNE_THROW(MultipleTransitionError,"HybridAutomaton::new_update",
                       "Update for event "<<event<<" is already defined in mode "<<source);
-    }
+    
+
 
     Set<RealVariable> target_auxiliary_variable=make_set(this->auxiliary_variables(target));
-    if(!disjoint(target_auxiliary_variable,left_hand_sides(reset))) {
+    if(!disjoint(target_auxiliary_variable,left_hand_sides(reset))) 
         ARIADNE_THROW(OverspecifiedResetError,"HybridAutomaton::new_update",
                       "reset "<<reset<<" for event "<<event<<" in source "<<source<<
                       " specifies variables "<<intersection(target_auxiliary_variable,left_hand_sides(reset))<<
                       " which are auxiliary variables in target "<<target);
-    }
+    
 
-    if(!unique_elements(left_hand_sides(reset))) {
+
+    if(!unique_elements(left_hand_sides(reset))) 
         ARIADNE_THROW(OverspecifiedResetError,"HybridAutomaton::new_update",
                       "reset "<<reset<<" for event "<<event<<" in source "<<source<<
                       "overspecifies variables "<<duplicate_elements(left_hand_sides(reset)));
-    }
+    
+
 
     List<RealVariable> target_state_space=this->state_variables(target);
     Set<RealVariable> target_state_variables(target_state_space);
@@ -346,9 +360,10 @@ HybridAutomaton::_new_transition(DiscreteLocation source,
         this->_new_action(source,!guard,event,guard,kind);
     } else if(kind==EventKind::PERMISSIVE) {
         this->_new_guard(source,event,guard,kind);
-    } else {
+    } else 
         ARIADNE_FAIL_MSG("Unhandled event kind "<<kind);
-    }
+    
+
     this->_new_update(source,event,target,reset);
 }
 
@@ -680,45 +695,50 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
     Set<UntypedVariable> defined_variables(make_set(defined_real_variables));
 
     for(List<RealAssignment>::ConstIterator aux_iter=mode._auxiliary.begin(); aux_iter!=mode._auxiliary.end(); ++aux_iter) {
-        if(!subset(aux_iter->rhs.arguments(),defined_variables)) {
+        if(!subset(aux_iter->rhs.arguments(),defined_variables)) 
             ARIADNE_THROW(UnderspecifiedDynamicError,"HybridAutomaton::check_mode(...)",
                           "Arguments "<<difference(aux_iter->rhs.arguments(),defined_variables)<<
                           " of "<<*aux_iter<<" are not defined in location "<<location<<" with variables "<<defined_variables);
-        }
+        
+
     }
 
     for(List<DottedRealAssignment>::ConstIterator dyn_iter=mode._dynamic.begin(); dyn_iter!=mode._dynamic.end(); ++dyn_iter) {
-        if(!subset(dyn_iter->rhs.arguments(),defined_variables)) {
+        if(!subset(dyn_iter->rhs.arguments(),defined_variables)) 
             ARIADNE_THROW(UnderspecifiedDynamicError,"HybridAutomaton::check_mode(...)",
                           "Arguments "<<difference(dyn_iter->rhs.arguments(),defined_variables)<<
                           " of "<<*dyn_iter<<" are not defined in location "<<location<<" with variables "<<defined_variables);
-        }
+        
+
     }
 
     for(Map<DiscreteEvent,ContinuousPredicate>::ConstIterator inv_iter=mode._invariants.begin(); inv_iter!=mode._invariants.end(); ++inv_iter) {
-        if(!subset(inv_iter->second.arguments(),defined_variables)) {
+        if(!subset(inv_iter->second.arguments(),defined_variables)) 
             ARIADNE_THROW(UnderspecifiedConstraintError,"HybridAutomaton::check_mode(...)",
                           "Arguments "<<difference(inv_iter->second.arguments(),defined_variables)<<
                           " of "<<*inv_iter<<" are not defined in location "<<location<<" with variables "<<defined_variables);
-        }
+        
+
     }
 
     for(Map<DiscreteEvent,ContinuousPredicate>::ConstIterator grd_iter=mode._guards.begin(); grd_iter!=mode._guards.end(); ++grd_iter) {
-        if(!subset(grd_iter->second.arguments(),defined_variables)) {
+        if(!subset(grd_iter->second.arguments(),defined_variables)) 
             ARIADNE_THROW(UnderspecifiedConstraintError,"HybridAutomaton::check_mode(...)",
                           "Arguments "<<difference(grd_iter->second.arguments(),defined_variables)<<
                           " of "<<*grd_iter<<" are not defined in location "<<location<<" with variables "<<defined_variables);
-        }
+        
+
     }
 
     for(Map<DiscreteEvent,List<PrimedRealAssignment> >::ConstIterator rst_iter=mode._resets.begin(); rst_iter!=mode._resets.end(); ++rst_iter) {
         const List<PrimedRealAssignment>& reset=rst_iter->second;
         for(List<PrimedRealAssignment>::ConstIterator pra_iter=reset.begin(); pra_iter!=reset.end(); ++pra_iter) {
-            if(!subset(pra_iter->rhs.arguments(),defined_variables)) {
+            if(!subset(pra_iter->rhs.arguments(),defined_variables)) 
                 ARIADNE_THROW(UnderspecifiedResetError,"HybridAutomaton::check_mode(...)",
                             "Arguments "<<difference(pra_iter->rhs.arguments(),defined_variables)<<
                             " of reset "<<*pra_iter<<" are not defined in location "<<location<<" with variables "<<defined_variables);
-            }
+            
+
         }
     }
 
@@ -726,16 +746,18 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
         DiscreteLocation target = mode._targets[rst_iter->first];
         Set<RealVariable> reset_variables(left_hand_sides(rst_iter->second));
         Set<RealVariable> target_state_variables(this->state_variables(target));
-        if(!subset(reset_variables,target_state_variables)) {
+        if(!subset(reset_variables,target_state_variables)) 
              ARIADNE_THROW(UnderspecifiedDynamicError,"HybridAutomaton::check_mode(...)",
                             "Variables "<<difference(reset_variables,target_state_variables)<<
                             " of reset"<<*rst_iter<<" are not defined in location "<<target<<" with state variables "<<target_state_variables);
-        }
-        if(!subset(target_state_variables,reset_variables)) {
+        
+
+        if(!subset(target_state_variables,reset_variables)) 
              ARIADNE_THROW(UnderspecifiedResetError,"HybridAutomaton::check_mode(...)",
                             "Variables "<<difference(target_state_variables,reset_variables)<<
                             " in target"<<target<<" are not defined reset "<<*rst_iter);
-        }
+        
+
     }
 
 

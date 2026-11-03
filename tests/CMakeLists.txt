@@ -1,8 +1,14 @@
 include(CTest)
 set(UNIT_TESTS
     test_discrete_event
+    test_dynamics
     test_hybrid_automaton
+    test_hybrid_automaton_api
+    test_hybrid_automaton_composite
+    test_hybrid_paving
+    test_differential_inclusion
     test_differential_inclusion_grid
+    test_first_order_pde
     test_first_order_pde_model
     test_first_order_pde_model_header
     test_system_header

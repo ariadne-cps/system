@@ -21,8 +21,9 @@ System depends directly on:
 
 - [ariadne-cps/hybrid](https://github.com/ariadne-cps/hybrid), as a Git submodule.
 - [ariadne-cps/configuration](https://github.com/ariadne-cps/configuration), for shared CMake configuration.
+- [ariadne-cps/testing](https://github.com/ariadne-cps/testing), pinned at `ss/tst`, for C++ test fixtures, assertions and diagnostics only.
 
-Hybrid provides the lower-level Ariadne components used by System.
+Hybrid provides the lower-level Ariadne components used by System. C++ behavioral suites use independent Ariadne Testing cases; lightweight header and return-code checks retain their original execution.
 
 ## Build
 

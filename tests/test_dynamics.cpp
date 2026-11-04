@@ -22,7 +22,7 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "macro/testing.hpp"
+#include "ariadne-testing.hpp"
 
 #include "symbolic/variable.hpp"
 #include "symbolic/assignment.hpp"
@@ -33,40 +33,45 @@
 
 using namespace Ariadne;
 
+class TestDynamics : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+
 Void test_iterated_map()
 {
     RealVariable x("x"), y("y"), a("a");
     {
         IteratedMap map(List<PrimedRealAssignment>{prime(x)=x+1, prime(y)=y});
-        ARIADNE_TEST_EQUALS(map.dimension(), 2u);
-        ARIADNE_TEST_ASSERT(map.state_space() == RealSpace({x,y}));
-        ARIADNE_TEST_EQUALS(map.auxiliary_space().size(), 0u);
-        ARIADNE_TEST_EQUALS(map.state_auxiliary_space().size(), 2u);
-        ARIADNE_TEST_ASSERT(&map.function() == &map.update_function());
-        ARIADNE_TEST_ASSERT(&map.auxiliary_function() == &map.auxiliary_mapping());
+        ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 2u);
+        ARIADNE_TESTING_PROVE(map.state_space() == RealSpace({x,y}));
+        ARIADNE_TESTING_EXPECT_EQUAL(map.auxiliary_space().size(), 0u);
+        ARIADNE_TESTING_EXPECT_EQUAL(map.state_auxiliary_space().size(), 2u);
+        ARIADNE_TESTING_PROVE(&map.function() == &map.update_function());
+        ARIADNE_TESTING_PROVE(&map.auxiliary_function() == &map.auxiliary_mapping());
         IteratedMap* copy = map.clone();
-        ARIADNE_TEST_ASSERT(copy != nullptr);
-        ARIADNE_TEST_EQUALS(copy->dimension(), 2u);
+        ARIADNE_TESTING_PROVE(copy != nullptr);
+        ARIADNE_TESTING_EXPECT_EQUAL(copy->dimension(), 2u);
         delete copy;
-        ARIADNE_TEST_PRINT(map);
+        ARIADNE_TESTING_NOTE(map);
     }
     {
         IteratedMap map(List<PrimedRealAssignment>{prime(x)=x+a},
                         List<RealAssignment>{let(a)=x+1});
-        ARIADNE_TEST_EQUALS(map.dimension(), 1u);
-        ARIADNE_TEST_ASSERT(map.auxiliary_space() == RealSpace({a}));
-        ARIADNE_TEST_EQUALS(map.state_auxiliary_space().size(), 2u);
-        ARIADNE_TEST_PRINT(map);
+        ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 1u);
+        ARIADNE_TESTING_PROVE(map.auxiliary_space() == RealSpace({a}));
+        ARIADNE_TESTING_EXPECT_EQUAL(map.state_auxiliary_space().size(), 2u);
+        ARIADNE_TESTING_NOTE(map);
     }
     {
         // Chained auxiliary assignments exercise the sorting loop.
         RealVariable b("b");
         IteratedMap map(List<PrimedRealAssignment>{prime(x)=x+a},
                         List<RealAssignment>{let(a)=x, let(b)=a+1});
-        ARIADNE_TEST_EQUALS(map.dimension(), 1u);
-        ARIADNE_TEST_EQUALS(map.auxiliary_space().size(), 2u);
-        ARIADNE_TEST_EQUALS(map.state_auxiliary_space().size(), 3u);
-        ARIADNE_TEST_PRINT(map);
+        ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(map.auxiliary_space().size(), 2u);
+        ARIADNE_TESTING_EXPECT_EQUAL(map.state_auxiliary_space().size(), 3u);
+        ARIADNE_TESTING_NOTE(map);
     }
 }
 
@@ -75,33 +80,35 @@ Void test_vector_field()
     RealVariable x("x"), y("y"), a("a");
     {
         VectorField field(List<DottedRealAssignment>{dot(x)=-x, dot(y)=y});
-        ARIADNE_TEST_EQUALS(field.dimension(), 2u);
-        ARIADNE_TEST_ASSERT(field.state_space() == RealSpace({x,y}));
-        ARIADNE_TEST_EQUALS(field.auxiliary_space().size(), 0u);
-        ARIADNE_TEST_EQUALS(field.state_auxiliary_space().size(), 2u);
-        ARIADNE_TEST_ASSERT(&field.function() == &field.dynamic_function());
-        ARIADNE_TEST_ASSERT(&field.auxiliary_function() == &field.auxiliary_mapping());
+        ARIADNE_TESTING_EXPECT_EQUAL(field.dimension(), 2u);
+        ARIADNE_TESTING_PROVE(field.state_space() == RealSpace({x,y}));
+        ARIADNE_TESTING_EXPECT_EQUAL(field.auxiliary_space().size(), 0u);
+        ARIADNE_TESTING_EXPECT_EQUAL(field.state_auxiliary_space().size(), 2u);
+        ARIADNE_TESTING_PROVE(&field.function() == &field.dynamic_function());
+        ARIADNE_TESTING_PROVE(&field.auxiliary_function() == &field.auxiliary_mapping());
         VectorField* copy = field.clone();
-        ARIADNE_TEST_ASSERT(copy != nullptr);
-        ARIADNE_TEST_EQUALS(copy->dimension(), 2u);
+        ARIADNE_TESTING_PROVE(copy != nullptr);
+        ARIADNE_TESTING_EXPECT_EQUAL(copy->dimension(), 2u);
         delete copy;
-        ARIADNE_TEST_PRINT(field);
+        ARIADNE_TESTING_NOTE(field);
     }
     {
         VectorField field(List<DottedRealAssignment>{dot(x)=-x},
                           List<RealAssignment>{let(a)=x});
-        ARIADNE_TEST_ASSERT(field.auxiliary_space() == RealSpace({a}));
-        ARIADNE_TEST_EQUALS(field.state_auxiliary_space().size(), 2u);
-        ARIADNE_TEST_PRINT(field);
+        ARIADNE_TESTING_PROVE(field.auxiliary_space() == RealSpace({a}));
+        ARIADNE_TESTING_EXPECT_EQUAL(field.state_auxiliary_space().size(), 2u);
+        ARIADNE_TESTING_NOTE(field);
     }
     // A right-hand-side variable without a dynamics assignment is rejected.
-    ARIADNE_TEST_THROWS(VectorField(List<DottedRealAssignment>{dot(x)=y}),
-                        std::runtime_error);
+    ARIADNE_TESTING_EXPECT_THROWS(std::runtime_error, VectorField(List<DottedRealAssignment>{dot(x)=y}));
 }
 
-Int main()
-{
-    ARIADNE_TEST_CALL(test_iterated_map());
-    ARIADNE_TEST_CALL(test_vector_field());
-    return ARIADNE_TEST_FAILURES;
+
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_dynamics");
+    ARIADNE_TESTING_ADD_TEST(TestDynamics, test_iterated_map);
+    ARIADNE_TESTING_ADD_TEST(TestDynamics, test_vector_field);
+    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
 }

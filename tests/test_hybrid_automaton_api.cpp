@@ -29,7 +29,7 @@
 
 #include <sstream>
 
-#include "macro/testing.hpp"
+#include "ariadne-testing.hpp"
 
 #include "symbolic/variable.hpp"
 #include "symbolic/expression.hpp"
@@ -43,10 +43,10 @@
 
 using namespace Ariadne;
 
-class TestHybridAutomatonApi {
+class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
   public:
-    Void test();
-  private:
+    using ContextFixture::ContextFixture;
+  public:
     Void test_constructors();
     Void test_modes_and_errors();
     Void test_invariants_guards_transitions();
@@ -54,6 +54,7 @@ class TestHybridAutomatonApi {
     Void test_check_mode_errors();
     Void test_writers_and_streaming();
 
+  private:
     HybridAutomaton _make_automaton() const;
 };
 
@@ -80,11 +81,11 @@ Void TestHybridAutomatonApi::test_constructors()
     HybridAutomaton ha0;
     HybridAutomaton ha1("named");
     HybridAutomaton ha2("named2", List<StringVariable>{q});
-    ARIADNE_TEST_EQUALS(ha1.name(), Identifier("named"));
-    ARIADNE_TEST_EQUALS(ha0.locations().size(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha1.name(), Identifier("named"));
+    ARIADNE_TESTING_EXPECT_EQUAL(ha0.locations().size(), 0u);
     HybridAutomaton* copy=ha1.clone();
-    ARIADNE_TEST_ASSERT(copy!=nullptr);
-    ARIADNE_TEST_EQUALS(copy->name(), Identifier("named"));
+    ARIADNE_TESTING_PROVE(copy!=nullptr);
+    ARIADNE_TESTING_EXPECT_EQUAL(copy->name(), Identifier("named"));
     delete copy;
 
     // DiscreteMode objects are only created through HybridAutomaton.
@@ -93,7 +94,7 @@ Void TestHybridAutomatonApi::test_constructors()
     DiscreteLocation q1({q|"1"});
     ha.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
     DiscreteMode dm=ha.mode(q1);
-    ARIADNE_TEST_EQUALS(dm.location(), q1);
+    ARIADNE_TESTING_EXPECT_EQUAL(dm.location(), q1);
 }
 
 Void TestHybridAutomatonApi::test_modes_and_errors()
@@ -104,44 +105,39 @@ Void TestHybridAutomatonApi::test_modes_and_errors()
 
     HybridAutomaton ha;
     // All new_mode overloads.
-    ARIADNE_TEST_EXECUTE(ha.new_mode(q1,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_mode(q1,
         List<RealAssignment>{let(a)=x+1},
         List<DottedRealAssignment>{dot(x)=-x, dot(y)=y}));
-    ARIADNE_TEST_EXECUTE(ha.new_mode(q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_mode(q2,
         List<DottedRealAssignment>{dot(x)=x},
         List<RealAssignment>{}));
-    ARIADNE_TEST_THROWS(ha.new_mode(q1), IndistinguishableModeError);
+    ARIADNE_TESTING_EXPECT_THROWS(IndistinguishableModeError, ha.new_mode(q1));
     // Variable defined twice by the algebraic equations.
-    ARIADNE_TEST_THROWS(
-        HybridAutomaton().new_mode(q2,
+    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, HybridAutomaton().new_mode(q2,
             List<RealAssignment>{let(a)=x, let(a)=y},
-            List<DottedRealAssignment>{}),
-        SystemSpecificationError);
+            List<DottedRealAssignment>{}));
     // Differential variable also defined algebraically.
-    ARIADNE_TEST_THROWS(
-        HybridAutomaton().new_mode(q2,
+    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, HybridAutomaton().new_mode(q2,
             List<RealAssignment>{let(x)=1},
-            List<DottedRealAssignment>{dot(x)=x}),
-        SystemSpecificationError);
+            List<DottedRealAssignment>{dot(x)=x}));
     // Overloads without a location all use the empty location, so each
     // needs a fresh automaton.
-    ARIADNE_TEST_EXECUTE(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
         List<RealAssignment>{let(a)=x}, List<DottedRealAssignment>{dot(x)=x}));
-    ARIADNE_TEST_EXECUTE(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
         List<DottedRealAssignment>{dot(x)=x}, List<RealAssignment>{let(a)=x}));
-    ARIADNE_TEST_EXECUTE(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
         List<DottedRealAssignment>{dot(x)=x}));
-    ARIADNE_TEST_EXECUTE(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
         List<RealAssignment>{let(a)=x}));
     HybridAutomaton hb;
-    ARIADNE_TEST_EXECUTE(hb.new_mode(DiscreteLocation(1)));
-    ARIADNE_TEST_EXECUTE(hb.new_mode(DiscreteLocation(2),
+    ARIADNE_TESTING_EXPECT_NO_THROW(hb.new_mode(DiscreteLocation(1)));
+    ARIADNE_TESTING_EXPECT_NO_THROW(hb.new_mode(DiscreteLocation(2),
                                      List<DottedRealAssignment>{dot(x)=x}));
-    ARIADNE_TEST_EXECUTE(hb.new_mode(DiscreteLocation(3),
+    ARIADNE_TESTING_EXPECT_NO_THROW(hb.new_mode(DiscreteLocation(3),
                                      List<RealAssignment>{let(a)=x}));
-    ARIADNE_TEST_THROWS(hb.new_mode(DiscreteLocation(1)),
-                        IndistinguishableModeError);
-    ARIADNE_TEST_EQUALS(ha.locations().size(), 2u);
+    ARIADNE_TESTING_EXPECT_THROWS(IndistinguishableModeError, hb.new_mode(DiscreteLocation(1)));
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.locations().size(), 2u);
 }
 
 Void TestHybridAutomatonApi::test_invariants_guards_transitions()
@@ -156,71 +152,65 @@ Void TestHybridAutomatonApi::test_invariants_guards_transitions()
     ha.new_mode(q2, List<DottedRealAssignment>{dot(x)=-x});
 
     // Error paths for a nonexistent location.
-    ARIADNE_TEST_THROWS(ha.new_invariant(q9, x<=1, e1), NonExistentModeError);
-    ARIADNE_TEST_THROWS(ha.new_guard(q9, e1, x>=0, EventKind::PERMISSIVE),
-                        NonExistentModeError);
-    ARIADNE_TEST_THROWS(ha.new_action(q9, x<=1, e1, x>=0), NonExistentModeError);
-    ARIADNE_TEST_THROWS(ha.new_action(q9, e1, x>=0), NonExistentModeError);
+    ARIADNE_TESTING_EXPECT_THROWS(NonExistentModeError, ha.new_invariant(q9, x<=1, e1));
+    ARIADNE_TESTING_EXPECT_THROWS(NonExistentModeError, ha.new_guard(q9, e1, x>=0, EventKind::PERMISSIVE));
+    ARIADNE_TESTING_EXPECT_THROWS(NonExistentModeError, ha.new_action(q9, x<=1, e1, x>=0));
+    ARIADNE_TESTING_EXPECT_THROWS(NonExistentModeError, ha.new_action(q9, e1, x>=0));
 
-    ARIADNE_TEST_EXECUTE(ha.new_invariant(q1, x<=1, e1));
-    ARIADNE_TEST_EXECUTE(ha.set_invariant(q1, x<=2, e1));
-    ARIADNE_TEST_EXECUTE(ha.new_guard(q1, e2, x>=0, EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.set_guard(q1, e2, x>=1, EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.new_action(q1, x<=1, e3, x>=0, EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.new_action(q1, e4, x>=0, EventKind::URGENT));
-    ARIADNE_TEST_EXECUTE(ha.new_action(q1, e5, x>=0, EventKind::IMPACT));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_invariant(q1, x<=1, e1));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.set_invariant(q1, x<=2, e1));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_guard(q1, e2, x>=0, EventKind::PERMISSIVE));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.set_guard(q1, e2, x>=1, EventKind::PERMISSIVE));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_action(q1, x<=1, e3, x>=0, EventKind::PERMISSIVE));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_action(q1, e4, x>=0, EventKind::URGENT));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_action(q1, e5, x>=0, EventKind::IMPACT));
     // Wrong event kind for each new_action overload trips the assertion.
-    ARIADNE_TEST_THROWS(ha.new_action(q1, x<=1, DiscreteEvent("w1"), x>=0,
-                                      EventKind::URGENT),
-                        std::runtime_error);
-    ARIADNE_TEST_THROWS(ha.new_action(q1, DiscreteEvent("w2"), x>=0,
-                                      EventKind::PERMISSIVE),
-                        std::runtime_error);
+    ARIADNE_TESTING_EXPECT_THROWS(std::runtime_error, ha.new_action(q1, x<=1, DiscreteEvent("w1"), x>=0,
+                                      EventKind::URGENT));
+    ARIADNE_TESTING_EXPECT_THROWS(std::runtime_error, ha.new_action(q1, DiscreteEvent("w2"), x>=0,
+                                      EventKind::PERMISSIVE));
 
     // Re-declaring a constraint for the same event is an error.
-    ARIADNE_TEST_THROWS(ha.new_invariant(q1, x<=3, e1), MultipleGuardError);
-    ARIADNE_TEST_THROWS(ha.new_guard(q1, e2, x<=3, EventKind::PERMISSIVE),
-                        MultipleGuardError);
-    ARIADNE_TEST_THROWS(ha.new_action(q1, x<=3, e3, x>=1), MultipleGuardError);
+    ARIADNE_TESTING_EXPECT_THROWS(MultipleGuardError, ha.new_invariant(q1, x<=3, e1));
+    ARIADNE_TESTING_EXPECT_THROWS(MultipleGuardError, ha.new_guard(q1, e2, x<=3, EventKind::PERMISSIVE));
+    ARIADNE_TESTING_EXPECT_THROWS(MultipleGuardError, ha.new_action(q1, x<=3, e3, x>=1));
 
     // Transitions of each kind.
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q1, e6, q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q1, e6, q2,
         List<PrimedRealAssignment>{prime(x)=2*x}, x>=0, EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q2, DiscreteEvent("u"), q1,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q2, DiscreteEvent("u"), q1,
         List<PrimedRealAssignment>{prime(x)=x}, x>=0, EventKind::URGENT));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q2, DiscreteEvent("i"), q1, x>=0,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q2, DiscreteEvent("i"), q1, x>=0,
         EventKind::IMPACT));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q1, DiscreteEvent("p"), q2, x>=0,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q1, DiscreteEvent("p"), q2, x>=0,
         EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q1, DiscreteEvent("k"), x>=0, q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q1, DiscreteEvent("k"), x>=0, q2,
         EventKind::PERMISSIVE));
-    ARIADNE_TEST_EXECUTE(ha.new_update(q1, DiscreteEvent("w"), q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_update(q1, DiscreteEvent("w"), q2,
         List<PrimedRealAssignment>{prime(x)=x}));
-    ARIADNE_TEST_EXECUTE(ha.new_update(q1, DiscreteEvent("x"), q2));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_update(q1, DiscreteEvent("x"), q2));
     // Overloads without a source location need an automaton with the
     // empty location.
     HybridAutomaton he;
     he.new_mode(DiscreteLocation(), List<DottedRealAssignment>{dot(x)=x});
-    ARIADNE_TEST_EXECUTE(he.new_update(DiscreteEvent("y"),
+    ARIADNE_TESTING_EXPECT_NO_THROW(he.new_update(DiscreteEvent("y"),
         List<PrimedRealAssignment>{prime(x)=x}));
-    ARIADNE_TEST_EXECUTE(ha.new_reset(q1, DiscreteEvent("z"), q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_reset(q1, DiscreteEvent("z"), q2,
         List<PrimedRealAssignment>{prime(x)=x}));
-    ARIADNE_TEST_EXECUTE(ha.new_reset(q1, DiscreteEvent("v"), q2));
-    ARIADNE_TEST_EXECUTE(he.new_reset(DiscreteEvent("u2"),
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_reset(q1, DiscreteEvent("v"), q2));
+    ARIADNE_TESTING_EXPECT_NO_THROW(he.new_reset(DiscreteEvent("u2"),
         List<PrimedRealAssignment>{prime(x)=x}));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q1, DiscreteEvent("n"), q2,
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q1, DiscreteEvent("n"), q2,
         List<PrimedRealAssignment>{prime(x)=x}));
-    ARIADNE_TEST_EXECUTE(ha.new_transition(q1, DiscreteEvent("m"), q2));
-    ARIADNE_TEST_EXECUTE(he.new_transition(DiscreteEvent("g"),
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_transition(q1, DiscreteEvent("m"), q2));
+    ARIADNE_TESTING_EXPECT_NO_THROW(he.new_transition(DiscreteEvent("g"),
         List<PrimedRealAssignment>{prime(x)=x}, x>=0, EventKind::PERMISSIVE));
     // An unhandled event kind for a transition is rejected.
-    ARIADNE_TEST_THROWS(ha.new_transition(q1, DiscreteEvent("b"), q2,
-        List<PrimedRealAssignment>{}, x>=0, EventKind::INVARIANT),
-        std::runtime_error);
+    ARIADNE_TESTING_EXPECT_THROWS(std::runtime_error, ha.new_transition(q1, DiscreteEvent("b"), q2,
+        List<PrimedRealAssignment>{}, x>=0, EventKind::INVARIANT));
     // Multiple transitions for the same event are rejected.
-    ARIADNE_TEST_THROWS(ha.new_transition(q1, e6, q1,
-        List<PrimedRealAssignment>{}, x>=0, EventKind::PERMISSIVE),
-        MultipleGuardError);
+    ARIADNE_TESTING_EXPECT_THROWS(MultipleGuardError, ha.new_transition(q1, e6, q1,
+        List<PrimedRealAssignment>{}, x>=0, EventKind::PERMISSIVE));
 }
 
 Void TestHybridAutomatonApi::test_accessors()
@@ -231,58 +221,58 @@ Void TestHybridAutomatonApi::test_accessors()
     DiscreteLocation q1({q|"1"}), q2({q|"2"}), q9({q|"9"});
     DiscreteEvent e1("e1"), e2("e2"), e_none("none");
 
-    ARIADNE_TEST_EQUALS(ha.locations().size(), 2u);
-    ARIADNE_TEST_ASSERT(ha.has_location(q1));
-    ARIADNE_TEST_ASSERT(!ha.has_location(q9));
-    ARIADNE_TEST_ASSERT(ha.has_mode(q1));
-    ARIADNE_TEST_ASSERT(ha.has_partial_mode(q1));
-    ARIADNE_TEST_ASSERT(!ha.has_mode(q9));
-    ARIADNE_TEST_ASSERT(ha.modes().has_key(q1));
-    ARIADNE_TEST_ASSERT(ha.mode(q1).location()==q1);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.locations().size(), 2u);
+    ARIADNE_TESTING_PROVE(ha.has_location(q1));
+    ARIADNE_TESTING_PROVE(!ha.has_location(q9));
+    ARIADNE_TESTING_PROVE(ha.has_mode(q1));
+    ARIADNE_TESTING_PROVE(ha.has_partial_mode(q1));
+    ARIADNE_TESTING_PROVE(!ha.has_mode(q9));
+    ARIADNE_TESTING_PROVE(ha.modes().has_key(q1));
+    ARIADNE_TESTING_PROVE(ha.mode(q1).location()==q1);
     DiscreteMode& mutable_mode=ha.mode(q1);
-    ARIADNE_TEST_ASSERT(mutable_mode.location()==q1);
-    ARIADNE_TEST_THROWS(ha.mode(q9), SystemSpecificationError);
+    ARIADNE_TESTING_PROVE(mutable_mode.location()==q1);
+    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, ha.mode(q9));
 
-    ARIADNE_TEST_EQUALS(ha.dimension(q1), 2u);
-    ARIADNE_TEST_ASSERT(ha.continuous_state_space(q1)==RealSpace({x,y}));
-    ARIADNE_TEST_ASSERT(ha.continuous_auxiliary_space(q1)==RealSpace({a}));
-    ARIADNE_TEST_ASSERT(ha.state_space().has_location(q1));
-    ARIADNE_TEST_ASSERT(ha.state_auxiliary_space().has_location(q1));
-    ARIADNE_TEST_EQUALS(ha.state_auxiliary_space()[q1].size(), 3u);
-    ARIADNE_TEST_EQUALS(ha.state_variables(q1).size(), 2u);
-    ARIADNE_TEST_EQUALS(ha.auxiliary_variables(q1).size(), 1u);
-    ARIADNE_TEST_EQUALS(ha.auxiliary_assignments(q1).size(), 1u);
-    ARIADNE_TEST_EQUALS(ha.dynamic_assignments(q1).size(), 2u);
-    ARIADNE_TEST_EQUALS(ha.input_variables(q1).size(), 0u);
-    ARIADNE_TEST_ASSERT(ha.has_invariant(q1,e1));
-    ARIADNE_TEST_ASSERT(!ha.has_invariant(q1,e2));
-    ARIADNE_TEST_ASSERT(ha.has_guard(q1,e2));
-    ARIADNE_TEST_ASSERT(ha.has_transition(q1,e2));
-    ARIADNE_TEST_ASSERT(!ha.has_transition(q1,e1));
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.dimension(q1), 2u);
+    ARIADNE_TESTING_PROVE(ha.continuous_state_space(q1)==RealSpace({x,y}));
+    ARIADNE_TESTING_PROVE(ha.continuous_auxiliary_space(q1)==RealSpace({a}));
+    ARIADNE_TESTING_PROVE(ha.state_space().has_location(q1));
+    ARIADNE_TESTING_PROVE(ha.state_auxiliary_space().has_location(q1));
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.state_auxiliary_space()[q1].size(), 3u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.state_variables(q1).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.auxiliary_variables(q1).size(), 1u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.auxiliary_assignments(q1).size(), 1u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.dynamic_assignments(q1).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.input_variables(q1).size(), 0u);
+    ARIADNE_TESTING_PROVE(ha.has_invariant(q1,e1));
+    ARIADNE_TESTING_PROVE(!ha.has_invariant(q1,e2));
+    ARIADNE_TESTING_PROVE(ha.has_guard(q1,e2));
+    ARIADNE_TESTING_PROVE(ha.has_transition(q1,e2));
+    ARIADNE_TESTING_PROVE(!ha.has_transition(q1,e1));
     // Short-circuit when the source location does not exist.
-    ARIADNE_TEST_ASSERT(!ha.has_transition(q9,e2));
-    ARIADNE_TEST_ASSERT(!ha.has_invariant(q9,e1));
-    ARIADNE_TEST_ASSERT(!ha.has_guard(q9,e2));
-    ARIADNE_TEST_EQUALS(ha.event_kind(q1,e1), EventKind::INVARIANT);
-    ARIADNE_TEST_EQUALS(ha.event_kind(q1,e2), EventKind::PERMISSIVE);
-    ARIADNE_TEST_ASSERT(ha.events(q1).size()>=2u);
-    ARIADNE_TEST_EQUALS(ha.target(q1,e2), q2);
-    ARIADNE_TEST_EQUALS(ha.target(q1,e_none), q1);
-    ARIADNE_TEST_EQUALS(ha.reset_assignments(q1,e2).size(), 1u);
-    ARIADNE_TEST_EQUALS(ha.reset_assignments(q1,e_none).size(), 2u);
-    ARIADNE_TEST_PRINT(ha.invariant_predicate(q1,e1));
-    ARIADNE_TEST_PRINT(ha.guard_predicate(q1,e2));
-    ARIADNE_TEST_PRINT(ha.invariant_predicate(q1,e_none));
-    ARIADNE_TEST_PRINT(ha.guard_predicate(q1,e_none));
-    ARIADNE_TEST_PRINT(ha.auxiliary_function(q1));
-    ARIADNE_TEST_PRINT(ha.dynamic_function(q1));
-    ARIADNE_TEST_PRINT(ha.invariant_function(q1,e1));
-    ARIADNE_TEST_PRINT(ha.guard_function(q1,e2));
-    ARIADNE_TEST_PRINT(ha.reset_function(q1,e2));
-    ARIADNE_TEST_EXECUTE(ha.check_mode(q1));
-    ARIADNE_TEST_EXECUTE(ha.check_mode(q2));
-    ARIADNE_TEST_EXECUTE(ha.check_reachable_modes(Set<DiscreteLocation>{q1}));
-    ARIADNE_TEST_ASSERT(ha.discrete_reachability(Set<DiscreteLocation>{q1}).contains(q2));
+    ARIADNE_TESTING_PROVE(!ha.has_transition(q9,e2));
+    ARIADNE_TESTING_PROVE(!ha.has_invariant(q9,e1));
+    ARIADNE_TESTING_PROVE(!ha.has_guard(q9,e2));
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.event_kind(q1,e1), EventKind::INVARIANT);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.event_kind(q1,e2), EventKind::PERMISSIVE);
+    ARIADNE_TESTING_PROVE(ha.events(q1).size()>=2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.target(q1,e2), q2);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.target(q1,e_none), q1);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.reset_assignments(q1,e2).size(), 1u);
+    ARIADNE_TESTING_EXPECT_EQUAL(ha.reset_assignments(q1,e_none).size(), 2u);
+    ARIADNE_TESTING_NOTE(ha.invariant_predicate(q1,e1));
+    ARIADNE_TESTING_NOTE(ha.guard_predicate(q1,e2));
+    ARIADNE_TESTING_NOTE(ha.invariant_predicate(q1,e_none));
+    ARIADNE_TESTING_NOTE(ha.guard_predicate(q1,e_none));
+    ARIADNE_TESTING_NOTE(ha.auxiliary_function(q1));
+    ARIADNE_TESTING_NOTE(ha.dynamic_function(q1));
+    ARIADNE_TESTING_NOTE(ha.invariant_function(q1,e1));
+    ARIADNE_TESTING_NOTE(ha.guard_function(q1,e2));
+    ARIADNE_TESTING_NOTE(ha.reset_function(q1,e2));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.check_mode(q1));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.check_mode(q2));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ha.check_reachable_modes(Set<DiscreteLocation>{q1}));
+    ARIADNE_TESTING_PROVE(ha.discrete_reachability(Set<DiscreteLocation>{q1}).contains(q2));
 }
 
 Void TestHybridAutomatonApi::test_check_mode_errors()
@@ -296,25 +286,25 @@ Void TestHybridAutomatonApi::test_check_mode_errors()
         HybridAutomaton bad;
         bad.new_mode(q1, List<RealAssignment>{let(a)=z},
                         List<DottedRealAssignment>{dot(x)=x});
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
         bad.new_mode(q1, List<RealAssignment>{let(a)=x},
                         List<DottedRealAssignment>{dot(x)=x+z});
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
         bad.new_invariant(q1, z<=1, e1);
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedConstraintError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
         bad.new_guard(q1, e2, z>=0, EventKind::PERMISSIVE);
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedConstraintError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
@@ -322,7 +312,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors()
         bad.new_mode(q2, List<DottedRealAssignment>{dot(x)=x});
         bad.new_transition(q1, e3, q2,
             List<PrimedRealAssignment>{prime(x)=z}, x>=0, EventKind::PERMISSIVE);
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedResetError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
@@ -331,7 +321,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors()
         bad.new_transition(q1, e3, q2,
             List<PrimedRealAssignment>{prime(x)=x}, x>=0, EventKind::PERMISSIVE);
         // The reset does not define the target variable a.
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedResetError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, bad.check_mode(q1));
     }
     {
         HybridAutomaton bad;
@@ -341,7 +331,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors()
         bad.new_transition(q1, e3, q2,
             List<PrimedRealAssignment>{prime(x)=x, prime(a)=x}, x>=0,
             EventKind::PERMISSIVE);
-        ARIADNE_TEST_THROWS(bad.check_mode(q1), UnderspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, bad.check_mode(q1));
     }
 }
 
@@ -355,19 +345,19 @@ Void TestHybridAutomatonApi::test_writers_and_streaming()
 
     std::ostringstream verbose;
     verbose << ha;
-    ARIADNE_TEST_ASSERT(verbose.str().size()>0u);
+    ARIADNE_TESTING_PROVE(verbose.str().size()>0u);
 
     Writer<HybridAutomaton> previous=HybridAutomaton::default_writer();
     HybridAutomaton::set_default_writer(CompactHybridAutomatonWriter());
     std::ostringstream compact;
     compact << ha;
-    ARIADNE_TEST_ASSERT(compact.str().size()>0u);
+    ARIADNE_TESTING_PROVE(compact.str().size()>0u);
     // A single-mode automaton takes the non-multiple branch.
     HybridAutomaton single_mode;
     single_mode.new_mode(DiscreteLocation(1), List<DottedRealAssignment>{dot(x)=x});
     std::ostringstream compact_single;
     compact_single << single_mode;
-    ARIADNE_TEST_ASSERT(compact_single.str().size()>0u);
+    ARIADNE_TESTING_PROVE(compact_single.str().size()>0u);
     HybridAutomaton::set_default_writer(previous);
 
     DiscreteMode mode=ha.mode(q1);
@@ -377,7 +367,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming()
     DiscreteMode::set_default_writer(CompactDiscreteModeWriter());
     std::ostringstream mode_compact;
     mode_compact << mode;
-    ARIADNE_TEST_ASSERT(mode_compact.str().size()>0u);
+    ARIADNE_TESTING_PROVE(mode_compact.str().size()>0u);
     // Empty, auxiliary-only, dynamic-only and reset-less modes cover the
     // remaining compact-writer branches.
     {
@@ -390,7 +380,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming()
         for (auto const& m : bare.modes().values()) {
             std::ostringstream os;
             os << m;
-            ARIADNE_TEST_ASSERT(os.str().size()>0u);
+            ARIADNE_TESTING_PROVE(os.str().size()>0u);
         }
         HybridAutomaton bare_empty;
         bare_empty.new_mode(DiscreteLocation());
@@ -406,21 +396,19 @@ Void TestHybridAutomatonApi::test_writers_and_streaming()
     kinds << EventKind::INVARIANT << " " << EventKind::PROGRESS << " "
           << EventKind::PERMISSIVE << " " << EventKind::URGENT << " "
           << EventKind::IMPACT;
-    ARIADNE_TEST_PRINT(kinds.str());
+    ARIADNE_TESTING_NOTE(kinds.str());
 }
 
-Void TestHybridAutomatonApi::test()
-{
-    ARIADNE_TEST_CALL(test_constructors());
-    ARIADNE_TEST_CALL(test_modes_and_errors());
-    ARIADNE_TEST_CALL(test_invariants_guards_transitions());
-    ARIADNE_TEST_CALL(test_accessors());
-    ARIADNE_TEST_CALL(test_check_mode_errors());
-    ARIADNE_TEST_CALL(test_writers_and_streaming());
-}
 
-Int main()
-{
-    ARIADNE_TEST_CALL(TestHybridAutomatonApi().test());
-    return ARIADNE_TEST_FAILURES;
+
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_hybrid_automaton_api");
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_constructors);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_modes_and_errors);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_invariants_guards_transitions);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_accessors);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_check_mode_errors);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_writers_and_streaming);
+    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
 }

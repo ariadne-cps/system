@@ -29,7 +29,7 @@
 
 #include <sstream>
 
-#include "macro/testing.hpp"
+#include "ariadne-testing.hpp"
 
 #include "symbolic/variable.hpp"
 #include "symbolic/expression.hpp"
@@ -45,13 +45,14 @@
 
 using namespace Ariadne;
 
-class TestCompositeHybridAutomaton {
+class TestCompositeHybridAutomaton : public Ariadne::Testing::ContextFixture {
   public:
-    Void test();
+    using ContextFixture::ContextFixture;
   private:
     HybridAutomaton _component(Identifier name, Identifier variable) const;
     CompositeHybridAutomaton _composite() const;
 
+  public:
     Void test_constructors_and_components();
     Void test_accessors();
     Void test_spaces();
@@ -86,42 +87,41 @@ CompositeHybridAutomaton TestCompositeHybridAutomaton::_composite() const
 Void TestCompositeHybridAutomaton::test_constructors_and_components()
 {
     CompositeHybridAutomaton empty;
-    ARIADNE_TEST_EQUALS(empty.number_of_components(), 0u);
-    ARIADNE_TEST_EQUALS(empty.name(), Identifier("system"));
+    ARIADNE_TESTING_EXPECT_EQUAL(empty.number_of_components(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(empty.name(), Identifier("system"));
     // An empty component list is a precondition violation.
-    ARIADNE_TEST_THROWS(CompositeHybridAutomaton(List<HybridAutomaton>{}),
-                        std::invalid_argument);
+    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, CompositeHybridAutomaton(List<HybridAutomaton>{}));
 
     CompositeHybridAutomaton named("custom");
-    ARIADNE_TEST_EQUALS(named.name(), Identifier("custom"));
+    ARIADNE_TESTING_EXPECT_EQUAL(named.name(), Identifier("custom"));
 
     HybridAutomaton solo=_component("solo","x");
     CompositeHybridAutomaton from_single(solo);
-    ARIADNE_TEST_EQUALS(from_single.number_of_components(), 1u);
-    ARIADNE_TEST_EQUALS(from_single.name(), Identifier("solo"));
+    ARIADNE_TESTING_EXPECT_EQUAL(from_single.number_of_components(), 1u);
+    ARIADNE_TESTING_EXPECT_EQUAL(from_single.name(), Identifier("solo"));
 
     CompositeHybridAutomaton pair(List<HybridAutomaton>{_component("a","x"), _component("b","y")});
-    ARIADNE_TEST_EQUALS(pair.number_of_components(), 2u);
-    ARIADNE_TEST_EQUALS(pair.name(), Identifier("a&b"));
-    ARIADNE_TEST_EQUALS(pair.component(0u).name(), Identifier("a"));
-    ARIADNE_TEST_EQUALS(pair.component(1u).name(), Identifier("b"));
+    ARIADNE_TESTING_EXPECT_EQUAL(pair.number_of_components(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(pair.name(), Identifier("a&b"));
+    ARIADNE_TESTING_EXPECT_EQUAL(pair.component(0u).name(), Identifier("a"));
+    ARIADNE_TESTING_EXPECT_EQUAL(pair.component(1u).name(), Identifier("b"));
 
     CompositeHybridAutomaton named_two("named", List<HybridAutomaton>{_component("a","x")});
-    ARIADNE_TEST_EQUALS(named_two.name(), Identifier("named"));
-    ARIADNE_TEST_EQUALS(named_two.number_of_components(), 1u);
+    ARIADNE_TESTING_EXPECT_EQUAL(named_two.name(), Identifier("named"));
+    ARIADNE_TESTING_EXPECT_EQUAL(named_two.number_of_components(), 1u);
 
     CompositeHybridAutomaton composed=parallel_composition(
         List<HybridAutomaton>{_component("a","x"), _component("b","y")});
-    ARIADNE_TEST_EQUALS(composed.name(), Identifier("a&b"));
-    ARIADNE_TEST_EQUALS(composed.number_of_components(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(composed.name(), Identifier("a&b"));
+    ARIADNE_TESTING_EXPECT_EQUAL(composed.number_of_components(), 2u);
 
     CompositeHybridAutomaton* copy=pair.clone();
-    ARIADNE_TEST_ASSERT(copy!=nullptr);
-    ARIADNE_TEST_EQUALS(copy->number_of_components(), 2u);
+    ARIADNE_TESTING_PROVE(copy!=nullptr);
+    ARIADNE_TESTING_EXPECT_EQUAL(copy->number_of_components(), 2u);
     delete copy;
     SizeType counted=0u;
     for (auto it=pair.begin(); it!=pair.end(); ++it) ++counted;
-    ARIADNE_TEST_EQUALS(counted, 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(counted, 2u);
 }
 
 Void TestCompositeHybridAutomaton::test_accessors()
@@ -132,49 +132,49 @@ Void TestCompositeHybridAutomaton::test_accessors()
     DiscreteLocation q1({q|"1"}), q2({q|"2"}), q9({q|"9"});
     DiscreteEvent e("e"), e_none("none");
 
-    ARIADNE_TEST_ASSERT(system.has_mode(q1));
-    ARIADNE_TEST_ASSERT(system.has_mode(q2));
-    ARIADNE_TEST_ASSERT(!system.has_mode(q9));
-    ARIADNE_TEST_ASSERT(system.has_partial_mode(q1));
-    ARIADNE_TEST_ASSERT(!system.has_partial_mode(q9));
-    ARIADNE_TEST_ASSERT(system.has_transition(q1,e));
-    ARIADNE_TEST_ASSERT(!system.has_transition(q1,e_none));
-    ARIADNE_TEST_ASSERT(system.has_guard(q1,e));
-    ARIADNE_TEST_ASSERT(!system.has_guard(q1,e_none));
-    ARIADNE_TEST_ASSERT(!system.has_invariant(q1,e));
+    ARIADNE_TESTING_PROVE(system.has_mode(q1));
+    ARIADNE_TESTING_PROVE(system.has_mode(q2));
+    ARIADNE_TESTING_PROVE(!system.has_mode(q9));
+    ARIADNE_TESTING_PROVE(system.has_partial_mode(q1));
+    ARIADNE_TESTING_PROVE(!system.has_partial_mode(q9));
+    ARIADNE_TESTING_PROVE(system.has_transition(q1,e));
+    ARIADNE_TESTING_PROVE(!system.has_transition(q1,e_none));
+    ARIADNE_TESTING_PROVE(system.has_guard(q1,e));
+    ARIADNE_TESTING_PROVE(!system.has_guard(q1,e_none));
+    ARIADNE_TESTING_PROVE(!system.has_invariant(q1,e));
     // A component with an invariant makes has_invariant true.
     {
         HybridAutomaton a=_component("a","x");
         DiscreteEvent inv_event("inv");
         a.new_invariant(q1, x<=1, inv_event);
         CompositeHybridAutomaton with_inv(a);
-        ARIADNE_TEST_ASSERT(with_inv.has_invariant(q1,inv_event));
+        ARIADNE_TESTING_PROVE(with_inv.has_invariant(q1,inv_event));
     }
 
-    ARIADNE_TEST_EQUALS(system.mode(q1).location(), q1);
-    ARIADNE_TEST_EQUALS(system.mode(q1).location(), q1); // cached
-    ARIADNE_TEST_EQUALS(system.dimension(q1), 2u);
-    ARIADNE_TEST_EQUALS(system.state_variables(q1).size(), 2u);
-    ARIADNE_TEST_EQUALS(system.auxiliary_variables(q1).size(), 0u);
-    ARIADNE_TEST_EQUALS(system.variables(q1).size(), 2u);
-    ARIADNE_TEST_EQUALS(system.auxiliary_assignments(q1).size(), 0u);
-    ARIADNE_TEST_EQUALS(system.sorted_auxiliary_assignments(q1).size(), 0u);
-    ARIADNE_TEST_EQUALS(system.dynamic_assignments(q1).size(), 2u);
-    ARIADNE_TEST_EQUALS(system.reset_assignments(q1,e).size(), 2u);
-    ARIADNE_TEST_EQUALS(system.reset_assignments(q1,e_none).size(), 2u);
-    ARIADNE_TEST_ASSERT(system.continuous_state_space(q1)==RealSpace({x,y}));
-    ARIADNE_TEST_EQUALS(system.continuous_auxiliary_space(q1).size(), 0u);
-    ARIADNE_TEST_EQUALS(system.continuous_state_auxiliary_space(q1).size(), 2u);
-    ARIADNE_TEST_ASSERT(system.events(q1).contains(e));
-    ARIADNE_TEST_EQUALS(system.event_kind(q1,e), EventKind::PERMISSIVE);
-    ARIADNE_TEST_EQUALS(system.target(q1,e), q2);
-    ARIADNE_TEST_PRINT(system.invariant_predicate(q1,e));
-    ARIADNE_TEST_PRINT(system.guard_predicate(q1,e));
-    ARIADNE_TEST_PRINT(system.auxiliary_function(q1));
-    ARIADNE_TEST_PRINT(system.dynamic_function(q1));
-    ARIADNE_TEST_PRINT(system.reset_function(q1,e));
-    ARIADNE_TEST_PRINT(system.invariant_function(q1,e));
-    ARIADNE_TEST_PRINT(system.guard_function(q1,e));
+    ARIADNE_TESTING_EXPECT_EQUAL(system.mode(q1).location(), q1);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.mode(q1).location(), q1); // cached
+    ARIADNE_TESTING_EXPECT_EQUAL(system.dimension(q1), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.state_variables(q1).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.auxiliary_variables(q1).size(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.variables(q1).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.auxiliary_assignments(q1).size(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.sorted_auxiliary_assignments(q1).size(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.dynamic_assignments(q1).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.reset_assignments(q1,e).size(), 2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.reset_assignments(q1,e_none).size(), 2u);
+    ARIADNE_TESTING_PROVE(system.continuous_state_space(q1)==RealSpace({x,y}));
+    ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_auxiliary_space(q1).size(), 0u);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_state_auxiliary_space(q1).size(), 2u);
+    ARIADNE_TESTING_PROVE(system.events(q1).contains(e));
+    ARIADNE_TESTING_EXPECT_EQUAL(system.event_kind(q1,e), EventKind::PERMISSIVE);
+    ARIADNE_TESTING_EXPECT_EQUAL(system.target(q1,e), q2);
+    ARIADNE_TESTING_NOTE(system.invariant_predicate(q1,e));
+    ARIADNE_TESTING_NOTE(system.guard_predicate(q1,e));
+    ARIADNE_TESTING_NOTE(system.auxiliary_function(q1));
+    ARIADNE_TESTING_NOTE(system.dynamic_function(q1));
+    ARIADNE_TESTING_NOTE(system.reset_function(q1,e));
+    ARIADNE_TESTING_NOTE(system.invariant_function(q1,e));
+    ARIADNE_TESTING_NOTE(system.guard_function(q1,e));
 }
 
 Void TestCompositeHybridAutomaton::test_spaces()
@@ -184,32 +184,32 @@ Void TestCompositeHybridAutomaton::test_spaces()
     DiscreteLocation q1({q|"1"});
 
     HybridSpace state_space=system.state_space();
-    ARIADNE_TEST_ASSERT(state_space.has_location(q1));
-    ARIADNE_TEST_ASSERT(state_space[q1]==RealSpace({RealVariable("x"),RealVariable("y")}));
+    ARIADNE_TESTING_PROVE(state_space.has_location(q1));
+    ARIADNE_TESTING_PROVE(state_space[q1]==RealSpace({RealVariable("x"),RealVariable("y")}));
     HybridSpace copy=state_space;
-    ARIADNE_TEST_ASSERT(definitely(copy==state_space));
+    ARIADNE_TESTING_PROVE(definitely(copy==state_space));
     // Cloning through the interface copies the composite space view.
     HybridSpace cloned(static_cast<const HybridSpaceInterface&>(state_space));
-    ARIADNE_TEST_ASSERT(definitely(cloned==state_space));
+    ARIADNE_TESTING_PROVE(definitely(cloned==state_space));
     MonolithicHybridSpace other;
-    ARIADNE_TEST_ASSERT(!definitely(copy==HybridSpace(other)));
+    ARIADNE_TESTING_PROVE(!definitely(copy==HybridSpace(other)));
     // Same view type but different automaton: indeterminate.
-    ARIADNE_TEST_ASSERT(!definitely(state_space==_composite().state_space()));
+    ARIADNE_TESTING_PROVE(!definitely(state_space==_composite().state_space()));
     std::ostringstream os;
     os << state_space;
-    ARIADNE_TEST_ASSERT(os.str().size()>0u);
+    ARIADNE_TESTING_PROVE(os.str().size()>0u);
 
     HybridSpace aux_space=system.state_auxiliary_space();
-    ARIADNE_TEST_ASSERT(aux_space.has_location(q1));
-    ARIADNE_TEST_EQUALS(aux_space[q1].size(), 2u);
+    ARIADNE_TESTING_PROVE(aux_space.has_location(q1));
+    ARIADNE_TESTING_EXPECT_EQUAL(aux_space[q1].size(), 2u);
     HybridSpace aux_cloned(static_cast<const HybridSpaceInterface&>(aux_space));
-    ARIADNE_TEST_ASSERT(definitely(aux_space==aux_space));
-    ARIADNE_TEST_ASSERT(!definitely(aux_space==_composite().state_auxiliary_space()));
+    ARIADNE_TESTING_PROVE(definitely(aux_space==aux_space));
+    ARIADNE_TESTING_PROVE(!definitely(aux_space==_composite().state_auxiliary_space()));
     MonolithicHybridSpace other_aux;
-    ARIADNE_TEST_ASSERT(!definitely(aux_space==HybridSpace(other_aux)));
+    ARIADNE_TESTING_PROVE(!definitely(aux_space==HybridSpace(other_aux)));
     std::ostringstream os2;
     os2 << aux_space;
-    ARIADNE_TEST_ASSERT(os2.str().size()>0u);
+    ARIADNE_TESTING_PROVE(os2.str().size()>0u);
     (void)aux_cloned;
 }
 
@@ -218,13 +218,13 @@ Void TestCompositeHybridAutomaton::test_writers()
     CompositeHybridAutomaton system=_composite();
     std::ostringstream verbose;
     verbose << system;
-    ARIADNE_TEST_ASSERT(verbose.str().size()>0u);
+    ARIADNE_TESTING_PROVE(verbose.str().size()>0u);
 
     Writer<CompositeHybridAutomaton> previous=CompositeHybridAutomaton::default_writer();
     CompositeHybridAutomaton::set_default_writer(CompactCompositeHybridAutomatonWriter());
     std::ostringstream compact;
     compact << system;
-    ARIADNE_TEST_ASSERT(compact.str().size()>0u);
+    ARIADNE_TESTING_PROVE(compact.str().size()>0u);
     CompositeHybridAutomaton::set_default_writer(previous);
 
     // A single-component composite takes the non-multiple branch.
@@ -232,14 +232,14 @@ Void TestCompositeHybridAutomaton::test_writers()
     CompositeHybridAutomaton::set_default_writer(CompactCompositeHybridAutomatonWriter());
     std::ostringstream compact_single;
     compact_single << single_comp;
-    ARIADNE_TEST_ASSERT(compact_single.str().size()>0u);
+    ARIADNE_TESTING_PROVE(compact_single.str().size()>0u);
     CompositeHybridAutomaton::set_default_writer(previous);
 
     // Stream through the interface base class as well.
     HybridAutomatonInterface const& interface=system;
     std::ostringstream via_interface;
     via_interface << interface;
-    ARIADNE_TEST_ASSERT(via_interface.str().size()>0u);
+    ARIADNE_TESTING_PROVE(via_interface.str().size()>0u);
 }
 
 Void TestCompositeHybridAutomaton::test_check_mode_success()
@@ -247,8 +247,8 @@ Void TestCompositeHybridAutomaton::test_check_mode_success()
     CompositeHybridAutomaton system=_composite();
     StringVariable q("q");
     DiscreteLocation q1({q|"1"});
-    ARIADNE_TEST_EXECUTE(system.check_mode(q1));
-    ARIADNE_TEST_EXECUTE(system.check_reachable_modes(Set<DiscreteLocation>{q1}));
+    ARIADNE_TESTING_EXPECT_NO_THROW(system.check_mode(q1));
+    ARIADNE_TESTING_EXPECT_NO_THROW(system.check_reachable_modes(Set<DiscreteLocation>{q1}));
     // Chained auxiliary assignments exercise the topological ordering.
     {
         RealVariable x("x"), a("a"), b("b");
@@ -256,7 +256,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_success()
         c.new_mode(q1, List<RealAssignment>{let(a)=b, let(b)=x},
                       List<DottedRealAssignment>{dot(x)=a});
         CompositeHybridAutomaton with_aux(c);
-        ARIADNE_TEST_EXECUTE(with_aux.check_mode(q1));
+        ARIADNE_TESTING_EXPECT_NO_THROW(with_aux.check_mode(q1));
     }
 }
 
@@ -273,7 +273,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_mode(q1, List<DottedRealAssignment>{dot(x)=-x});
         b.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
-        ARIADNE_TEST_THROWS(system.check_mode(q1), OverspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(OverspecifiedDynamicError, system.check_mode(q1));
     }
     // Algebraic equation uses an undefined variable.
     {
@@ -281,14 +281,14 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_mode(q1, List<RealAssignment>{let(y)=z},
                       List<DottedRealAssignment>{dot(x)=x});
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, system.check_mode(q1));
     }
     // Dynamics use an undefined variable.
     {
         HybridAutomaton a("a");
         a.new_mode(q1, List<DottedRealAssignment>{dot(x)=x+z});
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedDynamicError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, system.check_mode(q1));
     }
     // Invariant uses an undefined variable.
     {
@@ -296,7 +296,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
         a.new_invariant(q1, z<=1, e);
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedConstraintError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, system.check_mode(q1));
     }
     // Guard uses an undefined variable.
     {
@@ -306,7 +306,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=x},
                          z>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedConstraintError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, system.check_mode(q1));
     }
     // Reset uses an undefined variable.
     {
@@ -316,7 +316,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=z},
                          x>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedResetError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, system.check_mode(q1));
     }
     // Two components reset the same variable: overspecified combined reset.
     {
@@ -330,7 +330,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=y},
                          y>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
-        ARIADNE_TEST_THROWS(system.check_mode(q1), OverspecifiedResetError);
+        ARIADNE_TESTING_EXPECT_THROWS(OverspecifiedResetError, system.check_mode(q1));
     }
     // Reset defines a variable that is not a state variable of the target.
     {
@@ -341,7 +341,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
             List<PrimedRealAssignment>{prime(x)=x, prime(y)=x},
             x>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), SystemSpecificationError);
+        ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, system.check_mode(q1));
     }
     // Target state variable missing from the reset.
     {
@@ -351,7 +351,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         a.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=x},
                          x>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(a);
-        ARIADNE_TEST_THROWS(system.check_mode(q1), UnderspecifiedResetError);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, system.check_mode(q1));
     }
     // Two components declare the event urgent.
     {
@@ -369,7 +369,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         c.new_mode(q1, List<DottedRealAssignment>{dot(z)=-z});
         c.new_mode(q2, List<DottedRealAssignment>{dot(z)=z});
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b,c});
-        ARIADNE_TEST_THROWS(system.check_mode(q1), MultipleUrgentDeclarationError);
+        ARIADNE_TESTING_EXPECT_THROWS(MultipleUrgentDeclarationError, system.check_mode(q1));
     }
     // One component urgent, another with a nontrivial permissive guard.
     {
@@ -383,8 +383,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(y)=y},
                          y>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
-        ARIADNE_TEST_THROWS(system.check_mode(q1),
-                            UrgentDeclarationWithMultipleGuardsException);
+        ARIADNE_TESTING_EXPECT_THROWS(UrgentDeclarationWithMultipleGuardsException, system.check_mode(q1));
     }
     // An IMPACT declaration also counts as urgent.
     {
@@ -398,7 +397,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(y)=y},
                          y>=0, EventKind::URGENT);
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
-        ARIADNE_TEST_THROWS(system.check_mode(q1), MultipleUrgentDeclarationError);
+        ARIADNE_TESTING_EXPECT_THROWS(MultipleUrgentDeclarationError, system.check_mode(q1));
     }
     // A permissive guard that is constantly true does not count as nontrivial.
     {
@@ -412,7 +411,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(y)=y},
                          ContinuousPredicate(true), EventKind::PERMISSIVE);
         CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
-        ARIADNE_TEST_EXECUTE(system.check_mode(q1));
+        ARIADNE_TESTING_EXPECT_NO_THROW(system.check_mode(q1));
     }
 }
 
@@ -432,7 +431,7 @@ Void TestCompositeHybridAutomaton::test_missing_guard_error()
     // diagnostic loop reports it before the error is thrown.
     a.new_guard(q2, e, x>=0, EventKind::PERMISSIVE);
     CompositeHybridAutomaton system(a);
-    ARIADNE_TEST_THROWS(system.mode(q1), MissingGuardError);
+    ARIADNE_TESTING_EXPECT_THROWS(MissingGuardError, system.mode(q1));
 }
 
 Void TestCompositeHybridAutomaton::test_predicate_combination()
@@ -455,17 +454,17 @@ Void TestCompositeHybridAutomaton::test_predicate_combination()
         return CompositeHybridAutomaton(List<HybridAutomaton>{a,b});
     };
     CompositeHybridAutomaton both_nonconstant=make(x<=1, y<=2);
-    ARIADNE_TEST_PRINT(both_nonconstant.invariant_predicate(q1,inv_event));
-    ARIADNE_TEST_PRINT(both_nonconstant.guard_predicate(q1,guard_event));
+    ARIADNE_TESTING_NOTE(both_nonconstant.invariant_predicate(q1,inv_event));
+    ARIADNE_TESTING_NOTE(both_nonconstant.guard_predicate(q1,guard_event));
     CompositeHybridAutomaton one_true=make(x<=1, ContinuousPredicate(true));
-    ARIADNE_TEST_PRINT(one_true.invariant_predicate(q1,inv_event));
+    ARIADNE_TESTING_NOTE(one_true.invariant_predicate(q1,inv_event));
     CompositeHybridAutomaton one_false=make(x<=1, ContinuousPredicate(false));
-    ARIADNE_TEST_PRINT(one_false.invariant_predicate(q1,inv_event));
-    ARIADNE_TEST_PRINT(one_false.guard_predicate(q1,guard_event));
+    ARIADNE_TESTING_NOTE(one_false.invariant_predicate(q1,inv_event));
+    ARIADNE_TESTING_NOTE(one_false.guard_predicate(q1,guard_event));
     // A false result from the first component dominates the second.
     CompositeHybridAutomaton false_first=make(ContinuousPredicate(false), x<=1);
-    ARIADNE_TEST_PRINT(false_first.invariant_predicate(q1,inv_event));
-    ARIADNE_TEST_PRINT(false_first.guard_predicate(q1,guard_event));
+    ARIADNE_TESTING_NOTE(false_first.invariant_predicate(q1,inv_event));
+    ARIADNE_TESTING_NOTE(false_first.guard_predicate(q1,guard_event));
 }
 
 Void TestCompositeHybridAutomaton::test_reachability()
@@ -479,9 +478,9 @@ Void TestCompositeHybridAutomaton::test_reachability()
     Logger::instance().configuration().set_verbosity(10u);
     Set<DiscreteLocation> reached=system.discrete_reachability(Set<DiscreteLocation>{q1});
     Logger::instance().configuration().set_verbosity(old_verbosity);
-    ARIADNE_TEST_ASSERT(reached.contains(q1));
-    ARIADNE_TEST_ASSERT(reached.contains(q2));
-    ARIADNE_TEST_ASSERT(!reached.contains(q9));
+    ARIADNE_TESTING_PROVE(reached.contains(q1));
+    ARIADNE_TESTING_PROVE(reached.contains(q2));
+    ARIADNE_TESTING_PROVE(!reached.contains(q9));
     // A self-loop reaches an already-reached target.
     {
         RealVariable x("x");
@@ -496,26 +495,24 @@ Void TestCompositeHybridAutomaton::test_reachability()
                          x>=0, EventKind::PERMISSIVE);
         CompositeHybridAutomaton loop(a);
         Set<DiscreteLocation> reached2=loop.discrete_reachability(Set<DiscreteLocation>{l1});
-        ARIADNE_TEST_ASSERT(reached2.contains(l1));
-        ARIADNE_TEST_ASSERT(reached2.contains(l2));
+        ARIADNE_TESTING_PROVE(reached2.contains(l1));
+        ARIADNE_TESTING_PROVE(reached2.contains(l2));
     }
 }
 
-Void TestCompositeHybridAutomaton::test()
-{
-    ARIADNE_TEST_CALL(test_constructors_and_components());
-    ARIADNE_TEST_CALL(test_accessors());
-    ARIADNE_TEST_CALL(test_spaces());
-    ARIADNE_TEST_CALL(test_writers());
-    ARIADNE_TEST_CALL(test_check_mode_success());
-    ARIADNE_TEST_CALL(test_check_mode_errors());
-    ARIADNE_TEST_CALL(test_missing_guard_error());
-    ARIADNE_TEST_CALL(test_predicate_combination());
-    ARIADNE_TEST_CALL(test_reachability());
-}
 
-Int main()
-{
-    ARIADNE_TEST_CALL(TestCompositeHybridAutomaton().test());
-    return ARIADNE_TEST_FAILURES;
+
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_hybrid_automaton_composite");
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_constructors_and_components);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_accessors);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_spaces);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_writers);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_check_mode_success);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_check_mode_errors);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_missing_guard_error);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_predicate_combination);
+    ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_reachability);
+    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
 }

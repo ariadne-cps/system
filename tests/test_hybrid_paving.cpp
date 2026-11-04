@@ -22,7 +22,7 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "macro/testing.hpp"
+#include "ariadne-testing.hpp"
 
 #include "hybrid/hybrid_space.hpp"
 #include "hybrid/hybrid_paving.hpp"
@@ -33,6 +33,11 @@
 
 using namespace Ariadne;
 
+class TestHybridPaving : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+
 Void test_extend_auxiliary()
 {
     RealVariable x("x"), a("a");
@@ -41,7 +46,7 @@ Void test_extend_auxiliary()
 
     // A mode with an auxiliary (algebraic) variable a = x + 1.
     HybridAutomaton automaton;
-    ARIADNE_TEST_EXECUTE(automaton.new_mode(loc,
+    ARIADNE_TESTING_EXPECT_NO_THROW(automaton.new_mode(loc,
         List<RealAssignment>{let(a)=x+1},
         List<DottedRealAssignment>{dot(x)=-x}));
 
@@ -54,20 +59,23 @@ Void test_extend_auxiliary()
     HybridExactBoxes boxes;
     boxes.insert(loc, space, ExactBoxType({{0,1}}));
     paving.adjoin_outer_approximation(boxes, 3u);
-    ARIADNE_TEST_ASSERT(paving.nontrivial_location(loc));
+    ARIADNE_TESTING_PROVE(paving.nontrivial_location(loc));
 
     // Extending with the auxiliary variable must produce a paving over the
     // combined state+auxiliary space, with the same location and cells.
     HybridGridTreePaving extended = extend_auxiliary(paving, automaton);
-    ARIADNE_TEST_ASSERT(extended.nontrivial_location(loc));
-    ARIADNE_TEST_ASSERT(extended.size() > 0u);
-    ARIADNE_TEST_ASSERT(extended.grid().has_location(loc));
-    ARIADNE_TEST_EQUALS(extended.grid().space()[loc].size(), 2u);
-    ARIADNE_TEST_PRINT(extended);
+    ARIADNE_TESTING_PROVE(extended.nontrivial_location(loc));
+    ARIADNE_TESTING_PROVE(extended.size() > 0u);
+    ARIADNE_TESTING_PROVE(extended.grid().has_location(loc));
+    ARIADNE_TESTING_EXPECT_EQUAL(extended.grid().space()[loc].size(), 2u);
+    ARIADNE_TESTING_NOTE(extended);
 }
 
-Int main()
-{
-    ARIADNE_TEST_CALL(test_extend_auxiliary());
-    return ARIADNE_TEST_FAILURES;
+
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_hybrid_paving");
+    ARIADNE_TESTING_ADD_TEST(TestHybridPaving, test_extend_auxiliary);
+    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
 }

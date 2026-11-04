@@ -4,17 +4,28 @@
 #include "paving/grid.hpp"
 #include "symbolic/assignment.hpp"
 #include "expression-set/expression_set.hpp"
-#include "macro/testing.hpp"
+#include "ariadne-testing.hpp"
 
 using namespace Ariadne;
 
-int main() {
+
+class TestDifferentialInclusionGrid : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+    Void test_grid() {
     RealVariable x("x"), y("y"), u("u");
     DottedRealAssignments dynamics={dot(x)=-y,dot(y)=x+2*u};
     RealVariablesBox inputs={1<=u<=2};
 
     DifferentialInclusion inclusion(dynamics,inputs);
-    ARIADNE_TEST_EQUALS(inclusion.dimension(),2u);
-    ARIADNE_TEST_EQUALS(inclusion.grid().dimension(),2u);
-    return ARIADNE_TEST_FAILURES;
+    ARIADNE_TESTING_EXPECT_EQUAL(inclusion.dimension(),2u);
+    ARIADNE_TESTING_EXPECT_EQUAL(inclusion.grid().dimension(),2u);
+    
+    }
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_differential_inclusion_grid");
+    ARIADNE_TESTING_ADD_TEST(TestDifferentialInclusionGrid, test_grid);
+    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
 }

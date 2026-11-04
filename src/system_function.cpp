@@ -19,6 +19,11 @@ algebraic_sort(const List<RealAssignment>& auxiliary) {
         dependencies.insert(asgn_iter->lhs.base().name(), intersection(asgn_iter->rhs.arguments(),variables));
     }
 
+    Map<Identifier, SizeType> assignment_table;
+    for(SizeType i=0; i!=auxiliary.size(); ++i) {
+        assignment_table.insert(auxiliary[i].lhs.base().name(), i);
+    }
+
     List<RealAssignment> sorted_auxiliary;
     sorted_auxiliary.reserve(auxiliary.size());
     if(!lhs_list.empty()) {
@@ -28,14 +33,7 @@ algebraic_sort(const List<RealAssignment>& auxiliary) {
                 for(Map<Identifier, Set<UntypedVariable> >::Iterator dep_iter=dependencies.begin(); dep_iter!=dependencies.end(); ++dep_iter) {
                     dep_iter->second.remove(static_cast<UntypedVariable>(*iter));
                 }
-                for(List<RealAssignment>::ConstIterator asgn_iter=auxiliary.begin();
-                    asgn_iter!=auxiliary.end(); ++asgn_iter)
-                {
-                    if(asgn_iter->lhs.name()==iter->name()) {
-                        sorted_auxiliary.append(*asgn_iter);
-                        break;
-                    }
-                }
+                sorted_auxiliary.append(auxiliary[assignment_table[iter->name()]]);
                 dependencies.erase(iter->name());
                 found=true;
                 lhs_list.erase(iter);
@@ -50,7 +48,6 @@ algebraic_sort(const List<RealAssignment>& auxiliary) {
         
 
     }
-    ARIADNE_ASSERT(auxiliary.size()==sorted_auxiliary.size());
     return sorted_auxiliary;
 }
 

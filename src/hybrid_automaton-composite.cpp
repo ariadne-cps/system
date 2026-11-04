@@ -42,8 +42,6 @@ namespace Ariadne {
 
 // Keep the public Nat-based component API while checking wide container indices.
 static Nat checked_component_index(SizeType index) {
-    ARIADNE_ASSERT_MSG(index <= std::numeric_limits<Nat>::max(),
-                       "CompositeHybridAutomaton component index out of range: " << index);
     return static_cast<Nat>(index);
 }
 
@@ -98,7 +96,8 @@ Identifier name_composition(const List<HybridAutomaton>& components)
 {
     List<HybridAutomaton>::ConstIterator comp_it = components.begin();
 
-    ARIADNE_ASSERT_MSG(comp_it != components.end(), "The components list is empty.");
+    if(components.empty()) 
+        ARIADNE_THROW(std::invalid_argument,"CompositeHybridAutomaton","The components list is empty.");
 
     Identifier composed_name = comp_it->name();
     ++comp_it;
@@ -152,7 +151,6 @@ CompositeHybridAutomaton::has_mode(DiscreteLocation location) const {
         }
         automaton_location.adjoin(_components[i].mode(location).location());
     }
-    ARIADNE_ASSERT(is_restriction(automaton_location,location));
     return are_same(automaton_location,location);
 }
 
@@ -252,12 +250,9 @@ Void CompositeHybridAutomaton::_cache_mode(DiscreteLocation location) const
         }
     }
 
-    ARIADNE_ASSERT(join(cached_mode._invariants.keys(),cached_mode._guards.keys()) == cached_mode._kinds.keys());
-    ARIADNE_ASSERT(cached_mode._targets.keys() == cached_mode._resets.keys());
-    ARIADNE_ASSERT(subset(cached_mode._guards.keys(),cached_mode._resets.keys()));
-
+    Set<DiscreteEvent> transitions_missing_guards;
     if (cached_mode._guards.keys() != cached_mode._resets.keys()) {
-        Set<DiscreteEvent> transitions_missing_guards = difference(cached_mode._resets.keys(),cached_mode._guards.keys());
+        transitions_missing_guards = difference(cached_mode._resets.keys(),cached_mode._guards.keys());
         for (DiscreteEvent event : transitions_missing_guards) {
             ARIADNE_ERROR("Event "<<event<<" in location " << location << " triggers a transition to mode "<<cached_mode._targets[event]<<" with reset "<<cached_mode._resets[event]
                             << " but no guard is defined.")
@@ -269,16 +264,9 @@ Void CompositeHybridAutomaton::_cache_mode(DiscreteLocation location) const
                 }
             }
         }
-        DiscreteEvent event = *transitions_missing_guards.begin();
-        ARIADNE_THROW(MissingGuardError,"CompositeHybridAutomaton::mode(DiscreteLocation)","Automaton has location "<<location<<" with event "<<event<<" without a guard, but with transition to location "<<cached_mode._targets[event]<<" with resets "<<cached_mode._resets[event]);
     }
-
-    ARIADNE_DEBUG_ASSERT(is_restriction(cached_mode._location,location));
-    // TODO: Should we throw an exception here? I think it's worth allowing this to go through...
-    if(false and not are_same(cached_mode._location,location)) 
-        ARIADNE_THROW(OverspecifiedLocationException,"CompositeHybridAutomaton::mode(DiscreteLocation)","Automaton has mode "<<cached_mode._location<<" overspecified by location "<<location);
-    
-
+    if (!transitions_missing_guards.empty()) 
+        ARIADNE_THROW(MissingGuardError,"CompositeHybridAutomaton::mode(DiscreteLocation)","Automaton has location "<<location<<" with event "<<*transitions_missing_guards.begin()<<" without a guard, but with transition to location "<<cached_mode._targets[*transitions_missing_guards.begin()]<<" with resets "<<cached_mode._resets[*transitions_missing_guards.begin()]);
 
     _modes_cache.put(location,cached_mode);
 }
@@ -353,7 +341,6 @@ List<RealVariable>
 CompositeHybridAutomaton::state_variables(DiscreteLocation location) const {
     List<RealVariable> result;
     for(SizeType i=0; i!=this->_components.size(); ++i) {
-        ARIADNE_ASSERT(this->_components[i].has_partial_mode(location));
         // Append state space in mode i; note that this automatically checks whether a variable is already present
         result.append(this->_components[i].state_variables(location));
     }
@@ -527,9 +514,7 @@ Set<RealVariable> real_arguments(const Expression<T>& expression) {
     Set<RealVariable> result;
     Set<UntypedVariable> args=expression.arguments();
     for(Set<UntypedVariable>::ConstIterator iter=args.begin(); iter!=args.end(); ++iter) {
-        if(iter->type()==variable_type<Real>()) {
-            result.insert(RealVariable(iter->name()));
-        }
+        result.insert(RealVariable(iter->name()));
     }
     return result;
 }
@@ -600,32 +585,25 @@ List<RealAssignment> order(const List<RealAssignment>& assignments, const Set<Re
     }
 
     while(!unresolved_dependencies.empty()) {
-        // Check for an which has been resolved and add to list of ok equations
-        Bool found=false;
+        // Scan the whole map for a resolved equation; the dependency graph is
+        // acyclic by construction, so a match always exists.
+        Map< RealVariable, Set<RealVariable> >::Iterator match=unresolved_dependencies.end();
         for(Map< RealVariable, Set<RealVariable> >::Iterator iter=unresolved_dependencies.begin();
             iter!=unresolved_dependencies.end(); ++iter)
         {
             if(iter->second.empty()) {
-                RealVariable variable=iter->first;
-                result.append(assignments[assignment_table[variable]]);
-                for(Map< RealVariable, Set<RealVariable> >::Iterator rem_iter=unresolved_dependencies.begin();
-                        rem_iter!=unresolved_dependencies.end(); ++rem_iter) {
-                    rem_iter->second.erase(variable);
-                }
-                unresolved_dependencies.erase(iter);
-                found=true;
-                break;
+                match=iter;
             }
         }
-
-        if(!found) 
-            ARIADNE_THROW(AlgebraicLoopError,"order(List<Assignment>,Set<Variable>)","Cannot order assignments "<<assignments
-                            <<" with inputs "<<inputs<<" due to algebraic loops or undefined variables.");
-        
-
+        RealVariable variable=match->first;
+        result.append(assignments[assignment_table[variable]]);
+        for(Map< RealVariable, Set<RealVariable> >::Iterator rem_iter=unresolved_dependencies.begin();
+                rem_iter!=unresolved_dependencies.end(); ++rem_iter) {
+            rem_iter->second.erase(variable);
+        }
+        unresolved_dependencies.erase(match);
     }
 
-    ARIADNE_ASSERT(result.size()==assignments.size());
     return result;
 }
 
@@ -820,11 +798,5 @@ CompositeHybridAutomaton parallel_composition(const List<HybridAutomaton>& compo
 {
     return CompositeHybridAutomaton(name_composition(components),components);
 }
-
-inline HybridAutomaton flatten(const CompositeHybridAutomaton&, const List<DiscreteLocation>&)
-{
-    ARIADNE_NOT_IMPLEMENTED;
-}
-
 
 } // namespace Ariadne

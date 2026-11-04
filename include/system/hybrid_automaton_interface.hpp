@@ -74,12 +74,6 @@ class IndistinguishableModeError : public SystemSpecificationError {
     IndistinguishableModeError(const StringType& what) : SystemSpecificationError(what) { }
 };
 
-//! \brief A discrete event is defined twice.
-class DuplicateEventError : public SystemSpecificationError {
-  public:
-    DuplicateEventError(const StringType& what) : SystemSpecificationError(what) { }
-};
-
 //! \brief A guard was defined twice in the same location.
 class MultipleGuardError : public SystemSpecificationError {
   public:
@@ -165,14 +159,6 @@ class UnderspecifiedResetError : public UnderspecifiedSystemError {
 // Location specification errors belong to the hybrid domain.
 
 
-//! \brief A discrete location defines more variables than are needed to specify the discrete mode.
-//! \details Only relevant for a complete hybrid automaton,
-//! since a component automaton need not recognise all discrete variables.
-class OverspecifiedLocationException : public IndistinguishableLocationsError {
-  public:
-    OverspecifiedLocationException(const StringType& what) : IndistinguishableLocationsError(what) { }
-};
-
 ///!@}
 
 
@@ -257,10 +243,6 @@ class HybridAutomatonInterface {
     //! \brief The continuous state space in the \a location.
     virtual RealSpace continuous_auxiliary_space(DiscreteLocation location) const = 0;
 
-    //! \brief The continuous state space in the \a location.
-    virtual List<RealExpression> auxiliary_expressions(DiscreteLocation) const { ARIADNE_ASSERT(false); return List<RealExpression>(); }
-
-
     //!@}
 
     //!@{
@@ -278,14 +260,12 @@ inline OutputStream& operator<<(OutputStream& os, const HybridAutomatonInterface
 }
 
 inline OutputStream& operator<<(OutputStream& os, const EventKind& evk) {
-    switch(evk) {
-        case EventKind::INVARIANT: os<<"invariant"; break;
-        case EventKind::PROGRESS: os<<"progress"; break;
-        case EventKind::PERMISSIVE: os<<"permissive"; break;
-        case EventKind::URGENT: os<<"urgent"; break;
-        case EventKind::IMPACT: os<<"impact"; break;
-        default: ARIADNE_FAIL_MSG("Unhandled EventKind for output streaming.");
-    } return os;
+    if(evk==EventKind::INVARIANT) { os<<"invariant"; }
+    else if(evk==EventKind::PROGRESS) { os<<"progress"; }
+    else if(evk==EventKind::PERMISSIVE) { os<<"permissive"; }
+    else if(evk==EventKind::URGENT) { os<<"urgent"; }
+    else { os<<"impact"; }
+    return os;
 }
 
 } //namespace Ariadne

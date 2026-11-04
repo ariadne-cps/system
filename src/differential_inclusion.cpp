@@ -1,7 +1,7 @@
 /***************************************************************************
  *            dynamics/differential_inclusion.cpp
  *
- *  Copyright  2008-20  Alberto Casagrande, Pieter Collins
+ *  Copyright  2008-20  Luca Geretti
  *
  ****************************************************************************/
 

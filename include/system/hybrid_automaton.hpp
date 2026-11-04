@@ -379,8 +379,8 @@ public:
 
     //! \brief Adds a reset to an automaton with no continuous state variables.
     Void new_reset(DiscreteLocation source,
-                   DiscreteEvent event,
-                   DiscreteLocation target) {
+                    DiscreteEvent event,
+                    DiscreteLocation target) {
         this->_new_update(source,event,target,List<PrimedRealAssignment>());
     }
 

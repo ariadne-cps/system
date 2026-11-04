@@ -83,7 +83,7 @@ class DiscreteMode {
     Map<DiscreteEvent,ContinuousPredicate> _invariants;
 
     // The discrete mode's urgent guards.
-    Map<DiscreteEvent,ContinuousPredicate> _guards;
+    Map<DiscreteEvent, ContinuousPredicate> _guards;
 
     // The kind of each event
     Map<DiscreteEvent, EventKind> _kinds;
@@ -379,8 +379,8 @@ public:
 
     //! \brief Adds a reset to an automaton with no continuous state variables.
     Void new_reset(DiscreteLocation source,
-                    DiscreteEvent event,
-                    DiscreteLocation target) {
+                   DiscreteEvent event,
+                   DiscreteLocation target) {
         this->_new_update(source,event,target,List<PrimedRealAssignment>());
     }
 

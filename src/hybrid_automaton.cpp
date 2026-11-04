@@ -45,12 +45,6 @@ DiscreteMode::DiscreteMode()
 }
 
 DiscreteMode::
-DiscreteMode(DiscreteLocation location)
-    : _location(location)
-{
-}
-
-DiscreteMode::
 DiscreteMode(DiscreteLocation location,
              List<RealAssignment> const& auxiliary,
              List<DottedRealAssignment> const& dynamic)
@@ -143,31 +137,6 @@ CompactDiscreteModeWriter::_write(OutputStream& os, DiscreteMode const& m) const
             os << ", rst="<<nonempty_resets;
     }
     return os;
-}
-
-
-DiscreteTransition::
-DiscreteTransition(DiscreteLocation source,
-                   DiscreteEvent event,
-                   DiscreteLocation target,
-                   const List<PrimedRealAssignment>& reset,
-                   const ContinuousPredicate& guard,
-                   EventKind kind)
-    : _source(source), _event(event), _target(target),
-      _guard(guard), _reset(reset), _kind(kind)
-{
-}
-
-OutputStream&
-DiscreteTransition::_write(OutputStream& os) const
-{
-    const DiscreteTransition& transition=*this;
-    return os << "DiscreteTransition( "
-              << "event=" << transition._event << ", "
-              << "source=" << transition._source << ", "
-              << "target=" << transition._target << ", "
-              << "reset=" << transition._reset << ", "
-              << "guard=" << transition._guard << " )";
 }
 
 
@@ -452,17 +421,19 @@ HybridAutomaton::mode(DiscreteLocation location)
 const DiscreteMode&
 HybridAutomaton::mode(DiscreteLocation location) const
 {
+    const DiscreteMode* result=nullptr;
     for(Map<DiscreteLocation,DiscreteMode>::ConstIterator mode_iter=this->_modes.begin();
         mode_iter!=this->_modes.end(); ++mode_iter)
     {
-        const DiscreteLocation& partial_location=mode_iter->first;
-        if(is_restriction(partial_location,location)) {
-            return mode_iter->second;
+        if(is_restriction(mode_iter->first,location)) {
+            result=&mode_iter->second;
+            break;
         }
     }
-
-    ARIADNE_THROW(SystemSpecificationError,"HybridAutomaton::mode(DiscreteLocation)",
-                  location<<" does not define a mode of the automaton with locations "<<this->locations());
+    if(result==nullptr) 
+        ARIADNE_THROW(SystemSpecificationError,"HybridAutomaton::mode(DiscreteLocation)",
+                      location<<" does not define a mode of the automaton with locations "<<this->locations());
+    return *result;
 }
 
 Writer<HybridAutomaton> HybridAutomaton::_default_writer(new VerboseHybridAutomatonWriter());

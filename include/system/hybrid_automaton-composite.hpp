@@ -54,7 +54,6 @@ class HybridSpace;
 
 class DiscreteLocation;
 class DiscreteMode;
-class DiscreteTransition;
 class HybridAutomaton;
 class CompositeHybridAutomaton;
 

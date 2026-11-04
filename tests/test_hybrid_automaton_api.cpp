@@ -253,7 +253,7 @@ Void TestHybridAutomatonApi::test_accessors()
     ARIADNE_TEST_EQUALS(ha.auxiliary_variables(q1).size(), 1u);
     ARIADNE_TEST_EQUALS(ha.auxiliary_assignments(q1).size(), 1u);
     ARIADNE_TEST_EQUALS(ha.dynamic_assignments(q1).size(), 2u);
-    ARIADNE_TEST_ASSERT(ha.input_variables(q1).size()>=0u);
+    ARIADNE_TEST_EQUALS(ha.input_variables(q1).size(), 0u);
     ARIADNE_TEST_ASSERT(ha.has_invariant(q1,e1));
     ARIADNE_TEST_ASSERT(!ha.has_invariant(q1,e2));
     ARIADNE_TEST_ASSERT(ha.has_guard(q1,e2));

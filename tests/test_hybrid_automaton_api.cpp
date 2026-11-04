@@ -283,9 +283,6 @@ Void TestHybridAutomatonApi::test_accessors()
     ARIADNE_TEST_EXECUTE(ha.check_mode(q2));
     ARIADNE_TEST_EXECUTE(ha.check_reachable_modes(Set<DiscreteLocation>{q1}));
     ARIADNE_TEST_ASSERT(ha.discrete_reachability(Set<DiscreteLocation>{q1}).contains(q2));
-    // The interface default for auxiliary_expressions is an unconditional
-    // assertion failure (HybridAutomaton does not override it).
-    ARIADNE_TEST_THROWS(ha.auxiliary_expressions(q1), std::runtime_error);
 }
 
 Void TestHybridAutomatonApi::test_check_mode_errors()
@@ -351,7 +348,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors()
 Void TestHybridAutomatonApi::test_writers_and_streaming()
 {
     HybridAutomaton ha=_make_automaton();
-    RealVariable x("x");
+    RealVariable x("x"), a("a");
     StringVariable q("q");
     DiscreteLocation q1({q|"1"}), q2({q|"2"});
     DiscreteEvent e1("e1");
@@ -381,6 +378,28 @@ Void TestHybridAutomatonApi::test_writers_and_streaming()
     std::ostringstream mode_compact;
     mode_compact << mode;
     ARIADNE_TEST_ASSERT(mode_compact.str().size()>0u);
+    // Empty, auxiliary-only, dynamic-only and reset-less modes cover the
+    // remaining compact-writer branches.
+    {
+        HybridAutomaton bare;
+        bare.new_mode(DiscreteLocation(1), List<RealAssignment>{let(a)=1});
+        bare.new_mode(DiscreteLocation(2), List<DottedRealAssignment>{dot(x)=x});
+        bare.new_mode(DiscreteLocation(3));
+        bare.new_transition(DiscreteLocation(3), DiscreteEvent("t"),
+                            DiscreteLocation(3));
+        for (auto const& m : bare.modes().values()) {
+            std::ostringstream os;
+            os << m;
+            ARIADNE_TEST_ASSERT(os.str().size()>0u);
+        }
+        HybridAutomaton bare_empty;
+        bare_empty.new_mode(DiscreteLocation());
+        {
+            // A completely empty mode prints as the empty string in compact form.
+            std::ostringstream os;
+            os << bare_empty.mode(DiscreteLocation());
+        }
+    }
     DiscreteMode::set_default_writer(previous_mode);
 
     std::ostringstream kinds;

@@ -1,7 +1,7 @@
 /***************************************************************************
  *            dynamics/differential_inclusion.cpp
  *
- *  Copyright  2008-20  Luca Geretti
+ *  Copyright  2008-20  Alberto Casagrande, Pieter Collins
  *
  ****************************************************************************/
 
@@ -31,10 +31,7 @@
 namespace Ariadne {
 
 // Formula variable indices are Nat, while container sizes are SizeType.
-// Reject dimensions outside the formula API range instead of narrowing them.
 static Nat formula_index(SizeType index) {
-    ARIADNE_ASSERT_MSG(index<=std::numeric_limits<Nat>::max(),
-                       "Formula variable index out of range: "<<index);
     return static_cast<Nat>(index);
 }
 

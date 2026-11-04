@@ -88,6 +88,9 @@ Void TestCompositeHybridAutomaton::test_constructors_and_components()
     CompositeHybridAutomaton empty;
     ARIADNE_TEST_EQUALS(empty.number_of_components(), 0u);
     ARIADNE_TEST_EQUALS(empty.name(), Identifier("system"));
+    // An empty component list is a precondition violation.
+    ARIADNE_TEST_THROWS(CompositeHybridAutomaton(List<HybridAutomaton>{}),
+                        std::invalid_argument);
 
     CompositeHybridAutomaton named("custom");
     ARIADNE_TEST_EQUALS(named.name(), Identifier("custom"));
@@ -250,7 +253,7 @@ Void TestCompositeHybridAutomaton::test_check_mode_success()
     {
         RealVariable x("x"), a("a"), b("b");
         HybridAutomaton c("c");
-        c.new_mode(q1, List<RealAssignment>{let(a)=x, let(b)=a+1},
+        c.new_mode(q1, List<RealAssignment>{let(a)=b, let(b)=x},
                       List<DottedRealAssignment>{dot(x)=a});
         CompositeHybridAutomaton with_aux(c);
         ARIADNE_TEST_EXECUTE(with_aux.check_mode(q1));
@@ -383,6 +386,34 @@ Void TestCompositeHybridAutomaton::test_check_mode_errors()
         ARIADNE_TEST_THROWS(system.check_mode(q1),
                             UrgentDeclarationWithMultipleGuardsException);
     }
+    // An IMPACT declaration also counts as urgent.
+    {
+        HybridAutomaton a("a"), b("b");
+        a.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
+        a.new_mode(q2, List<DottedRealAssignment>{dot(x)=x});
+        a.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=x},
+                         x>=0, EventKind::IMPACT);
+        b.new_mode(q1, List<DottedRealAssignment>{dot(y)=y});
+        b.new_mode(q2, List<DottedRealAssignment>{dot(y)=y});
+        b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(y)=y},
+                         y>=0, EventKind::URGENT);
+        CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
+        ARIADNE_TEST_THROWS(system.check_mode(q1), MultipleUrgentDeclarationError);
+    }
+    // A permissive guard that is constantly true does not count as nontrivial.
+    {
+        HybridAutomaton a("a"), b("b");
+        a.new_mode(q1, List<DottedRealAssignment>{dot(x)=x});
+        a.new_mode(q2, List<DottedRealAssignment>{dot(x)=x});
+        a.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(x)=x},
+                         x>=0, EventKind::URGENT);
+        b.new_mode(q1, List<DottedRealAssignment>{dot(y)=y});
+        b.new_mode(q2, List<DottedRealAssignment>{dot(y)=y});
+        b.new_transition(q1, e, q2, List<PrimedRealAssignment>{prime(y)=y},
+                         ContinuousPredicate(true), EventKind::PERMISSIVE);
+        CompositeHybridAutomaton system(List<HybridAutomaton>{a,b});
+        ARIADNE_TEST_EXECUTE(system.check_mode(q1));
+    }
 }
 
 Void TestCompositeHybridAutomaton::test_missing_guard_error()
@@ -431,6 +462,10 @@ Void TestCompositeHybridAutomaton::test_predicate_combination()
     CompositeHybridAutomaton one_false=make(x<=1, ContinuousPredicate(false));
     ARIADNE_TEST_PRINT(one_false.invariant_predicate(q1,inv_event));
     ARIADNE_TEST_PRINT(one_false.guard_predicate(q1,guard_event));
+    // A false result from the first component dominates the second.
+    CompositeHybridAutomaton false_first=make(ContinuousPredicate(false), x<=1);
+    ARIADNE_TEST_PRINT(false_first.invariant_predicate(q1,inv_event));
+    ARIADNE_TEST_PRINT(false_first.guard_predicate(q1,guard_event));
 }
 
 Void TestCompositeHybridAutomaton::test_reachability()

@@ -52,74 +52,8 @@ class HybridSpace;
 
 class DiscreteLocation;
 class DiscreteMode;
-class DiscreteTransition;
 class HybridAutomaton;
 
-
-//! \related HybridAutomaton
-//! \brief A discrete transition of a hybrid automaton, representing an instantaneous
-//! jump from one discrete mode to another, governed by an activation set and a reset map.
-//!
-//! A %DiscreteTransition can only be created using the new_transition() method in
-//! the %HybridAutomaton class.
-//!
-//! An invariant is modelled by a discrete transition with negative event id and null reset pointer.
-//!
-//! \sa \ref HybridAutomaton, \ref DiscreteMode
-class DiscreteTransition
-{
-    friend class DiscreteMode;
-    friend class HybridAutomaton;
-    friend class CompositeHybridAutomaton;
-  private:
-    //  The source of the discrete transition.
-    DiscreteLocation _source;
-
-    //  The discrete transition's identificator.
-    DiscreteEvent _event;
-
-    //  The target of the discrete transition.
-    DiscreteLocation _target;
-
-    //  The guard predicate of the discrete transition.
-    ContinuousPredicate _guard;
-
-    //  The reset assignments of the discrete transition.
-    List<PrimedRealAssignment> _reset;
-
-    //  The kind of the event.
-    EventKind _kind;
-
-  public:
-
-    //! \brief The source mode of the discrete transition.
-    DiscreteLocation source() const { return this->_source; }
-
-    //! \brief The discrete event associated with the discrete transition.
-    DiscreteEvent event() const { return this->_event; }
-
-    //! \brief The target mode of the discrete transition.
-    DiscreteLocation target() const { return this->_target; };
-
-    //! \brief Write to an output stream.
-    OutputStream& _write(OutputStream& os) const;
-  private:
-    DiscreteTransition(DiscreteLocation source,
-                       DiscreteEvent event,
-                       DiscreteLocation target,
-                       const List<PrimedRealAssignment>& reset,
-                       const ContinuousPredicate& guard,
-                       EventKind kind);
-};
-
-inline OutputStream& operator<<(OutputStream& os, const DiscreteTransition& dt) {
-    return dt._write(os); }
-
-inline Bool operator<(const DiscreteTransition& transition1, const DiscreteTransition& transition2) {
-    return transition1.event() < transition2.event()
-        || (transition1.event() == transition2.event()
-            && transition1.source() < transition2.source());
-}
 
 //! \related HybridAutomaton
 //! \brief A discrete mode of a hybrid automaton, comprising continuous evolution given by a vector field
@@ -128,9 +62,8 @@ inline Bool operator<(const DiscreteTransition& transition1, const DiscreteTrans
 //! A %DiscreteMode can only be created using the new_mode() method in
 //! the %HybridAutomaton class.
 //!
-//! \sa \ref HybridAutomaton, \ref DiscreteTransition
+//! \sa \ref HybridAutomaton
 class DiscreteMode {
-    friend class DiscreteTransition;
     friend class HybridAutomaton;
     friend class CompositeHybridAutomaton;
     friend class CompactDiscreteModeWriter;
@@ -150,7 +83,7 @@ class DiscreteMode {
     Map<DiscreteEvent,ContinuousPredicate> _invariants;
 
     // The discrete mode's urgent guards.
-    Map<DiscreteEvent, ContinuousPredicate> _guards;
+    Map<DiscreteEvent,ContinuousPredicate> _guards;
 
     // The kind of each event
     Map<DiscreteEvent, EventKind> _kinds;
@@ -162,7 +95,6 @@ class DiscreteMode {
     Map<DiscreteEvent, List<PrimedRealAssignment> > _resets;
   private:
     DiscreteMode(DiscreteLocation, List<RealAssignment>const&, List<DottedRealAssignment>const&);
-    DiscreteMode(DiscreteLocation);
     DiscreteMode();
     static Writer<DiscreteMode> _default_writer;
   public:
@@ -215,14 +147,12 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! and a %Set giving an invariants which must be satisified at
 //! all times.
 //!
-//! The discrete time behaviour is specified by %DiscreteTransition
-//! objects.
-//! Each discrete transition represents an jump from a \a source
-//! mode to a \a target mode.
-//! There can be at most one discrete transition in an automaton
+//! The discrete time behaviour is specified by transitions stored in
+//! each mode: each transition has an event, a target mode and a reset.
+//! There can be at most one transition in an automaton
 //! with the same event and source.
 //!
-//! A discrete transision can either be \em urgent or \em permissive.
+//! A discrete transition can either be \em urgent or \em permissive.
 //! An urgent transition much occur as soon as it is activated.
 //! A permissive transition may occur at any time it is activated,
 //! but is only forced to occur if the continuous evolution is
@@ -231,7 +161,7 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! elsewhere, even if this is permissive.
 //!
 //!
-//! \sa \ref DiscreteMode, \ref DiscreteTransition, \ref CompositeHybridAutomaton
+//! \sa \ref DiscreteMode, \ref CompositeHybridAutomaton
 class HybridAutomaton
     : public HybridAutomatonInterface
 {

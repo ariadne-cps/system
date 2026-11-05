@@ -8,6 +8,7 @@
 [![codecov](https://codecov.io/gh/ariadne-cps/system/branch/main/graph/badge.svg)](https://codecov.io/gh/ariadne-cps/system)
 
 Ariadne System is the standalone C++20 dynamical-system specification layer. It defines continuous vector fields, iterated maps, differential inclusions, hybrid automata and first-order PDE models. 
+Although independently maintained and usable, this repository is also part of the [Ariadne repository structure](https://github.com/ariadne-cps/ariadne/blob/main/doc/structure.md).
 
 ## Layout
 
@@ -20,7 +21,7 @@ The [System tutorial](tutorial/README.md) covers hybrid automata, vector fields,
 System depends directly on:
 
 - [ariadne-cps/hybrid](https://github.com/ariadne-cps/hybrid), as a Git submodule.
-- [ariadne-cps/configuration](https://github.com/ariadne-cps/configuration), for shared CMake configuration.
+- [ariadne-cps/build](https://github.com/ariadne-cps/build), for shared CMake configuration.
 - [ariadne-cps/testing](https://github.com/ariadne-cps/testing), pinned at `ss/tst`, for C++ test fixtures, assertions and diagnostics only.
 
 Hybrid provides the lower-level Ariadne components used by System. C++ behavioral suites use independent Ariadne Testing cases; lightweight header and return-code checks retain their original execution.

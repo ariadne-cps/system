@@ -89,18 +89,6 @@ jobs:
 
 
 
-    - name: Check Python System Tutorial
-      if: matrix.build_type == 'Release'
-      working-directory: ${{ github.workspace }}/tutorial
-      env:
-        PYTHONPATH: ${{ runner.workspace }}/install/lib/python3.13/site-packages
-        LD_LIBRARY_PATH: ${{ runner.workspace }}/install/lib
-        DYLD_LIBRARY_PATH: ${{ runner.workspace }}/install/lib
-      run: |
-        python -c "import os, pathlib, pyariadne; p=pathlib.Path(pyariadne.__file__).resolve(); root=pathlib.Path(os.environ['PYTHONPATH']).resolve(); assert p.is_relative_to(root), (p, root)"
-        python tutorial_system.py
-
-
     - name: Prepare C++ System Tutorial
       if: matrix.build_type == 'Release'
       run: cmake -E copy_directory $GITHUB_WORKSPACE/tutorial ${{ runner.workspace }}/tutorial_system
@@ -114,6 +102,18 @@ jobs:
         export LD_LIBRARY_PATH=${{ runner.workspace }}/install/lib:${LD_LIBRARY_PATH:-}
         export DYLD_LIBRARY_PATH=${{ runner.workspace }}/install/lib:${DYLD_LIBRARY_PATH:-}
         ./build/tutorial_system
+
+
+    - name: Check Python System Tutorial
+      if: matrix.build_type == 'Release'
+      working-directory: ${{ github.workspace }}/tutorial
+      env:
+        PYTHONPATH: ${{ runner.workspace }}/install/lib/python3.13/site-packages
+        LD_LIBRARY_PATH: ${{ runner.workspace }}/install/lib
+        DYLD_LIBRARY_PATH: ${{ runner.workspace }}/install/lib
+      run: |
+        python -c "import os, pathlib, pyariadne_system; p=pathlib.Path(pyariadne_system.__file__).resolve(); root=pathlib.Path(os.environ['PYTHONPATH']).resolve(); assert p.is_relative_to(root), (p, root)"
+        python tutorial_system.py
 
 
     - name: Verify Uninstallation

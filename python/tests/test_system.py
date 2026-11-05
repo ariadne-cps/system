@@ -1,5 +1,5 @@
-"""Smoke tests for real dynamical system definitions in the composed pyariadne extension."""
-from pyariadne import DiscreteEvent, DiscreteLocation, HybridAutomaton
+"""Smoke tests for real dynamical system definitions in the composed pyariadne_system extension."""
+from pyariadne_system import DiscreteEvent, DiscreteLocation, HybridAutomaton
 
 
 def test_discrete_event():
@@ -40,7 +40,7 @@ def test_unguarded_transition():
 
 
 def test_vector_field_and_iterated_map():
-    from pyariadne import RealVariable, VectorField, IteratedMap, dot, next
+    from pyariadne_system import RealVariable, VectorField, IteratedMap, dot, next
     x = RealVariable("x")
     field = VectorField([dot(x) << -x])
     mapping = IteratedMap([next(x) << x / 2])
@@ -49,7 +49,7 @@ def test_vector_field_and_iterated_map():
     assert str(field) and str(mapping)
 
 def test_differential_inclusion_inputs():
-    from pyariadne import DifferentialInclusion, RealVariable, RealVariablesBox, dot
+    from pyariadne_system import DifferentialInclusion, RealVariable, RealVariablesBox, dot
     x, u = RealVariable("x"), RealVariable("u")
     model = DifferentialInclusion([dot(x) << (-x + u)], RealVariablesBox({u: (-1, 1)}))
     assert model.dimension() == 1

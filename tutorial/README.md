@@ -42,7 +42,7 @@ Windows) to the dynamic-library search path before running.
 
 ## Python tutorial
 
-Run the **installed** `pyariadne` extension. For a local prefix, set
+Run the **installed** `pyariadne_system` extension. For a local prefix, set
 `PYTHONPATH` to `install/lib/pythonX.Y/site-packages` (or
 `install/Lib/site-packages` on Windows), and make sure shared libraries are
 accessible. Then run:

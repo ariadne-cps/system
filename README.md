@@ -40,14 +40,10 @@ The [System tutorial](tutorial/README.md) includes separate build/run instructio
 
 ## Python bindings
 
-When a compatible Python development environment is available, the standalone build produces the combined `pyariadne` extension from Hybrid and System bindings. Run the smoke tests with `ctest --test-dir build -L python --output-on-failure`; they exercise real System objects.
+When a compatible Python development environment is available, the standalone build produces the combined `pyariadne_system` extension from Hybrid and System bindings. Run the smoke tests with `ctest --test-dir build -L python --output-on-failure`; they exercise real System objects.
 
 ## Contribution guidelines
 
 If you would like to contribute to Ariadne System, please contact the developer:
 
 - Luca Geretti <luca.geretti@univr.it>
-
-## License
-
-Ariadne System is released under the GNU General Public License v3.0.

@@ -24,4 +24,4 @@ target_include_directories(pyariadne-system INTERFACE
 )
 target_link_libraries(pyariadne-system INTERFACE pyariadne-hybrid)
 
-ariadne_add_python_module(NAME system MODULE_SOURCE system_module.cpp)
+ariadne_add_python_module(NAME system MODULE_IMPORT_NAME pyariadne_system MODULE_SOURCE system_module.cpp)

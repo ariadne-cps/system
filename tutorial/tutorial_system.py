@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The same two-mode system as tutorial_system.cpp, using pyariadne."""
+"""The same two-mode system as tutorial_system.cpp, using pyariadne_system."""
 
-from pyariadne import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
+from pyariadne_system import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
                        RealVariable, VectorField, IteratedMap, DifferentialInclusion,
                        RealVariablesBox, dot, next)
 

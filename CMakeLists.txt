@@ -18,9 +18,11 @@ endif()
 
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
     require_same_dependency_commit(Build CHAINS
-        "build"
-        "hybrid|build"
-    )
+        "build" "hybrid|build" "neural-set|build")
+    require_same_dependency_commit(Testing CHAINS
+        "testing" "hybrid|testing" "neural-set|testing")
+    require_same_dependency_commit(Set CHAINS
+        "hybrid|labelled|expression-set|set" "neural-set|set")
 endif()
 
 setup_project()
@@ -32,7 +34,7 @@ target_include_directories(system INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/ariadne-system>
 )
-target_link_libraries(system INTERFACE hybrid)
+target_link_libraries(system INTERFACE hybrid neural_set)
 
 add_subdirectory(src)
 target_link_libraries(SYSTEM_SRC PRIVATE system)

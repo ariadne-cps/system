@@ -6,6 +6,7 @@ target_include_directories(pyariadne-system-submodule-obj PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${PYTHON_COMMON_SOURCE_DIR}/include"
     $<TARGET_PROPERTY:pyariadne-hybrid,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:pyariadne-neural_set,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(pyariadne-system-submodule-obj PRIVATE
     pyariadne-python-common
@@ -21,7 +22,8 @@ target_sources(pyariadne-system INTERFACE
 target_include_directories(pyariadne-system INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<TARGET_PROPERTY:pyariadne-hybrid,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:pyariadne-neural_set,INTERFACE_INCLUDE_DIRECTORIES>
 )
-target_link_libraries(pyariadne-system INTERFACE pyariadne-hybrid)
+target_link_libraries(pyariadne-system INTERFACE pyariadne-hybrid pyariadne-neural_set)
 
 ariadne_add_python_module(NAME system MODULE_IMPORT_NAME pyariadne_system MODULE_SOURCE system_module.cpp)

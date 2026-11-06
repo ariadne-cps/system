@@ -7,8 +7,8 @@ option(PYTHON_ENFORCE_TESTS "Enforce Python tests" OFF)
 
 if(Python3_FOUND)
     report_python_configuration_once()
-    if(NOT TARGET pyariadne-hybrid)
-        message(FATAL_ERROR "The Hybrid Python binding target is required to build pyariadne-system.")
+    if(NOT TARGET pyariadne-hybrid OR NOT TARGET pyariadne-neural_set)
+        message(FATAL_ERROR "The Hybrid and Neural Set Python binding targets are required to build pyariadne-system.")
     endif()
 
     add_subdirectory(bindings)

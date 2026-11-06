@@ -21,6 +21,7 @@ The [System tutorial](tutorial/README.md) covers hybrid automata, vector fields,
 System depends directly on:
 
 - [ariadne-cps/hybrid](https://github.com/ariadne-cps/hybrid), as a Git submodule.
+- [ariadne-cps/neural-set](https://github.com/ariadne-cps/neural-set), for validated neural evaluation and constrained images.
 - [ariadne-cps/build](https://github.com/ariadne-cps/build), for shared CMake configuration.
 - [ariadne-cps/testing](https://github.com/ariadne-cps/testing), pinned at `ss/tst`, for C++ test fixtures, assertions and diagnostics only.
 

@@ -56,3 +56,9 @@ def test_differential_inclusion_inputs():
     assert model.number_of_inputs() == 1
     assert model.is_input_affine()
     assert model.is_input_additive()
+
+
+def test_neural_set_dependency():
+    from pyariadne_system import NeuralValidatedEvaluator, neural_validated_bounds
+    assert callable(NeuralValidatedEvaluator)
+    assert callable(neural_validated_bounds)

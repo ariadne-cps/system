@@ -5,6 +5,9 @@
 	path = ss/hyb
 	url = https://github.com/ariadne-cps/hybrid
 
+[submodule "neural-set"]
+	path = ss/nst
+	url = https://github.com/ariadne-cps/neural-set
 [submodule "tst"]
 	path = ss/tst
 	url = https://github.com/ariadne-cps/testing

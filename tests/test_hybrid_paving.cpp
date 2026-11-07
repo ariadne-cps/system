@@ -55,7 +55,7 @@ Void test_extend_auxiliary()
     MonolithicHybridSpace hspace;
     hspace.new_location(loc, space);
     HybridGrid grid(hspace);
-    HybridGridTreePaving paving(grid);
+    HybridBinaryTreePaving paving(grid);
     HybridExactBoxes boxes;
     boxes.insert(loc, space, ExactBoxType({{0,1}}));
     paving.adjoin_outer_approximation(boxes, 3u);
@@ -63,7 +63,7 @@ Void test_extend_auxiliary()
 
     // Extending with the auxiliary variable must produce a paving over the
     // combined state+auxiliary space, with the same location and cells.
-    HybridGridTreePaving extended = extend_auxiliary(paving, automaton);
+    HybridBinaryTreePaving extended = extend_auxiliary(paving, automaton);
     ARIADNE_TESTING_PROVE(extended.nontrivial_location(loc));
     ARIADNE_TESTING_PROVE(extended.size() > 0u);
     ARIADNE_TESTING_PROVE(extended.grid().has_location(loc));

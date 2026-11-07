@@ -8,7 +8,7 @@ namespace Ariadne {
 class HybridAutomatonInterface;
 
 //! Extend a hybrid state paving with the auxiliary variables of a system.
-HybridGridTreePaving extend_auxiliary(HybridGridTreePaving const& hgtp,
+HybridBinaryTreePaving extend_auxiliary(HybridBinaryTreePaving const& hgtp,
                                       HybridAutomatonInterface const& ha);
 
 } // namespace Ariadne

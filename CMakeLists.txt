@@ -23,8 +23,6 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
     # Pinned child commits guarantee internal consistency.
     require_same_dependency_commit(Build CHAINS
         "build" "hybrid|build" "neural-set|build")
-    require_same_dependency_commit(Testing CHAINS
-        "testing" "hybrid|testing" "neural-set|testing")
     require_same_dependency_commit(Set CHAINS
         "hybrid|labelled|expression-set|set" "neural-set|set")
 endif()

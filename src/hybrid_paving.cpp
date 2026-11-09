@@ -6,7 +6,7 @@
 
 namespace Ariadne {
 
-HybridBinaryTreePaving extend_auxiliary(const HybridBinaryTreePaving& hybrid_paving,
+HybridPaving extend_auxiliary(const HybridPaving& hybrid_paving,
                                       const HybridAutomatonInterface& hybrid_automaton) {
     HybridGrid hybrid_state_grid = hybrid_paving.grid();
     HybridSpace hybrid_state_space = hybrid_state_grid.space();
@@ -15,15 +15,20 @@ HybridBinaryTreePaving extend_auxiliary(const HybridBinaryTreePaving& hybrid_pav
     HybridSpace hybrid_state_auxiliary_space = hybrid_automaton.state_auxiliary_space();
     HybridGrid hybrid_state_auxiliary_grid(hybrid_state_auxiliary_space,scalings);
 
-    HybridBinaryTreePaving result(hybrid_state_auxiliary_grid);
+    HybridPaving result(hybrid_state_auxiliary_grid);
     for (auto iter = hybrid_paving.locations_begin(); iter!=hybrid_paving.locations_end(); ++iter) {
         DiscreteLocation const& location=iter->first;
-        BinaryTreePaving const& state_paving=iter->second;
+        Paving const& state_paving=iter->second;
         RealSpace auxiliary_space=hybrid_automaton.continuous_auxiliary_space(location);
         EffectiveVectorMultivariateFunction auxiliary_function=hybrid_automaton.auxiliary_function(location);
         Grid auxiliary_grid=scalings.grid(location,auxiliary_space);
-        BinaryTreePaving state_auxiliary_paving=outer_skew_product(state_paving,auxiliary_grid,auxiliary_function);
-        result[location]=state_auxiliary_paving;
+        // The skew product is a derived geometric view. Preserve the
+        // selected state backend without changing authoritative storage.
+        BinaryTreePaving tree(state_paving.grid());
+        for(auto cell=state_paving.begin(),end=state_paving.end();cell!=end;++cell)
+            tree.adjoin(*cell);
+        BinaryTreePaving product=outer_skew_product(tree,auxiliary_grid,auxiliary_function);
+        result[location]=Paving(new BinaryTreePaving(product));
     }
     return result;
 }

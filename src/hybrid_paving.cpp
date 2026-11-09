@@ -15,7 +15,7 @@ HybridPaving extend_auxiliary(const HybridPaving& hybrid_paving,
     HybridSpace hybrid_state_auxiliary_space = hybrid_automaton.state_auxiliary_space();
     HybridGrid hybrid_state_auxiliary_grid(hybrid_state_auxiliary_space,scalings);
 
-    HybridPaving result(hybrid_state_auxiliary_grid);
+    HybridPaving result=hybrid_paving.with_grid(hybrid_state_auxiliary_grid);
     for (auto iter = hybrid_paving.locations_begin(); iter!=hybrid_paving.locations_end(); ++iter) {
         DiscreteLocation const& location=iter->first;
         Paving const& state_paving=iter->second;
@@ -28,7 +28,7 @@ HybridPaving extend_auxiliary(const HybridPaving& hybrid_paving,
         for(auto cell=state_paving.begin(),end=state_paving.end();cell!=end;++cell)
             tree.adjoin(*cell);
         BinaryTreePaving product=outer_skew_product(tree,auxiliary_grid,auxiliary_function);
-        result[location]=Paving(new BinaryTreePaving(product));
+        result[location].adjoin(static_cast<SubPavingInterface const&>(product));
     }
     return result;
 }

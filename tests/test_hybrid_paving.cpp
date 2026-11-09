@@ -55,7 +55,7 @@ Void test_extend_auxiliary()
     MonolithicHybridSpace hspace;
     hspace.new_location(loc, space);
     HybridGrid grid(hspace);
-    HybridBinaryTreePaving paving(grid);
+    HybridPaving paving(grid);
     HybridExactBoxes boxes;
     boxes.insert(loc, space, ExactBoxType({{0,1}}));
     paving.adjoin_outer_approximation(boxes, 3u);
@@ -63,12 +63,22 @@ Void test_extend_auxiliary()
 
     // Extending with the auxiliary variable must produce a paving over the
     // combined state+auxiliary space, with the same location and cells.
-    HybridBinaryTreePaving extended = extend_auxiliary(paving, automaton);
+    HybridPaving extended = extend_auxiliary(paving, automaton);
     ARIADNE_TESTING_PROVE(extended.nontrivial_location(loc));
     ARIADNE_TESTING_PROVE(extended.size() > 0u);
     ARIADNE_TESTING_PROVE(extended.grid().has_location(loc));
     ARIADNE_TESTING_EXPECT_EQUAL(extended.grid().space()[loc].size(), 2u);
     ARIADNE_TESTING_NOTE(extended);
+
+    // Auxiliary extension must retain the selected ROBDD representation.
+    auto manager=std::make_shared<RobddManager>();
+    HybridPaving robdd(grid,manager);
+    robdd.adjoin_outer_approximation(boxes,3u);
+    HybridPaving extended_robdd=extend_auxiliary(robdd,automaton);
+    ARIADNE_TESTING_PROVE(extended_robdd.size()>0u);
+    ARIADNE_TESTING_PROVE(
+        dynamic_cast<RobddPaving const*>(
+            &static_cast<PavingInterface const&>(extended_robdd[loc]))!=nullptr);
 }
 
 

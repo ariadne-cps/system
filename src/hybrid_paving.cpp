@@ -28,7 +28,12 @@ HybridPaving extend_auxiliary(const HybridPaving& hybrid_paving,
         for(auto cell=state_paving.begin(),end=state_paving.end();cell!=end;++cell)
             tree.adjoin(*cell);
         BinaryTreePaving product=outer_skew_product(tree,auxiliary_grid,auxiliary_function);
-        result[location].adjoin(static_cast<SubPavingInterface const&>(product));
+        // A paving-level union requires backend compatibility. Import the
+        // derived geometry cell by cell into the chosen backend instead:
+        // Tree and ROBDD both support direct GridCell insertion.
+        Paving& destination=result[location];
+        for(auto const& cell:product)
+            destination.adjoin(cell);
     }
     return result;
 }

@@ -79,6 +79,14 @@ Void test_extend_auxiliary()
     ARIADNE_TESTING_PROVE(
         dynamic_cast<RobddPaving const*>(
             &static_cast<PavingInterface const&>(extended_robdd[loc]))!=nullptr);
+    // Compare geometry rather than storage-specific leaf counts. The two
+    // implementations need not use matching subdivisions or BDD managers.
+    Paving const& tree_slice=extended[loc];
+    Paving const& robdd_slice=extended_robdd[loc];
+    for(auto const& cell:tree_slice)
+        ARIADNE_TESTING_PROVE(robdd_slice.superset(cell));
+    for(auto const& cell:robdd_slice)
+        ARIADNE_TESTING_PROVE(tree_slice.superset(cell));
 }
 
 

@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_first_order_pde.cpp
+ *  @brief Test first order pde behavior.
+ */
+
 // Exercises the full FirstOrderPDE constructor and accessors plus all
 // validation error paths.
 

@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_hybrid_paving.cpp
+ *  @brief Test hybrid paving behavior.
+ */
+
 #include "ariadne-testing.hpp"
 
 #include "hybrid/hybrid_space.hpp"

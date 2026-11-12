@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_dynamics.cpp
+ *  @brief Test dynamics behavior.
+ */
+
 #include "ariadne-testing.hpp"
 
 #include "symbolic/variable.hpp"

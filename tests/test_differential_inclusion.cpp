@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_differential_inclusion.cpp
+ *  @brief Test differential inclusion behavior.
+ */
+
 // Exercises DifferentialInclusion: construction (with symmetric and
 // asymmetric input bounds, additive/affine and non-additive inputs), all
 // accessors, clone, streaming, and the input-validation errors.

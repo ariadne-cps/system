@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_hybrid_automaton_api.cpp
+ *  @brief Test hybrid automaton api behavior.
+ */
+
 // Exercises the full public API of HybridAutomaton / DiscreteMode /
 // DiscreteTransition: constructors, mode/transition building (including
 // every error path), accessors, check_mode validation errors, and the

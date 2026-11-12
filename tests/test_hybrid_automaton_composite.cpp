@@ -22,6 +22,10 @@
  *  along with Threading.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @file tests/test_hybrid_automaton_composite.cpp
+ *  @brief Test hybrid automaton composite behavior.
+ */
+
 // Exercises CompositeHybridAutomaton: constructors, component access,
 // mode caching, all delegating accessors, the composite hybrid spaces,
 // check_mode validation (success and every error), reachability analysis,

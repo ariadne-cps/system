@@ -31,8 +31,9 @@
 
 #include "function/function.hpp"
 #include "geometry/set_interface.hpp"
-#include "symbolic/identifier.hpp"
 #include "symbolic/expression.decl.hpp"
+#include "symbolic/identifier.hpp"
+
 #include "expression-set/expression_set.hpp"
 
 namespace Ariadne {
@@ -44,19 +45,18 @@ class Grid;
 class MissingInputException : public std::runtime_error {
   public:
     /** @brief Construct the object. */
-    MissingInputException(const String& str) : std::runtime_error(str) { }
+    MissingInputException(const String& str) : std::runtime_error(str) {}
 };
 
 /** @brief UnusedInputException for differential inclusions for continuous dynamics. */
 class UnusedInputException : public std::runtime_error {
   public:
     /** @brief Construct the object. */
-    UnusedInputException(const String& str) : std::runtime_error(str) { }
+    UnusedInputException(const String& str) : std::runtime_error(str) {}
 };
 
 //! \brief A differential inclusion in Euclidean space.
-class DifferentialInclusion
-{
+class DifferentialInclusion {
   public:
     //! \brief The type used to represent time.
     typedef Real TimeType;
@@ -64,9 +64,10 @@ class DifferentialInclusion
     typedef Real RealType;
     //! \brief The type used to describe the state space.
     typedef EuclideanSpace StateSpaceType;
+
   public:
     //! \brief Construct from expressions with dotted \a dynamics and a given range for the \a inputs.
-    DifferentialInclusion(DottedRealAssignments const& dynamics, RealVariablesBox const& inputs);
+    DifferentialInclusion(const DottedRealAssignments& dynamics, const RealVariablesBox& inputs);
     /** @brief Destroy the object. */
     virtual ~DifferentialInclusion() = default;
     /** @brief Perform the system operation. */
@@ -97,10 +98,13 @@ class DifferentialInclusion
     Vector<EffectiveVectorMultivariateFunction> input_derivatives() const;
 
     friend OutputStream& operator<<(OutputStream& os, const DifferentialInclusion& vf) {
-        return os << "DifferentialInclusion( " << vf.function() << ", " << vf.inputs() << " )"; }
+        return os << "DifferentialInclusion( " << vf.function() << ", " << vf.inputs() << " )";
+    }
+
   private:
     /** @brief Perform the system operation. */
-    Void _transform_and_assign(EffectiveVectorMultivariateFunction const& function, BoxDomainType const& inputs);
+    Void _transform_and_assign(const EffectiveVectorMultivariateFunction& function, const BoxDomainType& inputs);
+
   private:
     EffectiveVectorMultivariateFunction _function;
     BoxDomainType _inputs;

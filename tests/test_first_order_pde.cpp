@@ -31,27 +31,26 @@
 
 #include <stdexcept>
 
-#include "ariadne-testing.hpp"
-
 #include "ariadne-system.hpp"
+#include "ariadne-testing.hpp"
 
 using namespace Ariadne;
 
 class TestFirstOrderPDE : public Ariadne::Testing::ContextFixture {
   public:
     using ContextFixture::ContextFixture;
+
   public:
     Void test_full_constructor_and_accessors();
     Void test_validation_errors();
 };
 
-Void TestFirstOrderPDE::test_full_constructor_and_accessors()
-{
-    const Matrix<Real> A=Matrix<Real>::identity(2);
-    const Matrix<Real> B=Matrix<Real>::identity(2);
-    const DiagonalMatrix<Real> D(Array<Real>{1,-1});
-    const EffectiveVectorMultivariateFunction source=
-        EffectiveVectorMultivariateFunction::zeros(2,EuclideanDomain(2));
+Void TestFirstOrderPDE::test_full_constructor_and_accessors() {
+    const Matrix<Real> A = Matrix<Real>::identity(2);
+    const Matrix<Real> B = Matrix<Real>::identity(2);
+    const DiagonalMatrix<Real> D(Array<Real>{1, -1});
+    const EffectiveVectorMultivariateFunction source =
+        EffectiveVectorMultivariateFunction::zeros(2, EuclideanDomain(2));
 
     FirstOrderPDE model(A, Array<Matrix<Real>>{B},
                         Array<DiagonalMatrix<Real>>{D},
@@ -67,64 +66,60 @@ Void TestFirstOrderPDE::test_full_constructor_and_accessors()
     ARIADNE_TESTING_EXPECT_NO_THROW(model.validate());
 }
 
-Void TestFirstOrderPDE::test_validation_errors()
-{
-    const Matrix<Real> A=Matrix<Real>::identity(2);
-    const Matrix<Real> B=Matrix<Real>::identity(2);
-    const DiagonalMatrix<Real> D(Array<Real>{1,-1});
-    const EffectiveVectorMultivariateFunction source2=
-        EffectiveVectorMultivariateFunction::zeros(2,EuclideanDomain(2));
+Void TestFirstOrderPDE::test_validation_errors() {
+    const Matrix<Real> A = Matrix<Real>::identity(2);
+    const Matrix<Real> B = Matrix<Real>::identity(2);
+    const DiagonalMatrix<Real> D(Array<Real>{1, -1});
+    const EffectiveVectorMultivariateFunction source2 =
+        EffectiveVectorMultivariateFunction::zeros(2, EuclideanDomain(2));
 
     // Zero spatial dimensions are rejected.
-    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE::homogeneous(A,0u));
+    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE::homogeneous(A, 0u));
     // A nonsquare mass matrix is rejected.
-    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(Matrix<Real>(2u,3u),
-        Array<Matrix<Real>>{B}, Array<DiagonalMatrix<Real>>{D},
-        Array<Matrix<Real>>{B}, source2));
+    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(Matrix<Real>(2u, 3u),
+                                                                       Array<Matrix<Real>>{B}, Array<DiagonalMatrix<Real>>{D},
+                                                                       Array<Matrix<Real>>{B}, source2));
     // A source with the wrong codomain is rejected.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B},
-        EffectiveVectorMultivariateFunction::zeros(3,EuclideanDomain(2))));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B},
+                                                                       EffectiveVectorMultivariateFunction::zeros(3, EuclideanDomain(2))));
     // Direction matrices of the wrong size are rejected.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{Matrix<Real>::identity(1)},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B}, source2));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B}, source2));
     // Empty mass matrix is rejected.
-    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(Matrix<Real>(0u,0u),
-        Array<Matrix<Real>>{B}, Array<DiagonalMatrix<Real>>{D},
-        Array<Matrix<Real>>{B}, source2));
+    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(Matrix<Real>(0u, 0u),
+                                                                       Array<Matrix<Real>>{B}, Array<DiagonalMatrix<Real>>{D},
+                                                                       Array<Matrix<Real>>{B}, source2));
     // Source domain with too few arguments is rejected.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B},
-        EffectiveVectorMultivariateFunction::zeros(2,EuclideanDomain(1u))));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B},
+                                                                       EffectiveVectorMultivariateFunction::zeros(2, EuclideanDomain(1u))));
     // Spatial matrix with matching rows but wrong columns.
-    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{Matrix<Real>(2u,3u)},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B}, source2));
+    ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{Matrix<Real>(2u, 3u)},
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{B}, source2));
     // Eigenvalue matrix of the wrong size.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{DiagonalMatrix<Real>(Array<Real>{1})},
-        Array<Matrix<Real>>{B}, source2));
+                                                                       Array<DiagonalMatrix<Real>>{DiagonalMatrix<Real>(Array<Real>{1})},
+                                                                       Array<Matrix<Real>>{B}, source2));
     // Eigenvector matrix with wrong rows / wrong columns.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{Matrix<Real>(3u,2u)},
-        source2));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{Matrix<Real>(3u, 2u)},
+                                                                       source2));
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{Matrix<Real>(2u,3u)},
-        source2));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{Matrix<Real>(2u, 3u)},
+                                                                       source2));
     // Mismatched spatial/eigenvector counts with equal eigenvalue count.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, FirstOrderPDE(A, Array<Matrix<Real>>{B},
-        Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{}, source2));
+                                                                       Array<DiagonalMatrix<Real>>{D}, Array<Matrix<Real>>{}, source2));
     // Direction count must match the source domain.
     ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, {
-        FirstOrderPDE model=FirstOrderPDE::homogeneous(A,2);
-        model.add_direction(B,D,B);
-        model.add_direction(B,D,B);
-        model.add_direction(B,D,B);
+        FirstOrderPDE model = FirstOrderPDE::homogeneous(A, 2);
+        model.add_direction(B, D, B);
+        model.add_direction(B, D, B);
+        model.add_direction(B, D, B);
         model.validate();
     });
 }
-
-
-
 
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_first_order_pde");

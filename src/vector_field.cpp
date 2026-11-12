@@ -26,59 +26,53 @@
  *  @brief Implement continuous-time vector fields.
  */
 
-#include "function/functional.hpp"
-
-#include "utility/macros.hpp"
-#include "utility/array.hpp"
-#include "utility/tuple.hpp"
-#include "utility/stlio.hpp"
-#include "utility/container.hpp"
-#include "algebra/vector.hpp"
-#include "function/function.hpp"
-#include "function/constraint.hpp"
-
-
-#include "logging/logging.hpp"
-
 #include "system/vector_field.hpp"
 
-#include "symbolic/space.hpp"
+#include "algebra/vector.hpp"
+#include "function/constraint.hpp"
+#include "function/function.hpp"
+#include "function/functional.hpp"
+#include "logging/logging.hpp"
 #include "symbolic/assignment.hpp"
-
+#include "symbolic/space.hpp"
+#include "utility/array.hpp"
+#include "utility/container.hpp"
+#include "utility/macros.hpp"
+#include "utility/stlio.hpp"
+#include "utility/tuple.hpp"
 
 namespace Ariadne {
 
 EffectiveVectorMultivariateFunction make_auxiliary_function(
-    Space<Real> const& state_space,
-    List<RealAssignment> const& algebraic);
+    const Space<Real>& state_space,
+    const List<RealAssignment>& algebraic);
 
 EffectiveVectorMultivariateFunction make_dynamic_function(
-    Space<Real> const& space,
-    List<RealAssignment> const& algebraic,
-    List<DottedRealAssignment> const& differential);
+    const Space<Real>& space,
+    const List<RealAssignment>& algebraic,
+    const List<DottedRealAssignment>& differential);
 
-
-VectorField::VectorField(List<DottedRealAssignment> const& dynamics)
-    : VectorField(dynamics, List<RealAssignment>())
-{
+VectorField::VectorField(const List<DottedRealAssignment>& dynamics)
+    : VectorField(dynamics, List<RealAssignment>()) {
 }
 
-VectorField::VectorField(List<DottedRealAssignment> const& dynamics, List<RealAssignment> const& auxiliary)
-    : _dynamics(dynamics), _auxiliary(auxiliary)
-{
+VectorField::VectorField(const List<DottedRealAssignment>& dynamics, const List<RealAssignment>& auxiliary)
+    : _dynamics(dynamics), _auxiliary(auxiliary) {
     auto lhs_variables = left_hand_sides(dynamics);
     auto rhs = right_hand_sides(dynamics);
     List<RealVariable> rhs_variables;
-    for (auto expr : rhs) {
-        for (auto rhs_var : expr.arguments()) {
+    for (auto expr: rhs) {
+        for (auto rhs_var: expr.arguments()) {
             Bool found = false;
-            for (auto lhs_var : lhs_variables)
-                if (lhs_var.name() == rhs_var.name()) found = true;
-            if (not found) ARIADNE_FAIL_MSG("The variable '" << rhs_var.name() << "' in the expression is missing a dynamics expression.");
+            for (auto lhs_var: lhs_variables)
+                if (lhs_var.name() == rhs_var.name())
+                    found = true;
+            if (not found)
+                ARIADNE_FAIL_MSG("The variable '" << rhs_var.name() << "' in the expression is missing a dynamics expression.");
         }
     }
-    _dynamic_function = make_dynamic_function(left_hand_sides(dynamics),auxiliary,dynamics);
-    _auxiliary_function = make_auxiliary_function(left_hand_sides(dynamics),auxiliary);
+    _dynamic_function = make_dynamic_function(left_hand_sides(dynamics), auxiliary, dynamics);
+    _auxiliary_function = make_auxiliary_function(left_hand_sides(dynamics), auxiliary);
 }
 
 RealSpace VectorField::state_space() const {
@@ -90,17 +84,19 @@ RealSpace VectorField::auxiliary_space() const {
 }
 
 RealSpace VectorField::state_auxiliary_space() const {
-    return join(state_space(),auxiliary_space());
+    return join(state_space(), auxiliary_space());
 }
 
 OutputStream& operator<<(OutputStream& os, const VectorField& vf) {
     os << "VectorField( dynamic_function = " << vf.dynamic_function() << ", "
-          "auxiliary_function = " << vf.auxiliary_function() << ", "
-          "dynamics = " << vf._dynamics << ", "
-          "auxiliary = " << vf._auxiliary << ")";
+                                                                         "auxiliary_function = "
+       << vf.auxiliary_function() << ", "
+                                     "dynamics = "
+       << vf._dynamics << ", "
+                          "auxiliary = "
+       << vf._auxiliary << ")";
     return os;
 }
 
-
-}  // namespace Ariadne
+} // namespace Ariadne
 

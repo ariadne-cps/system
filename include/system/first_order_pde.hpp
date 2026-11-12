@@ -29,12 +29,12 @@
 #ifndef ARIADNE_SYSTEM_FIRST_ORDER_PDE_HPP
 #define ARIADNE_SYSTEM_FIRST_ORDER_PDE_HPP
 
-#include "numeric/real.hpp"
-#include "numeric/rational.hpp"
-#include "utility/array.hpp"
-#include "algebra/matrix.hpp"
 #include "algebra/diagonal_matrix.hpp"
+#include "algebra/matrix.hpp"
 #include "function/function.hpp"
+#include "numeric/rational.hpp"
+#include "numeric/real.hpp"
+#include "utility/array.hpp"
 
 namespace Ariadne {
 
@@ -42,29 +42,28 @@ namespace Ariadne {
 //! \f$ A u_{,t} + \sum_j B_j u_{,x_j} = f(u). \f$
 //! The model owns its coefficient matrices, characteristic decompositions,
 //! and source function. Solvers and solution histories belong to Evolution.
-class FirstOrderPDE
-{
+class FirstOrderPDE {
   public:
     //! \brief Start a model with its mass matrix and source function.
-    FirstOrderPDE(Matrix<Real> const& mass_matrix,
-                  EffectiveVectorMultivariateFunction const& source);
+    FirstOrderPDE(const Matrix<Real>& mass_matrix,
+                  const EffectiveVectorMultivariateFunction& source);
 
     //! \brief Construct a complete model from coefficient and characteristic arrays.
-    FirstOrderPDE(Matrix<Real> const& mass_matrix,
-                  Array<Matrix<Real>> const& spatial_matrices,
-                  Array<DiagonalMatrix<Real>> const& eigenvalues,
-                  Array<Matrix<Real>> const& eigenvectors,
-                  EffectiveVectorMultivariateFunction const& source);
+    FirstOrderPDE(const Matrix<Real>& mass_matrix,
+                  const Array<Matrix<Real>>& spatial_matrices,
+                  const Array<DiagonalMatrix<Real>>& eigenvalues,
+                  const Array<Matrix<Real>>& eigenvectors,
+                  const EffectiveVectorMultivariateFunction& source);
 
     //! \brief Construct a homogeneous model for the given number of spatial dimensions.
-    static FirstOrderPDE homogeneous(Matrix<Real> const& mass_matrix,
+    static FirstOrderPDE homogeneous(const Matrix<Real>& mass_matrix,
                                      SizeType spatial_dimensions);
 
     //! \brief Add a spatial direction and its characteristic decomposition.
     //! \details Returns *this for fluent construction.
-    FirstOrderPDE& add_direction(Matrix<Real> const& spatial_matrix,
-                                 DiagonalMatrix<Real> const& eigenvalues,
-                                 Matrix<Real> const& eigenvectors);
+    FirstOrderPDE& add_direction(const Matrix<Real>& spatial_matrix,
+                                 const DiagonalMatrix<Real>& eigenvalues,
+                                 const Matrix<Real>& eigenvectors);
 
     //! \brief Check completeness and consistency of matrix and source dimensions.
     void validate() const;
@@ -75,22 +74,22 @@ class FirstOrderPDE
     SizeType spatial_dimension() const;
 
     /** @brief Perform the system operation. */
-    Matrix<Real> const& mass_matrix() const;
+    const Matrix<Real>& mass_matrix() const;
     /** @brief Perform the system operation. */
-    Array<Matrix<Real>> const& spatial_matrices() const;
+    const Array<Matrix<Real>>& spatial_matrices() const;
     /** @brief Perform the system operation. */
-    Array<DiagonalMatrix<Real>> const& characteristic_values() const;
+    const Array<DiagonalMatrix<Real>>& characteristic_values() const;
     /** @brief Perform the system operation. */
-    Array<Matrix<Real>> const& characteristic_transformations() const;
+    const Array<Matrix<Real>>& characteristic_transformations() const;
     /** @brief Perform the system operation. */
-    EffectiveVectorMultivariateFunction const& source() const;
+    const EffectiveVectorMultivariateFunction& source() const;
 
   private:
     /** @brief Perform the system operation. */
     void _check_mass_and_source() const;
-    void _check_direction(Matrix<Real> const& spatial_matrix,
-                          DiagonalMatrix<Real> const& eigenvalues,
-                          Matrix<Real> const& eigenvectors) const;
+    void _check_direction(const Matrix<Real>& spatial_matrix,
+                          const DiagonalMatrix<Real>& eigenvalues,
+                          const Matrix<Real>& eigenvectors) const;
 
     Matrix<Real> _A;
     Array<Matrix<Real>> _Bs;

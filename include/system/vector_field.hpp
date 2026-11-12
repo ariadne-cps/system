@@ -33,18 +33,15 @@
 
 #include "function/function.hpp"
 #include "geometry/set_interface.hpp"
-#include "symbolic/expression.decl.hpp"
-
-#include "symbolic/variable.hpp"
 #include "symbolic/assignment.hpp"
+#include "symbolic/expression.decl.hpp"
 #include "symbolic/space.hpp"
-
+#include "symbolic/variable.hpp"
 
 namespace Ariadne {
 
 //! \brief A vector field in Euclidean space.
-class VectorField
-{
+class VectorField {
   public:
     //! \brief The type used to represent time.
     typedef Real TimeType;
@@ -52,11 +49,12 @@ class VectorField
     typedef Real RealType;
     //! \brief The type used to describe the state space.
     typedef EuclideanSpace StateSpaceType;
+
   public:
     /** @brief Construct the object. */
     VectorField(const List<DottedRealAssignment>&);
     /** @brief Construct the object. */
-    VectorField(const List<DottedRealAssignment>&, List<RealAssignment> const&);
+    VectorField(const List<DottedRealAssignment>&, const List<RealAssignment>&);
 
     /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& dynamic_function() const { return this->_dynamic_function; }
@@ -81,7 +79,8 @@ class VectorField
     /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& function() const { return _dynamic_function; }
 
-    friend OutputStream& operator<<(OutputStream& os, VectorField const& vector_field);
+    friend OutputStream& operator<<(OutputStream& os, const VectorField& vector_field);
+
   private:
     List<DottedRealAssignment> _dynamics;
     List<RealAssignment> _auxiliary;

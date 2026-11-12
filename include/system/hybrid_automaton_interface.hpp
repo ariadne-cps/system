@@ -30,12 +30,12 @@
 #define ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP
 
 #include <cassert>
+
 #include "function/function.hpp"
-#include "system/discrete_event.hpp"
 #include "hybrid/discrete_location.hpp"
+#include "system/discrete_event.hpp"
 
 namespace Ariadne {
-
 
 /** @brief HybridTime for interfaces and specification errors for hybrid automata. */
 class HybridTime;
@@ -49,11 +49,16 @@ class DiscreteEvent;
 /** @brief DiscreteLocation for interfaces and specification errors for hybrid automata. */
 class DiscreteLocation;
 
-template<class T> class Space;
+template<class T>
+class Space;
 typedef Space<Real> RealSpace;
 
 /** @brief EventKind for interfaces and specification errors for hybrid automata. */
-enum class EventKind : std::uint8_t { INVARIANT, PROGRESS, PERMISSIVE, URGENT, IMPACT };
+enum class EventKind : std::uint8_t { INVARIANT,
+                                      PROGRESS,
+                                      PERMISSIVE,
+                                      URGENT,
+                                      IMPACT };
 inline OutputStream& operator<<(OutputStream&, const EventKind& evk);
 
 //! \defgroup SystemSpecificationErrors System specification errors
@@ -66,35 +71,35 @@ inline OutputStream& operator<<(OutputStream&, const EventKind& evk);
 class SystemSpecificationError : public std::runtime_error {
   public:
     /** @brief Construct the object. */
-    SystemSpecificationError(const StringType& what) : std::runtime_error(what) { }
+    SystemSpecificationError(const StringType& what) : std::runtime_error(what) {}
 };
 
 //! \brief A reachable discrete location does not have dynamics specified.
 class NonExistentModeError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    NonExistentModeError(const StringType& what) : SystemSpecificationError(what) { }
+    NonExistentModeError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief %Two modes cannot be distinguised, since they define different variables, but no defined variable differ.
 class IndistinguishableModeError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    IndistinguishableModeError(const StringType& what) : SystemSpecificationError(what) { }
+    IndistinguishableModeError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief A guard was defined twice in the same location.
 class MultipleGuardError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    MultipleGuardError(const StringType& what) : SystemSpecificationError(what) { }
+    MultipleGuardError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief An event was declared urgent (or impact) twice in the same context.
 class MultipleUrgentDeclarationError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    MultipleUrgentDeclarationError(const StringType& what) : SystemSpecificationError(what) { }
+    MultipleUrgentDeclarationError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief An event was declared urgent (or impact) but has another (permissive) guard restricting its activation.
@@ -103,14 +108,14 @@ class MultipleUrgentDeclarationError : public SystemSpecificationError {
 class UrgentDeclarationWithMultipleGuardsException : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    UrgentDeclarationWithMultipleGuardsException(const StringType& what) : SystemSpecificationError(what) { }
+    UrgentDeclarationWithMultipleGuardsException(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief Two transitions kinds were specified for for an event in some location.
 class MultipleTransitionError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    MultipleTransitionError(const StringType& what) : SystemSpecificationError(what) { }
+    MultipleTransitionError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief A set of variables has a loop of algebraic (rather than differential) dependencies
@@ -118,71 +123,69 @@ class MultipleTransitionError : public SystemSpecificationError {
 class AlgebraicLoopError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    AlgebraicLoopError(const StringType& what) : SystemSpecificationError(what) { }
+    AlgebraicLoopError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief The dynamics of a system is overspecified in some way.
 class OverspecifiedSystemError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    OverspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) { }
+    OverspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief A variable has multiple defining (algebraic and/or differential) equations in some mode.
 class OverspecifiedDynamicError : public OverspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    OverspecifiedDynamicError(const StringType& what) : OverspecifiedSystemError(what) { }
+    OverspecifiedDynamicError(const StringType& what) : OverspecifiedSystemError(what) {}
 };
 
 //! \brief A variable has multiple defining values (updates and/or algebraic equations) after some event in some mode.
 class OverspecifiedResetError : public OverspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    OverspecifiedResetError(const StringType& what) : OverspecifiedSystemError(what) { }
+    OverspecifiedResetError(const StringType& what) : OverspecifiedSystemError(what) {}
 };
 
 //! \brief The dynamics of a system is underspecified in some way.
 class UnderspecifiedSystemError : public SystemSpecificationError {
   public:
     /** @brief Construct the object. */
-    UnderspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) { }
+    UnderspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) {}
 };
 
 //! \brief A guard condition is missing for some event in some location.
 class MissingGuardError : public UnderspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    MissingGuardError(const StringType& what) : UnderspecifiedSystemError(what) { }
+    MissingGuardError(const StringType& what) : UnderspecifiedSystemError(what) {}
 };
 
 //! \brief The continuous dynamics in some mode refers to variables which have no specified behaviour.
 class UnderspecifiedDynamicError : public UnderspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    UnderspecifiedDynamicError(const StringType& what) : UnderspecifiedSystemError(what) { }
+    UnderspecifiedDynamicError(const StringType& what) : UnderspecifiedSystemError(what) {}
 };
 
 //! \brief A constraint (guard/invariant) in some location uses undefined variables.
 class UnderspecifiedConstraintError : public UnderspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    UnderspecifiedConstraintError(const StringType& what) : UnderspecifiedSystemError(what) { }
+    UnderspecifiedConstraintError(const StringType& what) : UnderspecifiedSystemError(what) {}
 };
 
 //! \brief The reset function for some event in some location refers to undefined variables.
 class UnderspecifiedResetError : public UnderspecifiedSystemError {
   public:
     /** @brief Construct the object. */
-    UnderspecifiedResetError(const StringType& what) : UnderspecifiedSystemError(what) { }
+    UnderspecifiedResetError(const StringType& what) : UnderspecifiedSystemError(what) {}
 };
 
 //! \brief The discrete locations of a system are ill-defined in some way.
 // Location specification errors belong to the hybrid domain.
 
-
 ///!@}
-
 
 //! \ingroup SystemModule
 //! \ingroup HybridAutomataSubModule
@@ -193,6 +196,7 @@ class HybridAutomatonInterface {
     typedef HybridTime TimeType;
     //! \brief The type used to describe the state space.
     typedef HybridSpace StateSpaceType;
+
   public:
     //! \brief Virtual destructor.
     virtual ~HybridAutomatonInterface() = default;
@@ -273,7 +277,6 @@ class HybridAutomatonInterface {
     //! \brief Write to an output stream.
     virtual OutputStream& _write(OutputStream& os) const = 0;
     //!@}
-
 };
 
 inline OutputStream& operator<<(OutputStream& os, const HybridAutomatonInterface& ha) {
@@ -283,17 +286,26 @@ inline OutputStream& operator<<(OutputStream& os, const HybridAutomatonInterface
 }
 
 inline OutputStream& operator<<(OutputStream& os, const EventKind& evk) {
-    if(evk==EventKind::INVARIANT) { os<<"invariant"; }
+    if (evk == EventKind::INVARIANT) {
+        os << "invariant";
+    }
     /** @brief Perform the system operation. */
-    else if(evk==EventKind::PROGRESS) { os<<"progress"; }
+    else if (evk == EventKind::PROGRESS) {
+        os << "progress";
+    }
     /** @brief Perform the system operation. */
-    else if(evk==EventKind::PERMISSIVE) { os<<"permissive"; }
+    else if (evk == EventKind::PERMISSIVE) {
+        os << "permissive";
+    }
     /** @brief Perform the system operation. */
-    else if(evk==EventKind::URGENT) { os<<"urgent"; }
-    else { os<<"impact"; }
+    else if (evk == EventKind::URGENT) {
+        os << "urgent";
+    } else {
+        os << "impact";
+    }
     return os;
 }
 
-} //namespace Ariadne
+} // namespace Ariadne
 
 #endif // ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP

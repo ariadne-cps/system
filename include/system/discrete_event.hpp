@@ -30,6 +30,7 @@
 #define ARIADNE_DISCRETE_EVENT_HPP
 
 #include <ostream>
+
 #include "utility/typedefs.hpp"
 
 namespace Ariadne {
@@ -39,24 +40,25 @@ namespace Ariadne {
 class DiscreteEvent {
   public:
     /** @brief Construct the object. */
-    DiscreteEvent() : _id("e?") { }
+    DiscreteEvent() : _id("e?") {}
     /** @brief Construct the object. */
-    DiscreteEvent(const StringType& s) : _id(s) { }
+    DiscreteEvent(const StringType& s) : _id(s) {}
     /** @brief Return the requested system property. */
     StringType name() const { return this->_id; }
-    Bool operator==(const DiscreteEvent& e) const { return this->_id==e._id; }
-    Bool operator!=(const DiscreteEvent& e) const { return this->_id!=e._id; }
-    Bool operator<=(const DiscreteEvent& e) const { return this->_id<=e._id; }
-    Bool operator>=(const DiscreteEvent& e) const { return this->_id>=e._id; }
-    Bool operator< (const DiscreteEvent& e) const { return this->_id< e._id; }
-    Bool operator> (const DiscreteEvent& e) const { return this->_id> e._id; }
+    Bool operator==(const DiscreteEvent& e) const { return this->_id == e._id; }
+    Bool operator!=(const DiscreteEvent& e) const { return this->_id != e._id; }
+    Bool operator<=(const DiscreteEvent& e) const { return this->_id <= e._id; }
+    Bool operator>=(const DiscreteEvent& e) const { return this->_id >= e._id; }
+    Bool operator<(const DiscreteEvent& e) const { return this->_id < e._id; }
+    Bool operator>(const DiscreteEvent& e) const { return this->_id > e._id; }
     friend OutputStream& operator<<(OutputStream& os, const DiscreteEvent& e) {
-        return os << e._id; }
+        return os << e._id;
+    }
+
   private:
     StringType _id;
 };
 
-} //namespace Ariadne
-
+} // namespace Ariadne
 
 #endif /* ARIADNE_DISCRETE_EVENT_HPP */

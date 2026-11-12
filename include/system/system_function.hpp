@@ -37,13 +37,13 @@
 namespace Ariadne {
 
 //! Shared symbolic constructors for continuous, discrete and hybrid systems.
-EffectiveVectorMultivariateFunction make_auxiliary_function(Space<Real> const&, List<RealAssignment> const&);
+EffectiveVectorMultivariateFunction make_auxiliary_function(const Space<Real> &, const List<RealAssignment> &);
 /** @brief Build the requested system function. */
-EffectiveVectorMultivariateFunction make_dynamic_function(Space<Real> const&, List<RealAssignment> const&, List<DottedRealAssignment> const&);
+EffectiveVectorMultivariateFunction make_dynamic_function(const Space<Real> &, const List<RealAssignment> &, const List<DottedRealAssignment> &);
 /** @brief Build the requested system function. */
-EffectiveVectorMultivariateFunction make_reset_function(Space<Real> const&, List<RealAssignment> const&, List<PrimedRealAssignment> const&);
+EffectiveVectorMultivariateFunction make_reset_function(const Space<Real> &, const List<RealAssignment> &, const List<PrimedRealAssignment> &);
 /** @brief Build the requested system function. */
-EffectiveScalarMultivariateFunction make_constraint_function(Space<Real> const&, List<RealAssignment> const&, ContinuousPredicate const&, Sign);
+EffectiveScalarMultivariateFunction make_constraint_function(const Space<Real> &, const List<RealAssignment> &, const ContinuousPredicate &, Sign);
 
 } // namespace Ariadne
 

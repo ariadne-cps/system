@@ -33,16 +33,14 @@
 
 #include "function/function.hpp"
 #include "geometry/set_interface.hpp"
-
-#include "symbolic/variable.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/space.hpp"
+#include "symbolic/variable.hpp"
 
 namespace Ariadne {
 
 //! \brief An iterated function system.
-class IteratedMap
-{
+class IteratedMap {
   public:
     //! \brief The type used to represent time.
     typedef Integer TimeType;
@@ -50,11 +48,12 @@ class IteratedMap
     typedef Real RealType;
     //! \brief The state space
     typedef EuclideanSpace StateSpaceType;
+
   public:
     /** @brief Construct the object. */
     IteratedMap(const List<PrimedRealAssignment>&);
     /** @brief Construct the object. */
-    IteratedMap(const List<PrimedRealAssignment>&, List<RealAssignment> const&);
+    IteratedMap(const List<PrimedRealAssignment>&, const List<RealAssignment>&);
 
     /** @brief Perform the system operation. */
     const EffectiveVectorMultivariateFunction& update_function() const { return this->_update_function; }
@@ -79,14 +78,14 @@ class IteratedMap
     /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& function() const { return _update_function; }
 
-    friend OutputStream& operator<<(OutputStream& os, IteratedMap const& map);
+    friend OutputStream& operator<<(OutputStream& os, const IteratedMap& map);
+
   private:
     List<PrimedRealAssignment> _updates;
     List<RealAssignment> _auxiliary;
     EffectiveVectorMultivariateFunction _update_function;
     EffectiveVectorMultivariateFunction _auxiliary_function;
 };
-
 
 } // namespace Ariadne
 

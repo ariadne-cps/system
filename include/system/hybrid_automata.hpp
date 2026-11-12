@@ -33,8 +33,9 @@ namespace Ariadne {
 
 }
 
-#include "system/hybrid_automaton_interface.hpp"
 #include "system/hybrid_automaton.hpp"
+#include "system/hybrid_automaton_interface.hpp"
+
 #include "system/hybrid_automaton-composite.hpp"
 
 #endif // ARIADNE_HYBRID_AUTOMATA_HPP

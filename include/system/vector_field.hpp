@@ -6,24 +6,24 @@
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ *  This file is part of Ariadne System.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
+ *  Ariadne System is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ariadne is distributed in the hope that it will be useful,
+ *  Ariadne System is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*! \file dynamics/vector_field.hpp
- *  \brief Main continuous dynamics system class.
+/** @file system/vector_field.hpp
+ *  @brief Continuous-time vector fields and dynamical systems.
  */
 
 #ifndef ARIADNE_VECTOR_FIELD_HPP
@@ -53,20 +53,32 @@ class VectorField
     //! \brief The type used to describe the state space.
     typedef EuclideanSpace StateSpaceType;
   public:
+    /** @brief Construct the object. */
     VectorField(const List<DottedRealAssignment>&);
+    /** @brief Construct the object. */
     VectorField(const List<DottedRealAssignment>&, List<RealAssignment> const&);
 
+    /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& dynamic_function() const { return this->_dynamic_function; }
+    /** @brief Perform the system operation. */
     const EffectiveVectorMultivariateFunction& auxiliary_function() const { return this->_auxiliary_function; }
+    /** @brief Perform the system operation. */
     const EffectiveVectorMultivariateFunction& auxiliary_mapping() const { return this->_auxiliary_function; }
 
+    /** @brief Perform the system operation. */
     RealSpace state_space() const;
+    /** @brief Perform the system operation. */
     RealSpace auxiliary_space() const;
+    /** @brief Perform the system operation. */
     RealSpace state_auxiliary_space() const;
 
+    /** @brief Perform the system operation. */
     VectorField* clone() const { return new VectorField(*this); }
+    /** @brief Destroy the object. */
     ~VectorField() = default;
+    /** @brief Return the requested system property. */
     DimensionType dimension() const { return this->_dynamic_function.result_size(); }
+    /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& function() const { return _dynamic_function; }
 
     friend OutputStream& operator<<(OutputStream& os, VectorField const& vector_field);

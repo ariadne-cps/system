@@ -6,24 +6,24 @@
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ *  This file is part of Ariadne System.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
+ *  Ariadne System is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ariadne is distributed in the hope that it will be useful,
+ *  Ariadne System is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*! \file hybrid_automaton-composite.hpp
- *  \brief Main composite hybrid system class.
+/** @file system/hybrid_automaton-composite.hpp
+ *  @brief Composition of hybrid automata.
  */
 
 #ifndef ARIADNE_COMPOSITE_HYBRID_AUTOMATON_HPP
@@ -49,12 +49,18 @@
 
 namespace Ariadne {
 
+/** @brief HybridTime for composition of hybrid automata. */
 class HybridTime;
+/** @brief HybridSpace for composition of hybrid automata. */
 class HybridSpace;
 
+/** @brief DiscreteLocation for composition of hybrid automata. */
 class DiscreteLocation;
+/** @brief DiscreteMode for composition of hybrid automata. */
 class DiscreteMode;
+/** @brief HybridAutomaton for composition of hybrid automata. */
 class HybridAutomaton;
+/** @brief CompositeHybridAutomaton for composition of hybrid automata. */
 class CompositeHybridAutomaton;
 
 
@@ -68,7 +74,9 @@ class CompositeHybridAutomaton
 {
     static Writer<CompositeHybridAutomaton> _default_writer;
   public:
+    /** @brief Perform the system operation. */
     static Void set_default_writer(Writer<CompositeHybridAutomaton> w) { _default_writer=w; }
+    /** @brief Perform the system operation. */
     static Writer<CompositeHybridAutomaton> default_writer() { return _default_writer; }
   public:
     typedef HybridTime TimeType;
@@ -232,19 +240,25 @@ class CompositeHybridAutomaton
   private:
     List<HybridAutomaton> _components;
     mutable LRUCache<DiscreteLocation,DiscreteMode> _modes_cache;
+    /** @brief Perform the system operation. */
     Void _cache_mode(DiscreteLocation) const;
 };
 
+/** @brief Perform the system operation. */
 CompositeHybridAutomaton parallel_composition(const List<HybridAutomaton>& components);
 
 inline OutputStream& operator<<(OutputStream& os, const CompositeHybridAutomaton& ha) {
     return ha._write(os); }
 
+/** @brief CompactCompositeHybridAutomatonWriter for composition of hybrid automata. */
 class CompactCompositeHybridAutomatonWriter : public WriterInterface<CompositeHybridAutomaton> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, CompositeHybridAutomaton const& ha) const final override;
 };
 
+/** @brief VerboseCompositeHybridAutomatonWriter for composition of hybrid automata. */
 class VerboseCompositeHybridAutomatonWriter : public WriterInterface<CompositeHybridAutomaton> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, CompositeHybridAutomaton const& ha) const final override;
 };
 

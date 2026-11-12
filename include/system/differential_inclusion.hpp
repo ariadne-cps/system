@@ -6,24 +6,24 @@
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ *  This file is part of Ariadne System.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
+ *  Ariadne System is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ariadne is distributed in the hope that it will be useful,
+ *  Ariadne System is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*! \file dynamics/differential_inclusion.hpp
- *  \brief Differential inclusion continuous dynamics system class.
+/** @file system/differential_inclusion.hpp
+ *  @brief Differential inclusions for continuous dynamics.
  */
 
 #ifndef ARIADNE_DIFFERENTIAL_INCLUSION_HPP
@@ -37,15 +37,20 @@
 
 namespace Ariadne {
 
+/** @brief Grid for differential inclusions for continuous dynamics. */
 class Grid;
 
+/** @brief MissingInputException for differential inclusions for continuous dynamics. */
 class MissingInputException : public std::runtime_error {
   public:
+    /** @brief Construct the object. */
     MissingInputException(const String& str) : std::runtime_error(str) { }
 };
 
+/** @brief UnusedInputException for differential inclusions for continuous dynamics. */
 class UnusedInputException : public std::runtime_error {
   public:
+    /** @brief Construct the object. */
     UnusedInputException(const String& str) : std::runtime_error(str) { }
 };
 
@@ -62,12 +67,18 @@ class DifferentialInclusion
   public:
     //! \brief Construct from expressions with dotted \a dynamics and a given range for the \a inputs.
     DifferentialInclusion(DottedRealAssignments const& dynamics, RealVariablesBox const& inputs);
+    /** @brief Destroy the object. */
     virtual ~DifferentialInclusion() = default;
+    /** @brief Perform the system operation. */
     virtual DifferentialInclusion* clone() const { return new DifferentialInclusion(*this); }
 
+    /** @brief Return the requested system property. */
     SizeType dimension() const { return _function.result_size(); }
+    /** @brief Perform the system operation. */
     SizeType number_of_inputs() const { return _inputs.size(); }
+    /** @brief Perform the system operation. */
     RealSpace state_space() const;
+    /** @brief Perform the system operation. */
     Grid grid() const;
 
     //! \brief If the dynamics is affine in the inputs.
@@ -75,7 +86,9 @@ class DifferentialInclusion
     //! \brief If the inputs are additive (includes the case of constant multipliers).
     Bool is_input_additive() const;
 
+    /** @brief Return the requested system property. */
     const EffectiveVectorMultivariateFunction& function() const { return _function; }
+    /** @brief Perform the system operation. */
     const BoxDomainType& inputs() const { return _inputs; }
 
     //! \brief Return the dynamics component obtained by setting the input radius to zero.
@@ -86,6 +99,7 @@ class DifferentialInclusion
     friend OutputStream& operator<<(OutputStream& os, const DifferentialInclusion& vf) {
         return os << "DifferentialInclusion( " << vf.function() << ", " << vf.inputs() << " )"; }
   private:
+    /** @brief Perform the system operation. */
     Void _transform_and_assign(EffectiveVectorMultivariateFunction const& function, BoxDomainType const& inputs);
   private:
     EffectiveVectorMultivariateFunction _function;

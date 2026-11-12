@@ -6,24 +6,24 @@
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ *  This file is part of Ariadne System.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
+ *  Ariadne System is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ariadne is distributed in the hope that it will be useful,
+ *  Ariadne System is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*! \file system/first_order_pde.hpp
- *  \brief Model of a constant-coefficient first-order partial differential equation.
+/** @file system/first_order_pde.hpp
+ *  @brief Constant-coefficient first-order partial differential equations.
  */
 
 #ifndef ARIADNE_SYSTEM_FIRST_ORDER_PDE_HPP
@@ -69,16 +69,24 @@ class FirstOrderPDE
     //! \brief Check completeness and consistency of matrix and source dimensions.
     void validate() const;
 
+    /** @brief Perform the system operation. */
     SizeType number_of_components() const;
+    /** @brief Perform the system operation. */
     SizeType spatial_dimension() const;
 
+    /** @brief Perform the system operation. */
     Matrix<Real> const& mass_matrix() const;
+    /** @brief Perform the system operation. */
     Array<Matrix<Real>> const& spatial_matrices() const;
+    /** @brief Perform the system operation. */
     Array<DiagonalMatrix<Real>> const& characteristic_values() const;
+    /** @brief Perform the system operation. */
     Array<Matrix<Real>> const& characteristic_transformations() const;
+    /** @brief Perform the system operation. */
     EffectiveVectorMultivariateFunction const& source() const;
 
   private:
+    /** @brief Perform the system operation. */
     void _check_mass_and_source() const;
     void _check_direction(Matrix<Real> const& spatial_matrix,
                           DiagonalMatrix<Real> const& eigenvalues,

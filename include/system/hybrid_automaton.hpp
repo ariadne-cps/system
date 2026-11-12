@@ -6,24 +6,24 @@
  ****************************************************************************/
 
 /*
- *  This file is part of Ariadne.
+ *  This file is part of Ariadne System.
  *
- *  Ariadne is free software: you can redistribute it and/or modify
+ *  Ariadne System is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ariadne is distributed in the hope that it will be useful,
+ *  Ariadne System is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ariadne.  If not, see <https://www.gnu.org/licenses/>.
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*! \file hybrid/hybrid_automaton.hpp
- *  \brief Main hybrid automaton class.
+/** @file system/hybrid_automaton.hpp
+ *  @brief Hybrid automata, discrete modes, and transitions.
  */
 
 #ifndef ARIADNE_HYBRID_AUTOMATON_HPP
@@ -47,11 +47,16 @@
 
 namespace Ariadne {
 
+/** @brief HybridTime for hybrid automata, discrete modes, and transitions. */
 class HybridTime;
+/** @brief HybridSpace for hybrid automata, discrete modes, and transitions. */
 class HybridSpace;
 
+/** @brief DiscreteLocation for hybrid automata, discrete modes, and transitions. */
 class DiscreteLocation;
+/** @brief DiscreteMode for hybrid automata, discrete modes, and transitions. */
 class DiscreteMode;
+/** @brief HybridAutomaton for hybrid automata, discrete modes, and transitions. */
 class HybridAutomaton;
 
 
@@ -94,11 +99,15 @@ class DiscreteMode {
     // The update assignments for the doscrete transitions.
     Map<DiscreteEvent, List<PrimedRealAssignment> > _resets;
   private:
+    /** @brief Construct the object. */
     DiscreteMode(DiscreteLocation, List<RealAssignment>const&, List<DottedRealAssignment>const&);
+    /** @brief Construct the object. */
     DiscreteMode();
     static Writer<DiscreteMode> _default_writer;
   public:
+    /** @brief Perform the system operation. */
     static Void set_default_writer(Writer<DiscreteMode> w) { _default_writer=w; }
+    /** @brief Perform the system operation. */
     static Writer<DiscreteMode> default_writer() { return _default_writer; }
   public:
     //! \brief The mode's discrete state.
@@ -112,11 +121,15 @@ class DiscreteMode {
 inline OutputStream& operator<<(OutputStream& os, const DiscreteMode& dm) {
     return dm._write(os); }
 
+/** @brief CompactDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
 class CompactDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, DiscreteMode const& m) const final override;
 };
 
+/** @brief VerboseDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
 class VerboseDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, DiscreteMode const& m) const final override;
 };
 
@@ -168,7 +181,9 @@ class HybridAutomaton
     friend class CompositeHybridAutomaton;
     static Writer<HybridAutomaton> _default_writer;
 public:
+    /** @brief Perform the system operation. */
     static Void set_default_writer(Writer<HybridAutomaton> w) { _default_writer=w; }
+    /** @brief Perform the system operation. */
     static Writer<HybridAutomaton> default_writer() { return _default_writer; }
   public:
     //! \brief The type used to represent time.
@@ -247,6 +262,7 @@ public:
     Void new_mode(DiscreteLocation location,
                   List<RealAssignment> const& auxiliary,
                   List<DottedRealAssignment> const& dynamic) {
+        /** @brief Perform the system operation. */
         this->_new_mode(location,auxiliary,dynamic);
     }
 
@@ -254,43 +270,51 @@ public:
     Void new_mode(DiscreteLocation location,
                   List<DottedRealAssignment> const& dynamic,
                   List<RealAssignment> const& auxiliary) {
+        /** @brief Perform the system operation. */
         this->_new_mode(location,auxiliary,dynamic);
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(DiscreteLocation location,
                   List<DottedRealAssignment> const& dynamic) {
+        /** @brief Perform the system operation. */
         this->_new_mode(location,List<RealAssignment>(),dynamic);
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(DiscreteLocation location,
                   List<RealAssignment> const& auxiliary) {
+        /** @brief Perform the system operation. */
         this->_new_mode(location,auxiliary,List<DottedRealAssignment>());
     }
 
     //! \brief Adds a discrete mode to the automaton without any dynamics.
     Void new_mode(DiscreteLocation location) {
+        /** @brief Perform the system operation. */
         this->_new_mode(location,List<RealAssignment>(),List<DottedRealAssignment>());
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(List<RealAssignment> const& auxiliary, List<DottedRealAssignment> const& dynamic) {
+        /** @brief Perform the system operation. */
         this->_new_mode(DiscreteLocation(),auxiliary,dynamic);
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(List<DottedRealAssignment> const& dynamic, List<RealAssignment> const& auxiliary) {
+        /** @brief Perform the system operation. */
         this->_new_mode(DiscreteLocation(),auxiliary,dynamic);
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(List<DottedRealAssignment> const& dynamic) {
+        /** @brief Perform the system operation. */
         this->_new_mode(DiscreteLocation(),List<RealAssignment>(),dynamic);
     }
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(List<RealAssignment> const& auxiliary) {
+        /** @brief Perform the system operation. */
         this->_new_mode(DiscreteLocation(),auxiliary,List<DottedRealAssignment>());
     }
 
@@ -300,7 +324,9 @@ public:
                     DiscreteEvent event,
                     ContinuousPredicate activation,
                     EventKind kind=EventKind::PERMISSIVE) {
+        /** @brief Construct the object. */
         ARIADNE_ASSERT(kind==EventKind::PERMISSIVE);
+        /** @brief Perform the system operation. */
         this->_new_action(location,invariant,event,activation,kind);
     }
 
@@ -309,7 +335,9 @@ public:
                     DiscreteEvent event,
                     ContinuousPredicate guard,
                     EventKind kind=EventKind::URGENT) {
+        /** @brief Construct the object. */
         ARIADNE_ASSERT(kind==EventKind::URGENT || kind==EventKind::IMPACT);
+        /** @brief Perform the system operation. */
         this->_new_guard(location,event,guard,kind);
     }
 
@@ -324,6 +352,7 @@ public:
     Void set_invariant(DiscreteLocation location,
                        ContinuousPredicate const& invariant,
                        DiscreteEvent event) {
+        /** @brief Return the requested system property. */
         DiscreteMode& mode=this->_modes.value(location);
         mode._invariants[event] = invariant;
         mode._kinds[event] = EventKind::INVARIANT;
@@ -342,6 +371,7 @@ public:
                    DiscreteEvent event,
                    ContinuousPredicate const& guard,
                    EventKind kind) {
+        /** @brief Return the requested system property. */
         DiscreteMode& mode=this->_modes.value(location);
         mode._guards[event] = guard;
         mode._kinds[event] = kind;
@@ -353,6 +383,7 @@ public:
                     DiscreteEvent event,
                     DiscreteLocation target,
                     List<PrimedRealAssignment> const& reset) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,reset);
     }
 
@@ -360,12 +391,14 @@ public:
     Void new_update(DiscreteLocation source,
                     DiscreteEvent event,
                     DiscreteLocation target) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,List<PrimedRealAssignment>());
     }
 
     //! \brief Adds a reset to an automaton with a single mode.
     Void new_update(DiscreteEvent event,
                     List<PrimedRealAssignment> const& reset) {
+        /** @brief Perform the system operation. */
         this->_new_update(DiscreteLocation(),event,DiscreteLocation(),reset);
     }
 
@@ -374,6 +407,7 @@ public:
                    DiscreteEvent event,
                    DiscreteLocation target,
                    List<PrimedRealAssignment> const& reset) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,reset);
     }
 
@@ -381,12 +415,14 @@ public:
     Void new_reset(DiscreteLocation source,
                     DiscreteEvent event,
                     DiscreteLocation target) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,List<PrimedRealAssignment>());
     }
 
     //! \brief Adds a reset to an automaton with a single mode. (Same as new_update.)
     Void new_reset(DiscreteEvent event,
                     List<PrimedRealAssignment> const& reset) {
+        /** @brief Perform the system operation. */
         this->_new_update(DiscreteLocation(),event,DiscreteLocation(),reset);
     }
 
@@ -404,6 +440,7 @@ public:
                         List<PrimedRealAssignment> const& reset,
                         ContinuousPredicate guard,
                         EventKind kind) {
+        /** @brief Perform the system operation. */
         this->_new_transition(source,event,target,reset,guard,kind);
     }
 
@@ -414,6 +451,7 @@ public:
                         DiscreteLocation target,
                         ContinuousPredicate guard,
                         EventKind kind) {
+        /** @brief Perform the system operation. */
         this->_new_transition(source,event,target,List<PrimedRealAssignment>(),guard,kind);
     }
 
@@ -424,6 +462,7 @@ public:
                         ContinuousPredicate guard,
                         DiscreteLocation target,
                         EventKind kind) {
+        /** @brief Perform the system operation. */
         this->_new_transition(source,event,target,List<PrimedRealAssignment>(),guard,kind);
     }
 
@@ -433,6 +472,7 @@ public:
                         DiscreteEvent event,
                         DiscreteLocation target,
                         List<PrimedRealAssignment> const& reset) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,reset);
     }
 
@@ -441,6 +481,7 @@ public:
     Void new_transition(DiscreteLocation source,
                         DiscreteEvent event,
                         DiscreteLocation target) {
+        /** @brief Perform the system operation. */
         this->_new_update(source,event,target,List<PrimedRealAssignment>());
     }
 
@@ -449,6 +490,7 @@ public:
                         List<PrimedRealAssignment> const & reset,
                         ContinuousPredicate const& guard,
                         EventKind kind) {
+        /** @brief Perform the system operation. */
         this->new_transition(DiscreteLocation(),event,DiscreteLocation(),reset,guard,kind);
     }
 
@@ -472,6 +514,7 @@ public:
 
     //! \brief The discrete mode with given discrete state.
     const DiscreteMode& mode(DiscreteLocation location) const;
+    /** @brief Return the requested system property. */
     DiscreteMode& mode(DiscreteLocation location);
 
     //! \brief Checks validity of the mode for the given \a location.
@@ -566,11 +609,15 @@ inline OutputStream& operator<<(OutputStream& os, const HybridAutomaton& ha) {
     return ha._write(os);
 }
 
+/** @brief CompactHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
 class CompactHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, HybridAutomaton const& ha) const final override;
 };
 
+/** @brief VerboseHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
 class VerboseHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+    /** @brief Perform the system operation. */
     virtual OutputStream& _write(OutputStream& os, HybridAutomaton const& ha) const final override;
 };
 

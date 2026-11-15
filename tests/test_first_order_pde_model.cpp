@@ -95,7 +95,7 @@ class TestFirstOrderPDEModel : public Ariadne::Testing::ContextFixture {
     }
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     ARIADNE_TESTING_SUITE("test_first_order_pde_model");
     ARIADNE_TESTING_ADD_TEST(TestFirstOrderPDEModel, test_model_construction_and_validation);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);

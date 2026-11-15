@@ -26,8 +26,9 @@
  *  @brief Test system header behavior.
  */
 
-#include "ariadne-system.hpp"
 #include "logging/test_runner.hpp"
+
+#include "ariadne-system.hpp"
 #include "ariadne-testing.hpp"
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
 class TestSystemHeader : public Ariadne::Testing::ContextFixture {

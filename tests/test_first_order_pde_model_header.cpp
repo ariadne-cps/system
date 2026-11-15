@@ -28,8 +28,8 @@
 
 // Regression: the system-level PDE model header is independently includable.
 // In particular, algebra/matrix.hpp needs a complete Rational definition.
-#include "system/first_order_pde.hpp"
 #include "logging/test_runner.hpp"
+#include "system/first_order_pde.hpp"
 
 #include "ariadne-testing.hpp"
 

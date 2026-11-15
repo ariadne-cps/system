@@ -1,7 +1,8 @@
 include(CTest)
 set(UNIT_TESTS
     test_discrete_event
-    test_dynamics
+    test_iterated_map
+    test_vector_field
     test_hybrid_automaton
     test_hybrid_automaton_api
     test_hybrid_automaton_composite

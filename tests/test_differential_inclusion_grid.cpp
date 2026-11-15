@@ -28,6 +28,7 @@
 
 // Regression for DifferentialInclusion::grid() in the standalone System layer.
 // Compiles the method's return type and links its implementation with Paving.
+#include "logging/test_runner.hpp"
 #include "paving/grid.hpp"
 #include "symbolic/assignment.hpp"
 #include "system/differential_inclusion.hpp"
@@ -54,5 +55,5 @@ class TestDifferentialInclusionGrid : public Ariadne::Testing::ContextFixture {
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_differential_inclusion_grid");
     ARIADNE_TESTING_ADD_TEST(TestDifferentialInclusionGrid, test_grid);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

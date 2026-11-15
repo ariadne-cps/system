@@ -34,6 +34,7 @@
 #include <sstream>
 
 #include "hybrid/hybrid_space.hpp"
+#include "logging/test_runner.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "symbolic/space.hpp"
@@ -403,5 +404,5 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_accessors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_check_mode_errors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_writers_and_streaming);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

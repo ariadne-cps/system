@@ -26,6 +26,7 @@
  *  @brief Test dynamics behavior.
  */
 
+#include "logging/test_runner.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/space.hpp"
 #include "symbolic/variable.hpp"
@@ -108,5 +109,5 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_dynamics");
     ARIADNE_TESTING_ADD_TEST(TestDynamics, test_iterated_map);
     ARIADNE_TESTING_ADD_TEST(TestDynamics, test_vector_field);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

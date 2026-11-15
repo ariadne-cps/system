@@ -35,6 +35,7 @@
 
 #include "hybrid/hybrid_space.hpp"
 #include "logging/logging.hpp"
+#include "logging/test_runner.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "symbolic/space.hpp"
@@ -504,5 +505,5 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_missing_guard_error);
     ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_predicate_combination);
     ARIADNE_TESTING_ADD_TEST(TestCompositeHybridAutomaton, test_reachability);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

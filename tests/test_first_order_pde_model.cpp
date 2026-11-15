@@ -29,11 +29,14 @@
 // Verify safe ownership, incremental construction and dimension validation.
 #include <stdexcept>
 
+#include "logging/test_runner.hpp"
+
 #include "ariadne-system.hpp"
+#include "ariadne-testing.hpp"
 
 using namespace Ariadne;
 
-int main() {
+static int verify_first_order_pde_model() {
     const Matrix<Real> A = Matrix<Real>::identity(2);
     const Matrix<Real> B = Matrix<Real>::identity(2);
     const DiagonalMatrix<Real> D(Array<Real>{1, -1});
@@ -81,4 +84,19 @@ int main() {
         return 6;
     }
     return 0;
+}
+
+class TestFirstOrderPDEModel : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+    void test_model_construction_and_validation() {
+        ARIADNE_TESTING_EXPECT_EQUAL(verify_first_order_pde_model(), 0);
+    }
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_first_order_pde_model");
+    ARIADNE_TESTING_ADD_TEST(TestFirstOrderPDEModel, test_model_construction_and_validation);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

@@ -31,6 +31,8 @@
 
 #include <stdexcept>
 
+#include "logging/test_runner.hpp"
+
 #include "ariadne-system.hpp"
 #include "ariadne-testing.hpp"
 
@@ -125,5 +127,5 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_first_order_pde");
     ARIADNE_TESTING_ADD_TEST(TestFirstOrderPDE, test_full_constructor_and_accessors);
     ARIADNE_TESTING_ADD_TEST(TestFirstOrderPDE, test_validation_errors);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

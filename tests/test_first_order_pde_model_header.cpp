@@ -29,7 +29,21 @@
 // Regression: the system-level PDE model header is independently includable.
 // In particular, algebra/matrix.hpp needs a complete Rational definition.
 #include "system/first_order_pde.hpp"
+#include "logging/test_runner.hpp"
 
-int main() {
-    return 0;
+#include "ariadne-testing.hpp"
+
+class TestFirstOrderPDEModelHeader : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+    void test_header_compiles() {
+        ARIADNE_TESTING_PROVE(true);
+    }
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_first_order_pde_model_header");
+    ARIADNE_TESTING_ADD_TEST(TestFirstOrderPDEModelHeader, test_header_compiles);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

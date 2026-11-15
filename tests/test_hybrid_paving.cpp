@@ -29,6 +29,7 @@
 #include "hybrid/hybrid_bounded_constraint_set.hpp"
 #include "hybrid/hybrid_paving.hpp"
 #include "hybrid/hybrid_space.hpp"
+#include "logging/test_runner.hpp"
 #include "system/hybrid_automaton.hpp"
 #include "system/hybrid_paving.hpp"
 
@@ -96,5 +97,5 @@ class TestHybridPaving : public Ariadne::Testing::ContextFixture {
 int main(int argc, char **argv) {
     ARIADNE_TESTING_SUITE("test_hybrid_paving");
     ARIADNE_TESTING_ADD_TEST(TestHybridPaving, test_extend_auxiliary);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

@@ -32,6 +32,7 @@
 
 #include <sstream>
 
+#include "logging/test_runner.hpp"
 #include "paving/grid.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/space.hpp"
@@ -106,5 +107,5 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_ADD_TEST(TestDifferentialInclusion, test_accessors);
     ARIADNE_TESTING_ADD_TEST(TestDifferentialInclusion, test_input_kinds);
     ARIADNE_TESTING_ADD_TEST(TestDifferentialInclusion, test_errors);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

@@ -27,8 +27,21 @@
  */
 
 #include "ariadne-system.hpp"
+#include "logging/test_runner.hpp"
+#include "ariadne-testing.hpp"
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
-int main() {
-    Ariadne::DiscreteEvent event("tick");
-    return event.name() == "tick" ? 0 : 1;
+class TestSystemHeader : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+    void test_public_header() {
+        Ariadne::DiscreteEvent event("tick");
+        ARIADNE_TESTING_PROVE(event.name() == "tick");
+    }
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_system_header");
+    ARIADNE_TESTING_ADD_TEST(TestSystemHeader, test_public_header);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

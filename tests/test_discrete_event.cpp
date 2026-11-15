@@ -28,6 +28,7 @@
 
 #include <sstream>
 
+#include "logging/test_runner.hpp"
 #include "system/discrete_event.hpp"
 
 #include "ariadne-testing.hpp"
@@ -57,5 +58,5 @@ class TestDiscreteEvent : public Ariadne::Testing::ContextFixture {
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_discrete_event");
     ARIADNE_TESTING_ADD_TEST(TestDiscreteEvent, test_event);
-    return ARIADNE_TESTING_RUN_TESTS_WITH_ARGS(argc, argv);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

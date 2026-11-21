@@ -8,7 +8,7 @@
 [![Coverage Status](https://github.com/ariadne-cps/system/actions/workflows/coverage.yml/badge.svg)](https://github.com/ariadne-cps/system/actions/workflows/coverage.yml)
 [![codecov](https://codecov.io/gh/ariadne-cps/system/branch/main/graph/badge.svg)](https://codecov.io/gh/ariadne-cps/system)
 
-Ariadne System is the standalone C++20 dynamical-system specification layer. It defines continuous vector fields, iterated maps, differential inclusions, hybrid automata and first-order PDE models. 
+Ariadne System is the standalone C++20 dynamical-system specification layer. It defines explicit ordinary differential/algebraic equations and inclusions, iterated maps, hybrid automata and first-order PDE models.
 Although independently maintained and usable, this repository is also part of the [Ariadne repository structure](https://github.com/ariadne-cps/ariadne/blob/main/doc/structure.md).
 
 ## Layout
@@ -16,6 +16,47 @@ Although independently maintained and usable, this repository is also part of th
 Public headers live under `include/system`, implementations under `src`, C++ tests under `tests`, and the Python bindings and smoke tests under `python`. The equivalent C++ and Python standalone examples live under `tutorial/`; pinned Git submodules live under `ss`. The umbrella header is `include/ariadne-system.hpp`.
 
 The [System tutorial](tutorial/README.md) covers hybrid automata, vector fields, iterated maps, differential inclusions, and first-order PDE models.
+
+## Ordinary dynamics declarations
+
+Use `system/odae.hpp` and `OrdinaryDifferentialAlgebraicEquation` for explicit
+ordinary equations, or `system/odai.hpp` and
+`OrdinaryDifferentialAlgebraicInclusion` for differential inclusions. These are
+the actual C++ and Python class names; the former class names and header paths
+are removed without compatibility aliases.
+
+The equation class retains explicit auxiliary assignments. The names do not
+imply support for generic implicit algebraic constraints, consistency solving or
+index reduction. Those facilities belong to a later phase.
+
+Both symbolic declarations distinguish physical state, an optional explicit
+time variable, trajectory-constant parameters with a domain, and (for inclusions)
+arbitrarily time-varying inputs. Function arguments have the fixed order
+`[state, optional time, constant parameters, free inputs]`; `dimension()` counts
+only physical states. `argument_space()` describes the complete layout.
+Parameters are never normalised or treated as freely varying inputs.
+
+Inclusions support two owned mathematical representations:
+
+- Dotted symbolic assignments with an input box, retaining input centering and
+  additive-coefficient normalisation. Consume `function()` and `inputs()` as a
+  pair; input derivatives and the noise-independent component refer only to the
+  final free-input block, even for timed/parameterised fields.
+- A double-precision interval-Taylor vector field and its named state space.
+  `interval_taylor_multifunction()` retains its full domain, coefficients and
+  remainder; `multifunction()` provides a mathematical compact-set view.
+  Coefficients have pointwise inclusion semantics. Zero named inputs does not
+  mean deterministic dynamics. This representation has no fabricated
+  single-valued input function; incompatible accessors fail explicitly.
+
+The Python extension exposes the corresponding interval field models as well
+as the new declarations. The C++ and Python tutorials demonstrate both forms.
+
+System describes the mathematical problem using Function representations. It
+has **no dependency on Integration** and constructs no numerical solver,
+integration request, flow certificate or synthetic clock state. Numerical
+adapters and any solver-specific lifting remain outside System. Evolution will
+be migrated separately.
 
 ## Dependencies
 

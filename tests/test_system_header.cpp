@@ -31,6 +31,8 @@
 #include "ariadne-system.hpp"
 #include "ariadne-testing.hpp"
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
+static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicEquation) > 0);
+static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicInclusion) > 0);
 class TestSystemHeader : public Ariadne::Testing::ContextFixture {
   public:
     using ContextFixture::ContextFixture;

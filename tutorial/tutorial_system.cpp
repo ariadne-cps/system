@@ -91,7 +91,7 @@ int main() {
     // A typed assignment list avoids ambiguous single-element brace initialization.
     List<DottedRealAssignment> dynamics;
     dynamics.append(dot(x) = -x);
-    VectorField decay(dynamics);
+    OrdinaryDifferentialAlgebraicEquation decay(dynamics);
     List<PrimedRealAssignment> updates;
     updates.append(next(x) = x / 2);
     IteratedMap contraction(updates);
@@ -103,7 +103,7 @@ int main() {
     RealVariable u("u");
     DottedRealAssignments uncertain_dynamics = {dot(x) = -x + u};
     RealVariablesBox input_bounds = {-1 <= u <= 1};
-    DifferentialInclusion inclusion(uncertain_dynamics, input_bounds);
+    OrdinaryDifferentialAlgebraicInclusion inclusion(uncertain_dynamics, input_bounds);
     assert(inclusion.dimension() == 1u);
     assert(inclusion.number_of_inputs() == 1u);
     std::cout << "differential inclusion: " << inclusion << "\n";
@@ -119,5 +119,28 @@ int main() {
     assert(pde.spatial_dimension() == 2u);
     std::cout << "PDE components: " << pde.number_of_components()
               << ", spatial directions: " << pde.spatial_dimension() << "\n";
+    section("Ordinary dynamics: time, fixed parameters and variable inputs");
+    RealVariable time_variable("t"), parameter("p");
+    const RealVariablesBox fixed_parameters({1 <= parameter <= 2});
+    const OrdinaryDifferentialAlgebraicEquation timed_equation(
+        {dot(x) = -x + time_variable + parameter}, fixed_parameters, time_variable);
+    const OrdinaryDifferentialAlgebraicInclusion timed_inclusion(
+        {dot(x) = -x + time_variable + parameter + u}, input_bounds, fixed_parameters, time_variable);
+    std::cout << "equation arguments: " << timed_equation.argument_space() << "\n";
+    std::cout << "inclusion arguments: " << timed_inclusion.argument_space() << "\n";
+    std::cout << "physical state dimension: " << timed_inclusion.dimension() << "\n";
+
+    section("A system declared by an interval-Taylor multifunction");
+    const BoxDomainType state_domain({
+        {-1.0_x, 1.0_x}
+    });
+    const auto uncertain = ValidatedIntervalTaylorFunctionModel<FloatDP>::constant(
+        state_domain, FloatDPUpperInterval(-1, 1, dp), ThresholdSweeper<FloatDP>(dp, 1e-12));
+    const OrdinaryDifferentialAlgebraicInclusion set_valued(RealSpace({x}),
+                                                            OrdinaryDifferentialAlgebraicInclusion::IntervalTaylorMultifunction({uncertain}));
+    std::cout << set_valued << "\n";
+    // This declares x' in [-1,1]. It neither chooses a solver nor asserts
+    // that a sampled coefficient remains fixed along a trajectory.
+
     return 0;
 }

@@ -1,10 +1,11 @@
 add_library(SYSTEM_SRC OBJECT
     system_function.cpp
-    vector_field.cpp
+    ordinary_dynamics.cpp
+    odae.cpp
     iterated_map.cpp
-    differential_inclusion.cpp
+    odai.cpp
     first_order_pde.cpp
-    differential_inclusion_grid.cpp
+    odai_grid.cpp
     hybrid_automaton.cpp
     hybrid_automaton-composite.cpp
     hybrid_paving.cpp

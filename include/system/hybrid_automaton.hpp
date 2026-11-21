@@ -152,7 +152,7 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! each discrete state.
 //!
 //! For each %DiscreteMode, the dynamics is given by a
-//! %VectorField describing the continuous dynamics,
+//! %OrdinaryDifferentialAlgebraicEquation describing the continuous dynamics,
 //! and a %Set giving an invariants which must be satisified at
 //! all times.
 //!

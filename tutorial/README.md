@@ -1,7 +1,7 @@
 # Ariadne System tutorial
 
-Both tutorials construct a hybrid automaton, a continuous-time `VectorField`,
-a discrete-time `IteratedMap`, and a bounded-input `DifferentialInclusion`.
+Both tutorials construct a hybrid automaton, a continuous-time `OrdinaryDifferentialAlgebraicEquation`,
+a discrete-time `IteratedMap`, and a bounded-input `OrdinaryDifferentialAlgebraicInclusion`.
 The C++ tutorial additionally builds a homogeneous two-dimensional
 `FirstOrderPDE` using `FirstOrderPDE::homogeneous()` and `add_direction()`.
 Its model owns its coefficient matrices and source function, instead of
@@ -54,3 +54,12 @@ python tutorial/tutorial_system.py
 The Python script is standalone; it does not require pytest. CI checks both
 installed tutorials on macOS, Ubuntu, and Windows Release configurations,
 while the Python smoke test also runs under Debug.
+
+## Ordinary equation and inclusion models
+
+The tutorials use the actual OrdinaryDifferentialAlgebraicEquation and
+OrdinaryDifferentialAlgebraicInclusion classes, including explicit time,
+constant parameters, variable inputs and an interval-Taylor multifunction.
+They declare models and retain their mathematical representations; they do not
+import Integration or select integration algorithms. Explicit auxiliary outputs
+are supported; implicit algebraic constraints are not implemented in this phase.

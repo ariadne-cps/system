@@ -2,7 +2,7 @@
 """The same two-mode system as tutorial_system.cpp, using pyariadne_system."""
 
 from pyariadne_system import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
-                       RealVariable, VectorField, IteratedMap, DifferentialInclusion,
+                       RealVariable, OrdinaryDifferentialAlgebraicEquation, IteratedMap, OrdinaryDifferentialAlgebraicInclusion,
                        RealVariablesBox, dot, next)
 
 
@@ -53,7 +53,7 @@ def tutorial_system():
 
     section("Continuous and discrete-time systems")
     x = RealVariable("x")
-    decay = VectorField([dot(x) << -x])
+    decay = OrdinaryDifferentialAlgebraicEquation([dot(x) << -x])
     contraction = IteratedMap([next(x) << x / 2])
     assert decay.dimension() == 1
     assert contraction.dimension() == 1
@@ -62,11 +62,32 @@ def tutorial_system():
 
     section("Differential inclusion with bounded input")
     u = RealVariable("u")
-    inclusion = DifferentialInclusion(
+    inclusion = OrdinaryDifferentialAlgebraicInclusion(
         [dot(x) << (-x + u)], RealVariablesBox({u: (-1, 1)}))
     assert inclusion.dimension() == 1
     assert inclusion.number_of_inputs() == 1
     print(f"differential inclusion: {inclusion}")
+    section("Time, constant parameters and variable inputs")
+    t, p = RealVariable("t"), RealVariable("p")
+    parameters = RealVariablesBox({p: (1, 2)})
+    timed_equation = OrdinaryDifferentialAlgebraicEquation([dot(x) << (-x + t + p)], parameters, t)
+    timed_inclusion = OrdinaryDifferentialAlgebraicInclusion(
+        [dot(x) << (-x + t + p + u)], RealVariablesBox({u: (-1, 1)}), parameters, t)
+    print("equation arguments:", timed_equation.argument_space())
+    print("inclusion arguments:", timed_inclusion.argument_space())
+    assert timed_inclusion.dimension() == 1
+
+    section("An interval-Taylor multifunction declaration")
+    from pyariadne_system import (ValidatedIntervalTaylorFunctionModelDP,
+        ValidatedVectorIntervalTaylorFunctionModelDP, BoxDomainType,
+        FloatDPExactBox, FloatDPUpperInterval, RealSpace, exact, dp)
+    domain = BoxDomainType(FloatDPExactBox([{exact(-1): exact(1)}]))
+    field = ValidatedVectorIntervalTaylorFunctionModelDP([
+        ValidatedIntervalTaylorFunctionModelDP.constant(domain, FloatDPUpperInterval("-1", "1", dp))])
+    set_valued = OrdinaryDifferentialAlgebraicInclusion(RealSpace([x]), field)
+    print(set_valued)
+    assert not set_valued.has_input_function()
+
     # PDE construction currently requires Matrix<Real>, DiagonalMatrix<Real>
     # and function bindings not provided by the installed Python module.
 

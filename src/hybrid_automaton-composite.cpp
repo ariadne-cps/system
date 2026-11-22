@@ -201,6 +201,9 @@ Void CompositeHybridAutomaton::_cache_mode(DiscreteLocation location) const {
     for (List<HybridAutomaton>::ConstIterator component_iter = this->_components.begin();
          component_iter != this->_components.end(); ++component_iter) {
         const DiscreteMode& component_mode = component_iter->mode(location);
+        if (component_mode._equation || component_mode._inclusion) {
+            throw std::invalid_argument("Composition of typed ordinary-dynamics modes requires an explicit role/domain composition contract");
+        }
 
         cached_mode._location.adjoin(component_mode._location);
         cached_mode._auxiliary.append(component_mode._auxiliary);
@@ -356,6 +359,8 @@ List<DottedRealAssignment>
     CompositeHybridAutomaton::dynamic_assignments(DiscreteLocation location) const {
     List<DottedRealAssignment> result;
     for (SizeType i = 0; i != this->_components.size(); ++i) {
+        if (this->_components[i].equation(location) || this->_components[i].inclusion(location))
+            throw std::invalid_argument("Composition of typed ordinary-dynamics modes requires an explicit role/domain composition contract");
         result.append(this->_components[i].dynamic_assignments(location));
     }
     // No need to sort result since dotted variables cannot appear in the right-hand side (currently)

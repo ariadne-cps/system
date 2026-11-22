@@ -35,12 +35,17 @@
 #include "hybrid/hybrid_space.hpp"
 #include "symbolic/expression.hpp"
 #include "symbolic/space.hpp"
+#include "system/odae.hpp"
+#include "system/odai.hpp"
 #include "system/system_function.hpp"
 #include "utility/container.hpp"
 #include "utility/macros.hpp"
 #include "utility/stlio.hpp"
 
 namespace Ariadne {
+
+const OrdinaryDifferentialAlgebraicEquation* HybridAutomatonInterface::equation(DiscreteLocation) const { return nullptr; }
+const OrdinaryDifferentialAlgebraicInclusion* HybridAutomatonInterface::inclusion(DiscreteLocation) const { return nullptr; }
 
 DiscreteMode::DiscreteMode() {
 }
@@ -99,6 +104,10 @@ OutputStream&
     if (m._dynamic.size() > 0) {
         os << ", differential_equations=" << m._dynamic;
     }
+    if (m._equation)
+        os << ", continuous_dynamics=" << *m._equation;
+    if (m._inclusion)
+        os << ", continuous_dynamics=" << *m._inclusion;
     if (m._invariants.size() > 0) {
         os << ", invariants=" << m._invariants;
     }
@@ -118,6 +127,10 @@ OutputStream&
     CompactDiscreteModeWriter::_write(OutputStream& os, const DiscreteMode& m) const {
     if (m._location.values().size() > 0)
         os << m._location << ": ";
+    if (m._equation)
+        os << "dynamics=" << *m._equation;
+    if (m._inclusion)
+        os << "dynamics=" << *m._inclusion;
     if (m._auxiliary.size() > 0 || m._dynamic.size() > 0)
         os << "eqt=";
     if (m._auxiliary.size() > 0) {
@@ -197,6 +210,26 @@ Void HybridAutomaton::_new_mode(DiscreteLocation location,
     DiscreteMode new_mode = DiscreteMode(location, auxiliary, dynamic);
 
     this->_modes.insert(location, new_mode);
+}
+
+Void HybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicEquation& dynamics) {
+    auto owned = std::shared_ptr<const OrdinaryDifferentialAlgebraicEquation>(dynamics.clone());
+    this->_new_mode(location, dynamics._auxiliary, {});
+    this->_modes.value(location)._equation = std::move(owned);
+}
+
+Void HybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicInclusion& dynamics) {
+    auto owned = std::shared_ptr<const OrdinaryDifferentialAlgebraicInclusion>(dynamics.clone());
+    this->_new_mode(location, {}, {});
+    this->_modes.value(location)._inclusion = std::move(owned);
+}
+
+const OrdinaryDifferentialAlgebraicEquation* HybridAutomaton::equation(DiscreteLocation location) const {
+    return this->mode(location)._equation.get();
+}
+
+const OrdinaryDifferentialAlgebraicInclusion* HybridAutomaton::inclusion(DiscreteLocation location) const {
+    return this->mode(location)._inclusion.get();
 }
 
 Void HybridAutomaton::_new_invariant(DiscreteLocation location, ContinuousPredicate invariant, DiscreteEvent event) {
@@ -409,6 +442,10 @@ List<RealVariable>
     HybridAutomaton::state_variables(DiscreteLocation location) const {
     List<RealVariable> result;
     const DiscreteMode& mode = this->mode(location);
+    if (mode._equation)
+        return mode._equation->state_space().variables();
+    if (mode._inclusion)
+        return mode._inclusion->state_space().variables();
     for (SizeType i = 0; i != mode._dynamic.size(); ++i) {
         result.append(mode._dynamic[i].lhs.base());
     }
@@ -419,6 +456,10 @@ List<RealVariable>
     HybridAutomaton::auxiliary_variables(DiscreteLocation location) const {
     List<RealVariable> result;
     const DiscreteMode& mode = this->mode(location);
+    if (mode._equation)
+        return mode._equation->auxiliary_space().variables();
+    if (mode._inclusion)
+        return {};
     for (SizeType i = 0; i != mode._auxiliary.size(); ++i) {
         result.append(mode._auxiliary[i].lhs);
     }
@@ -430,6 +471,10 @@ Set<RealVariable>
     Set<UntypedVariable> used;
     Set<RealVariable> defined;
     const DiscreteMode& mode = this->mode(location);
+    if (mode._inclusion)
+        return make_set(mode._inclusion->input_space().variables());
+    if (mode._equation)
+        return {};
     for (List<RealAssignment>::ConstIterator iter = mode._auxiliary.begin(); iter != mode._auxiliary.end(); ++iter) {
         defined.insert(iter->lhs.base());
         used.adjoin(iter->rhs.arguments());
@@ -471,7 +516,8 @@ DiscreteLocation
 
 List<RealAssignment>
     HybridAutomaton::auxiliary_assignments(DiscreteLocation location) const {
-    return this->mode(location)._auxiliary;
+    const auto& mode = this->mode(location);
+    return mode._auxiliary;
 }
 
 /*
@@ -485,7 +531,10 @@ HybridAutomaton::sorted_auxiliary_assignments(DiscreteLocation location) const {
 
 List<DottedRealAssignment>
     HybridAutomaton::dynamic_assignments(DiscreteLocation location) const {
-    return this->mode(location)._dynamic;
+    const auto& mode = this->mode(location);
+    if (mode._equation || mode._inclusion)
+        throw std::logic_error("Use the original typed dynamics declaration for this mode");
+    return mode._dynamic;
 }
 
 List<PrimedRealAssignment>
@@ -546,15 +595,20 @@ Set<DiscreteEvent> HybridAutomaton::events(DiscreteLocation location) const {
 }
 
 DimensionType HybridAutomaton::dimension(DiscreteLocation location) const {
-    return this->mode(location)._dynamic.size();
+    return this->continuous_state_space(location).dimension();
 }
 
 RealSpace HybridAutomaton::continuous_state_space(DiscreteLocation location) const {
-    return RealSpace(left_hand_sides(this->mode(location)._dynamic));
+    return RealSpace(this->state_variables(location));
 }
 
 RealSpace HybridAutomaton::continuous_auxiliary_space(DiscreteLocation location) const {
-    return RealSpace(left_hand_sides(this->mode(location)._sorted_auxiliary));
+    const auto& mode = this->mode(location);
+    if (mode._equation)
+        return mode._equation->auxiliary_space();
+    if (mode._inclusion)
+        return RealSpace();
+    return RealSpace(left_hand_sides(mode._sorted_auxiliary));
 }
 
 EventKind HybridAutomaton::event_kind(DiscreteLocation location, DiscreteEvent event) const {
@@ -563,11 +617,20 @@ EventKind HybridAutomaton::event_kind(DiscreteLocation location, DiscreteEvent e
 
 EffectiveVectorMultivariateFunction HybridAutomaton::auxiliary_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
+    if (mode._equation)
+        return mode._equation->auxiliary_function();
     return Ariadne::make_auxiliary_function(this->continuous_state_space(location), mode._sorted_auxiliary);
 }
 
 EffectiveVectorMultivariateFunction HybridAutomaton::dynamic_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
+    if (mode._inclusion)
+        throw std::logic_error("An inclusion mode has no single-valued state-only dynamic function");
+    if (mode._equation) {
+        if (mode._equation->has_explicit_time() || mode._equation->parameter_space().dimension() != 0u)
+            throw std::logic_error("This equation mode is not a state-only autonomous field");
+        return mode._equation->function();
+    }
     return Ariadne::make_dynamic_function(this->continuous_state_space(location), mode._sorted_auxiliary, mode._dynamic);
 }
 
@@ -592,11 +655,12 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
     List<RealVariable> defined_real_variables(catenate(this->state_variables(location), this->auxiliary_variables(location)));
     Set<UntypedVariable> defined_variables(make_set(defined_real_variables));
 
-    for (List<RealAssignment>::ConstIterator aux_iter = mode._auxiliary.begin(); aux_iter != mode._auxiliary.end(); ++aux_iter) {
-        if (!subset(aux_iter->rhs.arguments(), defined_variables))
-            ARIADNE_THROW(UnderspecifiedDynamicError, "HybridAutomaton::check_mode(...)",
-                          "Arguments " << difference(aux_iter->rhs.arguments(), defined_variables) << " of " << *aux_iter << " are not defined in location " << location << " with variables " << defined_variables);
-    }
+    if (!mode._equation)
+        for (List<RealAssignment>::ConstIterator aux_iter = mode._auxiliary.begin(); aux_iter != mode._auxiliary.end(); ++aux_iter) {
+            if (!subset(aux_iter->rhs.arguments(), defined_variables))
+                ARIADNE_THROW(UnderspecifiedDynamicError, "HybridAutomaton::check_mode(...)",
+                              "Arguments " << difference(aux_iter->rhs.arguments(), defined_variables) << " of " << *aux_iter << " are not defined in location " << location << " with variables " << defined_variables);
+        }
 
     for (List<DottedRealAssignment>::ConstIterator dyn_iter = mode._dynamic.begin(); dyn_iter != mode._dynamic.end(); ++dyn_iter) {
         if (!subset(dyn_iter->rhs.arguments(), defined_variables))

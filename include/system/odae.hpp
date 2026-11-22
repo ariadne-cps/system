@@ -45,6 +45,8 @@ namespace Ariadne {
  *  Time and parameters are not state variables. This model chooses no solver.
  */
 class OrdinaryDifferentialAlgebraicEquation {
+    friend class HybridAutomaton;
+
   public:
     using TimeType = Real;
     using RealType = Real;

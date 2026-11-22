@@ -37,6 +37,9 @@
 
 namespace Ariadne {
 
+class OrdinaryDifferentialAlgebraicEquation;
+class OrdinaryDifferentialAlgebraicInclusion;
+
 /** @brief HybridTime for interfaces and specification errors for hybrid automata. */
 class HybridTime;
 /** @brief HybridSpace for interfaces and specification errors for hybrid automata. */
@@ -247,6 +250,13 @@ class HybridAutomatonInterface {
 
     //! \brief The dynamic valid in the mode \a location.
     virtual EffectiveVectorMultivariateFunction dynamic_function(DiscreteLocation location) const = 0;
+
+    /** @brief The original typed declaration, when supplied for this mode.
+     *  Borrowed immutable views are invalidated when the owner is replaced or destroyed.
+     *  Legacy state-only equation modes return null for both queries.
+     */
+    virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
 
     //! \brief The constraint function defining the invariant or time-can-progress predicate \f$p(x)\leq0\f$.
     virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const = 0;

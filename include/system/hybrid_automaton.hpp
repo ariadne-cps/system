@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -81,6 +82,8 @@ class DiscreteMode {
 
     // The algebraic equations
     List<DottedRealAssignment> _dynamic;
+    std::shared_ptr<const OrdinaryDifferentialAlgebraicEquation> _equation;
+    std::shared_ptr<const OrdinaryDifferentialAlgebraicInclusion> _inclusion;
 
     // The discrete mode's invariants.
     Map<DiscreteEvent, ContinuousPredicate> _invariants;
@@ -290,6 +293,13 @@ class HybridAutomaton
         /** @brief Perform the system operation. */
         this->_new_mode(location, List<RealAssignment>(), List<DottedRealAssignment>());
     }
+
+    /** @brief Declare a mode from an owned copy of its original ordinary dynamics.
+     *  Time, fixed parameters and free inputs retain their declared roles.
+     *  Guards and resets continue to use state and auxiliary variables only.
+     */
+    Void new_mode(DiscreteLocation, const OrdinaryDifferentialAlgebraicEquation&);
+    Void new_mode(DiscreteLocation, const OrdinaryDifferentialAlgebraicInclusion&);
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(const List<RealAssignment>& auxiliary, const List<DottedRealAssignment>& dynamic) {
@@ -585,6 +595,8 @@ class HybridAutomaton
     virtual EffectiveVectorMultivariateFunction auxiliary_function(DiscreteLocation location) const;
     //! \brief The function outputting the differential equations \f$\dt{x}=f(x)\f$ in the location.
     virtual EffectiveVectorMultivariateFunction dynamic_function(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
     //! \brief The invariant function \f$i(x)\leq 0\f$ corresponding to the given event.
     virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const;
     //! \brief The guard function \f$g(x)\geq 0\f$ corresponding to the given event.

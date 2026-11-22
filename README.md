@@ -55,8 +55,26 @@ as the new declarations. The C++ and Python tutorials demonstrate both forms.
 System describes the mathematical problem using Function representations. It
 has **no dependency on Integration** and constructs no numerical solver,
 integration request, flow certificate or synthetic clock state. Numerical
-adapters and any solver-specific lifting remain outside System. Evolution will
-be migrated separately.
+adapters and any solver-specific lifting remain outside System. Evolution
+consumes these declarations through its numerical adapters.
+
+## Ordinary dynamics in hybrid modes
+
+`HybridAutomaton::new_mode(location, equation_or_inclusion)` owns an immutable
+copy of an ODAE or ODAI declaration. The `HybridAutomatonInterface::equation()`
+and `inclusion()` queries expose the original declaration for a mode; legacy
+symbolic-assignment modes return null for both. State dimension and labels
+come from the declaration. Inputs, fixed parameters and explicit time keep
+their roles and never become physical states. Guards and resets continue to
+refer to state and auxiliary variables.
+
+`dynamic_function()` remains a state-only single-valued query. It rejects
+inclusion modes and timed or parameterised equation modes, rather than freezing
+uncertainty or dropping arguments. Numerical consumers choose the capabilities
+appropriate to the typed declaration. Composition of typed modes is explicitly
+rejected until parameter domains and input roles can be composed consistently.
+The new mode overloads are currently C++; their Python exposure will be added
+with the final Evolution tutorial parity work.
 
 ## Dependencies
 

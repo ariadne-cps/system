@@ -41,8 +41,11 @@
 #include "symbolic/variable.hpp"
 #include "system/hybrid_automaton.hpp"
 #include "system/hybrid_automaton_interface.hpp"
+#include "system/odae.hpp"
+#include "system/odai.hpp"
 
 #include "ariadne-testing.hpp"
+#include "system/hybrid_automaton-composite.hpp"
 
 using namespace Ariadne;
 
@@ -51,6 +54,52 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
     using ContextFixture::ContextFixture;
 
   public:
+    Void test_typed_ordinary_modes() {
+        const DiscreteLocation q(1), r(2), timed(3);
+        const DiscreteEvent event("switch");
+        const RealVariable x("x"), y("output"), u("u"), p("p"), t("t");
+        auto system = [&]() {
+            HybridAutomaton owned;
+            const OrdinaryDifferentialAlgebraicEquation equation({dot(x) = 1}, {let(y) = 2 * x});
+            const OrdinaryDifferentialAlgebraicInclusion inclusion({dot(x) = u}, RealVariablesBox({-1 <= u <= 1}));
+            owned.new_mode(q, equation);
+            owned.new_mode(r, inclusion);
+            owned.new_mode(timed, OrdinaryDifferentialAlgebraicEquation(
+                                      {dot(x) = t + p}, RealVariablesBox({0 <= p <= 1}), t, {let(y) = p + x}));
+            return owned;
+        }();
+        ARIADNE_TESTING_REQUIRE(system.equation(q) != nullptr);
+        ARIADNE_TESTING_REQUIRE(system.inclusion(r) != nullptr);
+        ARIADNE_TESTING_PROVE(system.inclusion(q) == nullptr);
+        ARIADNE_TESTING_PROVE(system.equation(r) == nullptr);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.dimension(q), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_state_space(r), RealSpace({x}));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_auxiliary_space(q), RealSpace({y}));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.input_variables(r), Set<RealVariable>({u}));
+        ARIADNE_TESTING_PROVE(system.input_variables(timed).empty());
+        ARIADNE_TESTING_PROVE(system.equation(timed)->has_explicit_time());
+        ARIADNE_TESTING_EXPECT_EQUAL(system.equation(timed)->parameter_space(), RealSpace({p}));
+        system.check_mode(timed);
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_function(r));
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_function(timed));
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_assignments(r));
+        system.new_transition(q, event, r, {next(x) = x + 1}, y >= 2, EventKind::URGENT);
+        system.check_mode(q);
+        system.check_mode(r);
+        const Vector<FloatDPBounds> point{FloatDPBounds(1, dp)};
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(0, dp), system.guard_function(q, event)(point)));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(2, dp), system.reset_function(q, event)(point)[0]));
+        ARIADNE_TESTING_EXPECT_THROWS(IndistinguishableModeError, system.new_mode(q, *system.inclusion(r)));
+        HybridAutomaton copied(system);
+        system = HybridAutomaton();
+        ARIADNE_TESTING_EXPECT_EQUAL(copied.inclusion(r)->state_space(), RealSpace({x}));
+        std::ostringstream description;
+        description << copied;
+        ARIADNE_TESTING_PROVE(description.str().find("u") != std::string::npos);
+        CompositeHybridAutomaton composite(copied);
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, composite.dynamic_function(q));
+    }
+
     Void test_constructors();
     Void test_modes_and_errors();
     Void test_invariants_guards_transitions();
@@ -398,6 +447,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
 
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_hybrid_automaton_api");
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_typed_ordinary_modes);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_constructors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_modes_and_errors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_invariants_guards_transitions);

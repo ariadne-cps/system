@@ -34,7 +34,6 @@
 #include "system/hybrid_automata.hpp"
 #include "system/hybrid_automaton.hpp"
 #include "system/hybrid_automaton_interface.hpp"
-#include "system/hybrid_paving.hpp"
 #include "system/iterated_map.hpp"
 #include "system/system_function.hpp"
 #include "system/vector_field.hpp"

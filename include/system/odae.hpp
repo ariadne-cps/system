@@ -42,6 +42,7 @@ namespace Ariadne {
 /** @brief A declaration of explicit ordinary differential dynamics.
  *  Auxiliary assignments are explicit outputs, not implicit DAE constraints.
  *  Function arguments are [state, optional time, constant parameters].
+ *  Canonical TimeVariable is recognized when undeclared in another role.
  *  Time and parameters are not state variables. This model chooses no solver.
  */
 class OrdinaryDifferentialAlgebraicEquation {

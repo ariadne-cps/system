@@ -593,10 +593,11 @@ class HybridAutomaton
 
     //! \brief The function outputting the auxiliary variables \f$y=h(x)\f$ in the location.
     virtual EffectiveVectorMultivariateFunction auxiliary_function(DiscreteLocation location) const;
-    //! \brief The function outputting the differential equations \f$\dt{x}=f(x)\f$ in the location.
+    //! \brief The function outputting the differential equations over continuous_argument_space() in the location.
     virtual EffectiveVectorMultivariateFunction dynamic_function(DiscreteLocation location) const;
     virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
     virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
+    virtual std::optional<RealVariable> time_variable(DiscreteLocation location) const;
     //! \brief The invariant function \f$i(x)\leq 0\f$ corresponding to the given event.
     virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const;
     //! \brief The guard function \f$g(x)\geq 0\f$ corresponding to the given event.

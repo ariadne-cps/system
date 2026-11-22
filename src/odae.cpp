@@ -49,6 +49,15 @@ OrdinaryDifferentialAlgebraicEquation::OrdinaryDifferentialAlgebraicEquation(
       _parameters(Detail::variables_domain(constant_parameters)),
       _argument_space(Detail::ordinary_argument_space(state_space(), _time,
                                                       _parameter_space, RealSpace(), auxiliary_space())) {
+    Set<UntypedVariable> used;
+    for (const auto& assignment: dynamics)
+        used.adjoin(assignment.rhs.arguments());
+    for (const auto& assignment: auxiliary)
+        used.adjoin(assignment.rhs.arguments());
+    if (!_time && used.contains(TimeVariable()) && !_argument_space.contains(TimeVariable()) && !auxiliary_space().contains(TimeVariable())) {
+        _time = TimeVariable();
+        _argument_space = Detail::ordinary_argument_space(state_space(), _time, _parameter_space, RealSpace(), auxiliary_space());
+    }
     Set<UntypedVariable> allowed;
     for (SizeType i = 0u; i != _argument_space.size(); ++i)
         allowed.insert(_argument_space[i]);

@@ -55,6 +55,7 @@ class UnusedInputException : public std::runtime_error {
  *  free inputs]. Parameters stay fixed along a trajectory; inputs may vary
  *  measurably over time. The interval-Taylor form has pointwise set-valued
  *  semantics and does not silently freeze uncertain coefficients.
+ *  Canonical TimeVariable is recognized when undeclared in another role.
  *  This type declares no solver, numerical lifting or implicit DAI constraints.
  */
 class OrdinaryDifferentialAlgebraicInclusion {

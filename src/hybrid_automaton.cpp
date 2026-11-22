@@ -33,6 +33,7 @@
 #include "function/function.hpp"
 #include "function/functional.hpp"
 #include "hybrid/hybrid_space.hpp"
+#include "ordinary_dynamics.hpp"
 #include "symbolic/expression.hpp"
 #include "symbolic/space.hpp"
 #include "system/odae.hpp"
@@ -46,6 +47,23 @@ namespace Ariadne {
 
 const OrdinaryDifferentialAlgebraicEquation* HybridAutomatonInterface::equation(DiscreteLocation) const { return nullptr; }
 const OrdinaryDifferentialAlgebraicInclusion* HybridAutomatonInterface::inclusion(DiscreteLocation) const { return nullptr; }
+
+std::optional<RealVariable> HybridAutomatonInterface::time_variable(DiscreteLocation location) const {
+    if (const auto* model = equation(location))
+        return model->time_variable();
+    if (const auto* model = inclusion(location))
+        return model->time_variable();
+    return std::nullopt;
+}
+
+RealSpace HybridAutomatonInterface::continuous_argument_space(DiscreteLocation location) const {
+    RealSpace parameters;
+    if (const auto* model = equation(location))
+        parameters = model->parameter_space();
+    if (const auto* model = inclusion(location))
+        parameters = model->parameter_space();
+    return Detail::ordinary_argument_space(continuous_state_space(location), time_variable(location), parameters, RealSpace());
+}
 
 DiscreteMode::DiscreteMode() {
 }
@@ -230,6 +248,38 @@ const OrdinaryDifferentialAlgebraicEquation* HybridAutomaton::equation(DiscreteL
 
 const OrdinaryDifferentialAlgebraicInclusion* HybridAutomaton::inclusion(DiscreteLocation location) const {
     return this->mode(location)._inclusion.get();
+}
+
+std::optional<RealVariable> HybridAutomaton::time_variable(DiscreteLocation location) const {
+    if (const auto declared = HybridAutomatonInterface::time_variable(location))
+        return declared;
+    const RealVariable clock = TimeVariable();
+    if (continuous_state_space(location).contains(clock) || continuous_auxiliary_space(location).contains(clock))
+        return std::nullopt;
+    if (const auto* model = equation(location))
+        if (model->parameter_space().contains(clock))
+            return std::nullopt;
+    if (const auto* model = inclusion(location))
+        if (model->parameter_space().contains(clock) || model->input_space().contains(clock))
+            return std::nullopt;
+    const auto& data = mode(location);
+    for (const auto& assignment: data._dynamic)
+        if (assignment.rhs.arguments().contains(clock))
+            return clock;
+    for (const auto& assignment: data._auxiliary)
+        if (assignment.rhs.arguments().contains(clock))
+            return clock;
+    for (const auto& item: data._guards)
+        if (item.second.arguments().contains(clock))
+            return clock;
+    for (const auto& item: data._invariants)
+        if (item.second.arguments().contains(clock))
+            return clock;
+    for (const auto& item: data._resets)
+        for (const auto& assignment: item.second)
+            if (assignment.rhs.arguments().contains(clock))
+                return clock;
+    return std::nullopt;
 }
 
 Void HybridAutomaton::_new_invariant(DiscreteLocation location, ContinuousPredicate invariant, DiscreteEvent event) {
@@ -498,7 +548,7 @@ Set<RealVariable>
     Set<RealVariable> result;
     for (Set<UntypedVariable>::ConstIterator iter = used.begin(); iter != used.end(); ++iter) {
         RealVariable var(iter->name());
-        if (!defined.contains(var)) {
+        if (!defined.contains(var) && !(time_variable(location) && var == *time_variable(location))) {
             result.insert(var);
         }
     }
@@ -617,42 +667,36 @@ EventKind HybridAutomaton::event_kind(DiscreteLocation location, DiscreteEvent e
 
 EffectiveVectorMultivariateFunction HybridAutomaton::auxiliary_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
-    if (mode._equation)
-        return mode._equation->auxiliary_function();
-    return Ariadne::make_auxiliary_function(this->continuous_state_space(location), mode._sorted_auxiliary);
+    return Ariadne::make_auxiliary_function(this->continuous_argument_space(location), mode._sorted_auxiliary);
 }
 
 EffectiveVectorMultivariateFunction HybridAutomaton::dynamic_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
     if (mode._inclusion)
         throw std::logic_error("An inclusion mode has no single-valued state-only dynamic function");
-    if (mode._equation) {
-        if (mode._equation->has_explicit_time() || mode._equation->parameter_space().dimension() != 0u)
-            throw std::logic_error("This equation mode is not a state-only autonomous field");
-        return mode._equation->function();
-    }
-    return Ariadne::make_dynamic_function(this->continuous_state_space(location), mode._sorted_auxiliary, mode._dynamic);
+    return Ariadne::make_dynamic_function(this->continuous_argument_space(location), mode._sorted_auxiliary,
+                                          mode._equation ? mode._equation->_dynamics : mode._dynamic);
 }
 
 EffectiveVectorMultivariateFunction HybridAutomaton::reset_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
-    return Ariadne::make_reset_function(this->continuous_state_space(location), mode._sorted_auxiliary, mode._resets[event]);
+    return Ariadne::make_reset_function(this->continuous_argument_space(location), mode._sorted_auxiliary, mode._resets[event]);
 }
 
 EffectiveScalarMultivariateFunction HybridAutomaton::invariant_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
-    return Ariadne::make_constraint_function(this->continuous_state_space(location), mode._auxiliary, mode._invariants[event], Sign::NEGATIVE);
+    return Ariadne::make_constraint_function(this->continuous_argument_space(location), mode._auxiliary, mode._invariants[event], Sign::NEGATIVE);
 }
 
 EffectiveScalarMultivariateFunction HybridAutomaton::guard_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
-    return Ariadne::make_constraint_function(this->continuous_state_space(location), mode._sorted_auxiliary, mode._guards[event], Sign::POSITIVE);
+    return Ariadne::make_constraint_function(this->continuous_argument_space(location), mode._sorted_auxiliary, mode._guards[event], Sign::POSITIVE);
 }
 
 Void HybridAutomaton::check_mode(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
 
-    List<RealVariable> defined_real_variables(catenate(this->state_variables(location), this->auxiliary_variables(location)));
+    List<RealVariable> defined_real_variables(catenate(this->continuous_argument_space(location).variables(), this->auxiliary_variables(location)));
     Set<UntypedVariable> defined_variables(make_set(defined_real_variables));
 
     if (!mode._equation)

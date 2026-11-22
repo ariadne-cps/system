@@ -118,6 +118,10 @@ OrdinaryDifferentialAlgebraicInclusion::OrdinaryDifferentialAlgebraicInclusion(
     Set<UntypedVariable> arguments;
     for (const auto& expression: right_hand_sides(dynamics))
         arguments.adjoin(expression.arguments());
+    if (!_time && arguments.contains(TimeVariable()) && !_argument_space.contains(TimeVariable())) {
+        _time = TimeVariable();
+        _argument_space = Detail::ordinary_argument_space(_states, _time, _parameter_space, _input_space);
+    }
     for (const auto& variable: inputs.variables()) {
         if (not arguments.contains(variable)) {
             throw UnusedInputException("Declared input does not occur in ordinary inclusion dynamics");

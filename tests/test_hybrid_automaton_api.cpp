@@ -54,6 +54,46 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
     using ContextFixture::ContextFixture;
 
   public:
+    Void test_external_clock_without_a_differential_state() {
+        const TimeVariable t;
+        const RealVariable x("x"), u("u"), a("a");
+        const OrdinaryDifferentialAlgebraicEquation equation({dot(x) = t}, {let(a) = x + t});
+        const OrdinaryDifferentialAlgebraicInclusion inclusion({dot(x) = t + u}, RealVariablesBox({-1 <= u <= 1}));
+        ARIADNE_TESTING_PROVE(equation.has_explicit_time() && inclusion.has_explicit_time());
+        ARIADNE_TESTING_EXPECT_EQUAL(equation.dimension(), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(inclusion.dimension(), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(equation.argument_space(), RealSpace({x, t}));
+        ARIADNE_TESTING_EXPECT_EQUAL(inclusion.argument_space(), RealSpace({x, t, u}));
+        ARIADNE_TESTING_EXPECT_EQUAL(inclusion.parameter_space().size(), 0u);
+        const DiscreteLocation source(1), target(2);
+        const DiscreteEvent event("timer"), bound("horizon");
+        HybridAutomaton system;
+        system.new_mode(source, OrdinaryDifferentialAlgebraicEquation({dot(x) = 0}));
+        system.new_mode(target, equation);
+        system.new_invariant(source, t <= 2, bound);
+        system.new_transition(source, event, target, {next(x) = t + x}, t >= 1, EventKind::URGENT);
+        system.check_mode(source);
+        system.check_mode(target);
+        ARIADNE_TESTING_PROVE(system.time_variable(source).has_value());
+        ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_state_space(source), RealSpace({x}));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_argument_space(source), RealSpace({x, t}));
+        ARIADNE_TESTING_PROVE(system.input_variables(source).empty());
+        const Vector<FloatDPBounds> point{FloatDPBounds(3, dp), FloatDPBounds(1.5_x, dp)};
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(0.5_x, dp), system.guard_function(source, event)(point)));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(-0.5_x, dp), system.invariant_function(source, bound)(point)));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(4.5_x, dp), system.reset_function(source, event)(point)[0u]));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(1.5_x, dp), system.dynamic_function(target)(point)[0u]));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(4.5_x, dp), system.auxiliary_function(target)(point)[0u]));
+        auto invalid = system;
+        invalid.new_transition(source, DiscreteEvent("reset global time"), target,
+                               {next(x) = x, next(t) = 0}, t >= 2, EventKind::URGENT);
+        ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, invalid.check_mode(source));
+        // An explicitly declared clock-like state retains its physical role.
+        const OrdinaryDifferentialAlgebraicEquation state_clock({dot(t) = 1});
+        ARIADNE_TESTING_PROVE(!state_clock.has_explicit_time());
+        ARIADNE_TESTING_EXPECT_EQUAL(state_clock.state_space(), RealSpace({t}));
+    }
+
     Void test_typed_ordinary_modes() {
         const DiscreteLocation q(1), r(2), timed(3);
         const DiscreteEvent event("switch");
@@ -81,7 +121,9 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
         ARIADNE_TESTING_EXPECT_EQUAL(system.equation(timed)->parameter_space(), RealSpace({p}));
         system.check_mode(timed);
         ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_function(r));
-        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_function(timed));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.dynamic_function(timed).argument_size(), 3u);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.continuous_argument_space(timed), RealSpace({x, t, p}));
+        ARIADNE_TESTING_PROVE(refines(FloatDPBounds(2.5_x, dp), system.dynamic_function(timed)(Vector<FloatDPBounds>{FloatDPBounds(0, dp), FloatDPBounds(2, dp), FloatDPBounds(0.5_x, dp)})[0u]));
         ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, system.dynamic_assignments(r));
         system.new_transition(q, event, r, {next(x) = x + 1}, y >= 2, EventKind::URGENT);
         system.check_mode(q);
@@ -448,6 +490,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_hybrid_automaton_api");
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_typed_ordinary_modes);
+    ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_external_clock_without_a_differential_state);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_constructors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_modes_and_errors);
     ARIADNE_TESTING_ADD_TEST(TestHybridAutomatonApi, test_invariants_guards_transitions);

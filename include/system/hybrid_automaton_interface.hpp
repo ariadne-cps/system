@@ -30,6 +30,7 @@
 #define ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP
 
 #include <cassert>
+#include <optional>
 
 #include "function/function.hpp"
 #include "hybrid/discrete_location.hpp"
@@ -257,6 +258,14 @@ class HybridAutomatonInterface {
      */
     virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
     virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
+
+    /** @brief External global clock, independent of physical state and resets. */
+    virtual std::optional<RealVariable> time_variable(DiscreteLocation location) const;
+    /** @brief Arguments of guards, invariants, resets and equation fields:
+     *  [physical state, optional global time, constant parameters].
+     *  Measurable inclusion inputs are not guard/reset arguments.
+     */
+    virtual RealSpace continuous_argument_space(DiscreteLocation location) const;
 
     //! \brief The constraint function defining the invariant or time-can-progress predicate \f$p(x)\leq0\f$.
     virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const = 0;

@@ -11,6 +11,24 @@
 Ariadne System is the standalone C++20 dynamical-system specification layer. It defines explicit ordinary differential/algebraic equations and inclusions, iterated maps, hybrid automata and first-order PDE models.
 Although independently maintained and usable, this repository is also part of the [Ariadne repository structure](https://github.com/ariadne-cps/ariadne/blob/main/doc/structure.md).
 
+## External global time
+
+ODAE/ODAI expressions can use `TimeVariable()` without declaring `dot(t)=1`.
+The structured constructors recognize an otherwise undeclared canonical clock;
+explicit state, parameter, input and auxiliary roles remain distinct. Physical
+state dimension excludes the external clock. A supplied time variable remains
+supported for declarations that name it explicitly.
+
+Atomic hybrid modes can also use the global clock only in guards, invariants,
+resets or auxiliary outputs while their field remains autonomous.
+`time_variable(location)` reports that clock and
+`continuous_argument_space(location)` provides `[state, optional time,
+constant parameters]` for equation/event functions. Free inclusion inputs are
+not event arguments. Resets read time but update only target physical states;
+`check_mode` rejects assigning to an external clock. Numerical consumers must
+select capabilities that support the reported argument layout. Typed hybrid
+composition remains a separate unsupported capability.
+
 ## Layout
 
 Public headers live under `include/system`, implementations under `src`, C++ tests under `tests`, and the Python bindings and smoke tests under `python`. The equivalent C++ and Python standalone examples live under `tutorial/`; pinned Git submodules live under `ss`. The umbrella header is `include/ariadne-system.hpp`.

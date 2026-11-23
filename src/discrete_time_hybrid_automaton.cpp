@@ -50,6 +50,12 @@ Void DiscreteTimeHybridAutomaton::new_mode(DiscreteLocation location, const Diff
     this->_modes.insert(location, DiscreteTimeHybridMode(location, equation));
 }
 
+Void DiscreteTimeHybridAutomaton::new_mode(DiscreteLocation location, const DifferenceAlgebraicInclusion& inclusion) {
+    if (this->_first_indistinguishable_mode(location))
+        throw std::invalid_argument("Indistinguishable discrete-time hybrid mode location");
+    this->_modes.insert(location, DiscreteTimeHybridMode(location, inclusion));
+}
+
 const DiscreteTimeHybridMode& DiscreteTimeHybridAutomaton::mode(DiscreteLocation location) const {
     const DiscreteTimeHybridMode* result = this->_find_mode(location);
     if (result == nullptr)
@@ -70,9 +76,11 @@ Void DiscreteTimeHybridAutomaton::_new_transition(
     if (status == TransitionStatus::DUPLICATE_EVENT)
         throw std::invalid_argument("Duplicate discrete-time hybrid transition event");
 
-    const DifferenceAlgebraicEquation& source_equation = this->mode(source).equation();
-    const DifferenceAlgebraicEquation& target_equation = this->mode(target).equation();
-    const Set<UntypedVariable> available_variables(make_set(source_equation.state_auxiliary_space().variables()));
+    const DiscreteTimeHybridMode& source_mode_declaration = this->mode(source);
+    const DiscreteTimeHybridMode& target_mode_declaration = this->mode(target);
+    // Input symbols are not event variables in this initial contract; guards
+    // and resets may depend on state and declared auxiliary outputs only.
+    const Set<UntypedVariable> available_variables(make_set(source_mode_declaration.state_auxiliary_space().variables()));
 
     if (!subset(guard.arguments(), available_variables))
         throw std::invalid_argument("Discrete-time hybrid guard depends on undeclared source variables");
@@ -80,7 +88,7 @@ Void DiscreteTimeHybridAutomaton::_new_transition(
         throw std::invalid_argument("Discrete-time hybrid progression invariant depends on undeclared source variables");
 
     const List<RealVariable> assigned = left_hand_sides(reset);
-    const Set<RealVariable> target_variables(make_set(target_equation.state_space().variables()));
+    const Set<RealVariable> target_variables(make_set(target_mode_declaration.state_space().variables()));
     if (!unique_elements(assigned) || Set<RealVariable>(assigned) != target_variables)
         throw std::invalid_argument("Discrete-time hybrid reset must assign every target state variable exactly once");
     for (const PrimedRealAssignment& assignment: reset)
@@ -123,19 +131,39 @@ DiscreteLocation DiscreteTimeHybridAutomaton::target(DiscreteLocation source, Di
 }
 
 DimensionType DiscreteTimeHybridAutomaton::dimension(DiscreteLocation location) const {
-    return this->equation(location).dimension();
+    return this->mode(location).dimension();
+}
+
+Bool DiscreteTimeHybridAutomaton::has_equation(DiscreteLocation location) const {
+    return this->mode(location).has_equation();
+}
+
+Bool DiscreteTimeHybridAutomaton::has_inclusion(DiscreteLocation location) const {
+    return this->mode(location).has_inclusion();
 }
 
 const DifferenceAlgebraicEquation& DiscreteTimeHybridAutomaton::equation(DiscreteLocation location) const {
     return this->mode(location).equation();
 }
 
+const DifferenceAlgebraicInclusion& DiscreteTimeHybridAutomaton::inclusion(DiscreteLocation location) const {
+    return this->mode(location).inclusion();
+}
+
 const IteratedMap& DiscreteTimeHybridAutomaton::iterated_map(DiscreteLocation location) const {
-    return this->equation(location).iterated_map();
+    return this->mode(location).iterated_map();
+}
+
+const EffectiveVectorMultivariateFunction& DiscreteTimeHybridAutomaton::update_function(DiscreteLocation location) const {
+    return this->mode(location).update_function();
+}
+
+const EffectiveVectorMultivariateFunction& DiscreteTimeHybridAutomaton::auxiliary_function(DiscreteLocation location) const {
+    return this->mode(location).auxiliary_function();
 }
 
 RealSpace DiscreteTimeHybridAutomaton::state_space(DiscreteLocation location) const {
-    return this->equation(location).state_space();
+    return this->mode(location).state_space();
 }
 
 DiscreteTimeTransitionKind DiscreteTimeHybridAutomaton::transition_kind(

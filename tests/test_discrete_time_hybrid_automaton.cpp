@@ -35,6 +35,7 @@
 #include "symbolic/variable.hpp"
 #include "system/discrete_time_hybrid_automaton.hpp"
 #include "system/difference_algebraic_equation.hpp"
+#include "system/difference_algebraic_inclusion.hpp"
 #include "ariadne-testing.hpp"
 
 using namespace Ariadne;
@@ -92,6 +93,85 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
 
         std::unique_ptr<DiscreteTimeHybridAutomaton> copied(system.clone());
         ARIADNE_TESTING_PROVE(copied->equation(location).auxiliary_space() == RealSpace({a}));
+    }
+
+    Void test_mixed_equation_and_inclusion_modes() {
+        const RealVariable x("x"), a("a"), u("u");
+        const DiscreteLocation deterministic(1), set_valued(2);
+        const DiscreteEvent jump("jump"), return_event("return");
+        const DifferenceAlgebraicEquation equation(
+            List<PrimedRealAssignment>{next(x) = x + 1});
+        const DifferenceAlgebraicInclusion inclusion(
+            List<PrimedRealAssignment>{next(x) = x + a + u},
+            List<RealAssignment>{let(a) = x + u},
+            RealVariablesBox({-1 <= u <= 1}));
+
+        DiscreteTimeHybridAutomaton automaton("mixed dynamics");
+        automaton.new_mode(deterministic, equation);
+        automaton.new_mode(set_valued, inclusion);
+
+        ARIADNE_TESTING_PROVE(automaton.has_equation(deterministic));
+        ARIADNE_TESTING_PROVE(!automaton.has_inclusion(deterministic));
+        ARIADNE_TESTING_PROVE(!automaton.has_equation(set_valued));
+        ARIADNE_TESTING_PROVE(automaton.has_inclusion(set_valued));
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.dimension(deterministic), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.dimension(set_valued), 1u);
+        ARIADNE_TESTING_PROVE(automaton.state_space(set_valued) == RealSpace({x}));
+        ARIADNE_TESTING_PROVE(automaton.inclusion(set_valued).input_space() == RealSpace({u}));
+        ARIADNE_TESTING_PROVE(automaton.inclusion(set_valued).inputs() ==
+                             BoxDomainType({{-1.0_x, 1.0_x}}));
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.update_function(deterministic).argument_size(), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.update_function(set_valued).argument_size(), 2u);
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.auxiliary_function(set_valued).result_size(), 1u);
+        ARIADNE_TESTING_PROVE(&automaton.update_function(deterministic) ==
+                             &automaton.iterated_map(deterministic).update_function());
+        ARIADNE_TESTING_PROVE(&automaton.update_function(set_valued) ==
+                             &automaton.inclusion(set_valued).update_function());
+
+        // Wrong-family access must fail rather than select or freeze an input.
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.equation(set_valued));
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.inclusion(deterministic));
+        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.iterated_map(set_valued));
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, automaton.new_mode(deterministic, inclusion));
+
+        // Both directions of a mixed transition graph have unchanged
+        // guard/invariant semantics and validate reset variables against the
+        // target mode's physical state space.
+        automaton.new_permissive_transition(set_valued, jump, deterministic,
+                                            {next(x) = x + a}, x >= 0, x <= 2);
+        automaton.new_urgent_transition(deterministic, return_event, set_valued,
+                                        {next(x) = x}, x >= 1);
+        ARIADNE_TESTING_PROVE(automaton.has_transition(set_valued, jump));
+        ARIADNE_TESTING_PROVE(automaton.has_transition(deterministic, return_event));
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.target(set_valued, jump), deterministic);
+        ARIADNE_TESTING_EXPECT_EQUAL(automaton.target(deterministic, return_event), set_valued);
+        ARIADNE_TESTING_PROVE(automaton.transition_kind(set_valued, jump) ==
+                             DiscreteTimeTransitionKind::PERMISSIVE);
+        ARIADNE_TESTING_PROVE(automaton.transition_kind(deterministic, return_event) ==
+                             DiscreteTimeTransitionKind::URGENT);
+
+        // Direct free-input references in event data are not yet admitted:
+        // their step-level correlation needs its own evolver contract.
+        const DiscreteEvent unsupported("unsupported");
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, automaton.new_permissive_transition(
+            set_valued, unsupported, deterministic, {next(x) = x + u}, x >= 0, x <= 1));
+        ARIADNE_TESTING_PROVE(!automaton.has_transition(set_valued, unsupported));
+
+        const DiscreteEvent input_guard("input_guard");
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, automaton.new_urgent_transition(
+            set_valued, input_guard, deterministic, {next(x) = x}, u >= 0));
+        ARIADNE_TESTING_PROVE(!automaton.has_transition(set_valued, input_guard));
+
+        const DiscreteEvent input_invariant("input_invariant");
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, automaton.new_permissive_transition(
+            set_valued, input_invariant, deterministic, {next(x) = x}, x >= 0, u >= 0));
+        ARIADNE_TESTING_PROVE(!automaton.has_transition(set_valued, input_invariant));
+
+        std::unique_ptr<DiscreteTimeHybridAutomaton> cloned(automaton.clone());
+        ARIADNE_TESTING_PROVE(cloned->has_inclusion(set_valued));
+        ARIADNE_TESTING_PROVE(cloned->has_equation(deterministic));
+        ARIADNE_TESTING_PROVE(cloned->inclusion(set_valued).inputs() == inclusion.inputs());
+        ARIADNE_TESTING_PROVE(cloned->has_transition(set_valued, jump));
     }
 
     Void test_urgent_and_permissive_declarations() {
@@ -152,6 +232,7 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_discrete_time_hybrid_automaton");
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_modes_and_structure);
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_explicit_algebraic_outputs);
+    ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_mixed_equation_and_inclusion_modes);
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_urgent_and_permissive_declarations);
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_transition_errors);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);

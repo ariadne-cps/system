@@ -31,6 +31,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <variant>
 
 #include "system/discrete_time_hybrid_automaton_interface.hpp"
 #include "system/hybrid_mode_registry.hpp"
@@ -39,15 +40,17 @@
 namespace Ariadne {
 
 //! \ingroup SystemModule
-//! \brief Per-location discrete-time dynamics with transition semantics.
-//! \details A progression invariant is stored for every transition.
+//! \brief Per-location deterministic or set-valued discrete-time dynamics.
+//! \details Exactly one dynamics declaration is stored in each mode.\n//! A progression invariant is stored for every transition.
 //! Urgent invariants are derived as the complement of the guard; permissive
 //! invariants must be supplied explicitly and may overlap the guard.
 class DiscreteTimeHybridMode : public HybridModeStructure {
     friend class DiscreteTimeHybridAutomaton;
 
   private:
-    std::shared_ptr<const DifferenceAlgebraicEquation> _equation;
+    using EquationHandle = std::shared_ptr<const DifferenceAlgebraicEquation>;
+    using InclusionHandle = std::shared_ptr<const DifferenceAlgebraicInclusion>;
+    std::variant<std::monostate, EquationHandle, InclusionHandle> _dynamics;
     Map<DiscreteEvent, ContinuousPredicate> _guards;
     Map<DiscreteEvent, ContinuousPredicate> _invariants;
     Map<DiscreteEvent, DiscreteTimeTransitionKind> _kinds;
@@ -56,15 +59,41 @@ class DiscreteTimeHybridMode : public HybridModeStructure {
   public:
     DiscreteTimeHybridMode() = default;
     DiscreteTimeHybridMode(DiscreteLocation location, const DifferenceAlgebraicEquation& equation)
-        : HybridModeStructure(location), _equation(std::make_shared<const DifferenceAlgebraicEquation>(equation)) {}
+        : HybridModeStructure(location),
+          _dynamics(std::in_place_type<EquationHandle>,
+                    std::make_shared<const DifferenceAlgebraicEquation>(equation)) {}
+    DiscreteTimeHybridMode(DiscreteLocation location, const DifferenceAlgebraicInclusion& inclusion)
+        : HybridModeStructure(location),
+          _dynamics(std::in_place_type<InclusionHandle>,
+                    std::make_shared<const DifferenceAlgebraicInclusion>(inclusion)) {}
+
+    Bool has_equation() const { return std::holds_alternative<EquationHandle>(_dynamics); }
+    Bool has_inclusion() const { return std::holds_alternative<InclusionHandle>(_dynamics); }
 
     const DifferenceAlgebraicEquation& equation() const {
-        if (!_equation)
-            throw std::logic_error("DiscreteTimeHybridMode has no discrete-time equations");
-        return *_equation;
+        if (const auto* handle = std::get_if<EquationHandle>(&_dynamics))
+            return **handle;
+        throw std::logic_error("DiscreteTimeHybridMode does not contain a difference equation");
+    }
+    const DifferenceAlgebraicInclusion& inclusion() const {
+        if (const auto* handle = std::get_if<InclusionHandle>(&_dynamics))
+            return **handle;
+        throw std::logic_error("DiscreteTimeHybridMode does not contain a difference inclusion");
     }
 
+    //! \brief Valid only for deterministic modes; inclusion modes must not be sampled.
     const IteratedMap& iterated_map() const { return equation().iterated_map(); }
+    DimensionType dimension() const { return has_equation() ? equation().dimension() : inclusion().dimension(); }
+    RealSpace state_space() const { return has_equation() ? equation().state_space() : inclusion().state_space(); }
+    RealSpace state_auxiliary_space() const {
+        return has_equation() ? equation().state_auxiliary_space() : inclusion().state_auxiliary_space();
+    }
+    const EffectiveVectorMultivariateFunction& update_function() const {
+        return has_equation() ? equation().update_function() : inclusion().update_function();
+    }
+    const EffectiveVectorMultivariateFunction& auxiliary_function() const {
+        return has_equation() ? equation().auxiliary_function() : inclusion().auxiliary_function();
+    }
 };
 
 //! \ingroup SystemModule
@@ -88,8 +117,10 @@ class DiscreteTimeHybridAutomaton
     DiscreteTimeHybridAutomaton* clone() const override;
     const Identifier& name() const override { return _name; }
 
-    //! \brief Add a distinguishable location with explicit discrete algebraic equations.
+    //! \brief Add a distinguishable location with deterministic difference equations.
     Void new_mode(DiscreteLocation location, const DifferenceAlgebraicEquation& equation);
+    //! \brief Add a distinguishable location with bounded-input difference inclusion.
+    Void new_mode(DiscreteLocation location, const DifferenceAlgebraicInclusion& inclusion);
 
     //! \brief Add an urgent transition with implicit invariant equal to !guard.
     Void new_urgent_transition(DiscreteLocation source, DiscreteEvent event, DiscreteLocation target,
@@ -114,8 +145,13 @@ class DiscreteTimeHybridAutomaton
     DiscreteLocation target(DiscreteLocation source, DiscreteEvent event) const override;
     DimensionType dimension(DiscreteLocation location) const override;
 
+    Bool has_equation(DiscreteLocation location) const override;
+    Bool has_inclusion(DiscreteLocation location) const override;
     const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const override;
+    const DifferenceAlgebraicInclusion& inclusion(DiscreteLocation location) const override;
     const IteratedMap& iterated_map(DiscreteLocation location) const override;
+    const EffectiveVectorMultivariateFunction& update_function(DiscreteLocation location) const override;
+    const EffectiveVectorMultivariateFunction& auxiliary_function(DiscreteLocation location) const override;
     RealSpace state_space(DiscreteLocation location) const override;
     DiscreteTimeTransitionKind transition_kind(DiscreteLocation location, DiscreteEvent event) const override;
     ContinuousPredicate guard_predicate(DiscreteLocation location, DiscreteEvent event) const override;

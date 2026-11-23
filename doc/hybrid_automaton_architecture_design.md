@@ -217,3 +217,45 @@ invariants, and never silently underapproximate the inclusion.
 This commit only introduces the System declaration and targeted tests;
 Evolution's numerical kernels are unchanged. CI is required to validate
 the new code; Format remains deliberately deferred.
+
+## Native hybrid modes with both difference equations and inclusions (v6.38)
+
+A `DiscreteTimeHybridMode` now owns **exactly one** alternative:
+`DifferenceAlgebraicEquation` or `DifferenceAlgebraicInclusion`.
+The implementation uses a discriminated `std::variant` of owned,
+immutable dynamics handles; a default-constructed mode contains no dynamics
+and cannot be used as a declared automaton mode. Existing topology storage
+and validation remain in `HybridModeStructure` and `HybridModeRegistry`.
+
+The automaton accepts both alternatives through explicit overloads of
+`new_mode`. Its interface exposes `has_equation`, `has_inclusion`,
+`equation`, `inclusion`, `update_function` and `auxiliary_function`.
+The latter two expose the functions associated with the actual declaration:
+for an inclusion, the update's arguments contain *state and free inputs*,
+and its image over the entire declared input box is the next-state relation.
+`iterated_map` is deliberately restricted to equation modes and throws
+when requested from an inclusion mode. No nominal input is selected, and
+no implicit inclusion-to-equation conversion is introduced.
+
+Dimension, physical state space and transition reset target validation
+work for both mode kinds. For this structural increment, event guards,
+progression invariants and reset expressions refer only to source
+state or declared auxiliary outputs; direct references to input symbols
+are rejected until step-level input/event correlation semantics are
+specified. Auxiliary output dependence on inputs remains possible and
+must be handled soundly by future evolvers.
+
+The previous rules for urgent events (implicit advancement invariant
+`!guard`) and permissive events (explicit advancement invariant) are
+unchanged. In particular, when guard and invariant overlap, both the
+dynamics progression and the reset branch remain admissible; for
+inclusion modes, the dynamics progression denotes *all* admissible input
+images, not an arbitrarily selected successor.
+
+Tests cover deterministic and set-valued modes in one automaton, correct
+dynamics dispatch, forbidden wrong-kind access, mixed transitions and
+resets, absence of partial insertion after rejected event declarations,
+and preservation of both kinds through clone. No discrete evolver or
+scheduling policy is introduced here. All continuous numerical kernels
+remain untouched. CI must validate the Debug regression correction and
+this integration; Format remains deferred.

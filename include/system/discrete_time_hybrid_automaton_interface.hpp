@@ -31,6 +31,7 @@
 
 #include "system/hybrid_automaton_interface.hpp"
 #include "system/difference_algebraic_equation.hpp"
+#include "system/difference_algebraic_inclusion.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 
@@ -45,11 +46,12 @@ enum class DiscreteTimeTransitionKind { URGENT, PERMISSIVE };
 //! \ingroup SystemModule
 //! \brief Structural and symbolic data for a hybrid system on integer time.
 //! \details The common interface describes the graph; this specialization
-//! describes per-mode discrete algebraic equations, guarded transitions and progression
-//! invariants. At a state, a map successor is possible when every progression
+//! describes per-mode difference equations or inclusions, guarded transitions and progression
+//! invariants. At a state, a dynamics successor is possible when every progression
 //! invariant holds. Every enabled guard independently admits a reset successor.
-//! Hence for permissive events mapping and jumping can both be possible.
-//! Jump time accounting, zero-time chains and scheduling are deliberately\n//! left to be specified before implementing discrete hybrid evolvers.
+//! Hence for permissive events a dynamics step and jump can both be possible.
+//! Jump time accounting, zero-time chains and scheduling are deliberately
+//! left to be specified before implementing discrete hybrid evolvers.
 //! This interface does not implement set-valued guard evaluation or evolution.
 class DiscreteTimeHybridAutomatonInterface : public HybridAutomatonInterface {
   public:
@@ -59,11 +61,21 @@ class DiscreteTimeHybridAutomatonInterface : public HybridAutomatonInterface {
     virtual ~DiscreteTimeHybridAutomatonInterface() = default;
     virtual DiscreteTimeHybridAutomatonInterface* clone() const = 0;
 
-    //! \brief Declarative discrete-time equations for the given mode.
+    //! \brief True when the mode contains a deterministic difference equation.
+    virtual Bool has_equation(DiscreteLocation location) const = 0;
+    //! \brief True when the mode contains a bounded-input difference inclusion.
+    virtual Bool has_inclusion(DiscreteLocation location) const = 0;
+    //! \brief Deterministic declaration; throws for an inclusion mode.
     virtual const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const = 0;
-    //! \brief Operational map obtained from the declared discrete-time equations.
+    //! \brief Set-valued declaration; throws for a deterministic mode.
+    virtual const DifferenceAlgebraicInclusion& inclusion(DiscreteLocation location) const = 0;
+    //! \brief Operational map for deterministic modes only; never samples an inclusion.
     virtual const IteratedMap& iterated_map(DiscreteLocation location) const { return equation(location).iterated_map(); }
-    //! \brief Continuous state space of a discrete mode.
+    //! \brief Source dynamics function; inclusion arguments include free inputs.
+    virtual const EffectiveVectorMultivariateFunction& update_function(DiscreteLocation location) const = 0;
+    //! \brief Auxiliary output function for either dynamics declaration.
+    virtual const EffectiveVectorMultivariateFunction& auxiliary_function(DiscreteLocation location) const = 0;
+    //! \brief Continuous state space of either dynamics family.
     virtual RealSpace state_space(DiscreteLocation location) const = 0;
     //! \brief Whether a transition restricts time progression when enabled.
     virtual DiscreteTimeTransitionKind transition_kind(DiscreteLocation location, DiscreteEvent event) const = 0;

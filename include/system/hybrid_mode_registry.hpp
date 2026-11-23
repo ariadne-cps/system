@@ -32,6 +32,7 @@
 #include <optional>
 
 #include "hybrid/discrete_location.hpp"
+#include "system/discrete_event.hpp"
 #include "utility/container.hpp"
 
 namespace Ariadne {
@@ -44,6 +45,28 @@ template<class Mode>
 class HybridModeRegistry {
   protected:
     Map<DiscreteLocation, Mode> _modes;
+
+    /** @brief Structural result of checking a proposed labelled transition.
+     *  @details Only mode existence and uniqueness of the outgoing event
+     *  are tested. Guards, resets and event timing remain owner-specific.
+     */
+    enum class TransitionStatus { VALID, MISSING_SOURCE, MISSING_TARGET, DUPLICATE_EVENT };
+
+    /** @brief Validate a transition against the current registry.
+     *  @details Check source, target and existing event in that order.
+     *  This preserves the diagnostics precedence of the continuous model.
+     *  The mode type must expose has_transition(DiscreteEvent).
+     */
+    TransitionStatus _transition_status(DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) const {
+        if (!this->has_location(source))
+            return TransitionStatus::MISSING_SOURCE;
+        if (!this->has_location(target))
+            return TransitionStatus::MISSING_TARGET;
+        const Mode* source_mode = this->_find_mode(source);
+        if (source_mode->has_transition(event))
+            return TransitionStatus::DUPLICATE_EVENT;
+        return TransitionStatus::VALID;
+    }
 
     /** @brief Find the first stored location indistinguishable from a candidate.
      *  @details The owner must reject this candidate before adding a mode.

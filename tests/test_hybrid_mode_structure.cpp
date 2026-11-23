@@ -36,8 +36,18 @@ using namespace Ariadne;
 
 class TestHybridModeRegistry : public HybridModeRegistry<HybridModeStructure> {
   public:
+    using Status = HybridModeRegistry<HybridModeStructure>::TransitionStatus;
+
     Void add_mode(DiscreteLocation location) {
         this->_modes.insert(location, HybridModeStructure(location));
+    }
+
+    Void add_transition(DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) {
+        this->_modes.value(source).add_transition(event, target);
+    }
+
+    Status transition_status(DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) const {
+        return this->_transition_status(source, event, target);
     }
 
     std::optional<DiscreteLocation> first_indistinguishable(DiscreteLocation location) const {
@@ -81,6 +91,35 @@ class TestHybridModeStructure : public Ariadne::Testing::ContextFixture {
         ARIADNE_TESTING_PROVE(!registry.first_indistinguishable(q | "third").has_value());
     }
 
+    Void test_transition_validation() {
+        const DiscreteLocation source(1);
+        const DiscreteLocation target(2);
+        const DiscreteLocation missing(3);
+        const DiscreteEvent event("edge");
+        const DiscreteEvent another("another");
+        TestHybridModeRegistry registry;
+
+        // Source takes precedence over destination; neither is registered.
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, event, target) ==
+                             TestHybridModeRegistry::Status::MISSING_SOURCE);
+        registry.add_mode(source);
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, event, target) ==
+                             TestHybridModeRegistry::Status::MISSING_TARGET);
+        registry.add_mode(target);
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, event, target) ==
+                             TestHybridModeRegistry::Status::VALID);
+        registry.add_transition(source, event, target);
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, event, target) ==
+                             TestHybridModeRegistry::Status::DUPLICATE_EVENT);
+        // Unknown target wins over a duplicate event, matching the previous checks.
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, event, missing) ==
+                             TestHybridModeRegistry::Status::MISSING_TARGET);
+        ARIADNE_TESTING_PROVE(registry.transition_status(missing, event, target) ==
+                             TestHybridModeRegistry::Status::MISSING_SOURCE);
+        ARIADNE_TESTING_PROVE(registry.transition_status(source, another, target) ==
+                             TestHybridModeRegistry::Status::VALID);
+    }
+
     Void test_transition_topology() {
         const DiscreteLocation source(1);
         const DiscreteLocation target(2);
@@ -109,5 +148,6 @@ int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_hybrid_mode_structure");
     ARIADNE_TESTING_ADD_TEST(TestHybridModeStructure, test_transition_topology);
     ARIADNE_TESTING_ADD_TEST(TestHybridModeStructure, test_registry_location_matching);
+    ARIADNE_TESTING_ADD_TEST(TestHybridModeStructure, test_transition_validation);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

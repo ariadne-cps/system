@@ -332,16 +332,17 @@ Void ContinuousTimeHybridAutomaton::_new_update(DiscreteLocation source,
                                   DiscreteEvent event,
                                   DiscreteLocation target,
                                   const List<PrimedRealAssignment>& reset) {
-    if (!this->has_location(source))
+    const TransitionStatus status = this->_transition_status(source, event, target);
+    if (status == TransitionStatus::MISSING_SOURCE)
         ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_reset",
                       "Source mode " << source << " is not a location of the automaton with locations " << this->locations());
 
-    if (!this->has_location(target))
+    if (status == TransitionStatus::MISSING_TARGET)
         ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_reset",
                       "Target mode " << target << " is not a location of the automaton with locations " << this->locations());
 
     DiscreteMode& source_mode = this->mode(source); // Non-constant since we may wish to update input variables
-    if (source_mode._targets.has_key(event))
+    if (status == TransitionStatus::DUPLICATE_EVENT)
         ARIADNE_THROW(MultipleTransitionError, "ContinuousTimeHybridAutomaton::new_update",
                       "Update for event " << event << " is already defined in mode " << source);
 

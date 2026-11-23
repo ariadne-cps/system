@@ -85,3 +85,24 @@ The registry and topology have separate responsibilities: the registry owns a
 map of modes; `HybridModeStructure` owns one mode's location and outgoing
 targets. The planned discrete-time model can use both without inheriting any
 continuous-time numerical or event contracts.
+
+## Reusable structural transition preconditions (fourth implementation slice)
+
+`HybridModeRegistry<Mode>` now exposes a protected, time-independent
+`_transition_status(source,event,target)` check. It checks, in this
+order: exact source location existence, exact target location existence,
+and duplicate outgoing event on the resolved source mode. It returns
+`VALID`, `MISSING_SOURCE`, `MISSING_TARGET` or `DUPLICATE_EVENT`.
+It does not throw or mutate either the registry or the transition map.
+
+`ContinuousTimeHybridAutomaton::_new_update` uses this check and retains its
+existing public exception types, messages and precedence, followed by
+the unchanged checks for reset variables and the unchanged target/reset
+insertion. Guards, invariants, ODAE/ODAI, contact semantics and tick rules
+are outside the shared contract.
+
+System structural tests cover every status and precedence, including
+multiple invalid preconditions; existing continuous API tests exercise the
+same public exception behaviour. No discrete hybrid model has been added.
+Format changes remain deferred by design. New System and consuming Evolution
+CI runs are required to validate this extraction.

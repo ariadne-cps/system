@@ -54,8 +54,8 @@ class HybridSpace;
 
 /** @brief DiscreteLocation for composition of hybrid automata. */
 class DiscreteLocation;
-/** @brief DiscreteMode for composition of hybrid automata. */
-class DiscreteMode;
+/** @brief ContinuousTimeHybridMode for composition of hybrid automata. */
+class ContinuousTimeHybridMode;
 /** @brief ContinuousTimeHybridAutomaton for composition of hybrid automata. */
 class ContinuousTimeHybridAutomaton;
 /** @brief CompositeContinuousTimeHybridAutomaton for composition of hybrid automata. */
@@ -127,7 +127,7 @@ class CompositeContinuousTimeHybridAutomaton
     //! \name Methods for finding the modes, transitions and events of the composite automaton.
 
     //! The mode corresponding to the given location.
-    const DiscreteMode& mode(DiscreteLocation) const;
+    const ContinuousTimeHybridMode& mode(DiscreteLocation) const;
     //! \brief Tests if the automaton has a mode corresponding to the given location.
     Bool has_mode(DiscreteLocation) const;
     //! \brief Test if the hybrid automaton has a discrete mode corresponding to a subset of variables of the given location.
@@ -237,7 +237,7 @@ class CompositeContinuousTimeHybridAutomaton
 
   private:
     List<ContinuousTimeHybridAutomaton> _components;
-    mutable LRUCache<DiscreteLocation, DiscreteMode> _modes_cache;
+    mutable LRUCache<DiscreteLocation, ContinuousTimeHybridMode> _modes_cache;
     /** @brief Perform the system operation. */
     Void _cache_mode(DiscreteLocation) const;
 };

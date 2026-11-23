@@ -30,19 +30,25 @@
 #define ARIADNE_HYBRID_MODE_REGISTRY_HPP
 
 #include <optional>
+#include <type_traits>
 
 #include "hybrid/discrete_location.hpp"
 #include "system/discrete_event.hpp"
+#include "system/hybrid_mode_structure.hpp"
 #include "utility/container.hpp"
 
 namespace Ariadne {
 
 //! \ingroup SystemModule
 //! \brief Reusable registry of modes and their discrete locations.
+//! \tparam Mode The complete stored mode type; it must derive from HybridModeStructure.
 //! \details The registry only implements matching and storage. Concrete
 //! systems validate their dynamics, guards, resets and event semantics.
 template<class Mode>
 class HybridModeRegistry {
+    static_assert(std::is_base_of_v<HybridModeStructure, Mode>,
+                  "HybridModeRegistry<Mode> requires Mode to derive from HybridModeStructure");
+
   protected:
     Map<DiscreteLocation, Mode> _modes;
 

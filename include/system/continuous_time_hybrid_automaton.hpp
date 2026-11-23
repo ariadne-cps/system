@@ -55,8 +55,8 @@ class HybridSpace;
 
 /** @brief DiscreteLocation for hybrid automata, discrete modes, and transitions. */
 class DiscreteLocation;
-/** @brief DiscreteMode for hybrid automata, discrete modes, and transitions. */
-class DiscreteMode;
+/** @brief ContinuousTimeHybridMode for hybrid automata, discrete modes, and transitions. */
+class ContinuousTimeHybridMode;
 /** @brief ContinuousTimeHybridAutomaton for hybrid automata, discrete modes, and transitions. */
 class ContinuousTimeHybridAutomaton;
 
@@ -64,15 +64,15 @@ class ContinuousTimeHybridAutomaton;
 //! \brief A discrete mode of a hybrid automaton, comprising continuous evolution given by a vector field
 //! within and invariant constraint set.
 //!
-//! A %DiscreteMode can only be created using the new_mode() method in
+//! A %ContinuousTimeHybridMode can only be created using the new_mode() method in
 //! the %ContinuousTimeHybridAutomaton class.
 //!
 //! \sa \ref ContinuousTimeHybridAutomaton
-class DiscreteMode : public HybridModeStructure {
+class ContinuousTimeHybridMode : public HybridModeStructure {
     friend class ContinuousTimeHybridAutomaton;
     friend class CompositeContinuousTimeHybridAutomaton;
-    friend class CompactDiscreteModeWriter;
-    friend class VerboseDiscreteModeWriter;
+    friend class CompactContinuousTimeHybridModeWriter;
+    friend class VerboseContinuousTimeHybridModeWriter;
 
   private:
     // The algebraic equations
@@ -98,16 +98,16 @@ class DiscreteMode : public HybridModeStructure {
 
   private:
     /** @brief Construct the object. */
-    DiscreteMode(DiscreteLocation, const List<RealAssignment>&, const List<DottedRealAssignment>&);
+    ContinuousTimeHybridMode(DiscreteLocation, const List<RealAssignment>&, const List<DottedRealAssignment>&);
     /** @brief Construct the object. */
-    DiscreteMode();
-    static Writer<DiscreteMode> _default_writer;
+    ContinuousTimeHybridMode();
+    static Writer<ContinuousTimeHybridMode> _default_writer;
 
   public:
     /** @brief Perform the system operation. */
-    static Void set_default_writer(Writer<DiscreteMode> w) { _default_writer = w; }
+    static Void set_default_writer(Writer<ContinuousTimeHybridMode> w) { _default_writer = w; }
     /** @brief Perform the system operation. */
-    static Writer<DiscreteMode> default_writer() { return _default_writer; }
+    static Writer<ContinuousTimeHybridMode> default_writer() { return _default_writer; }
 
   public:
     //! \brief The mode's discrete state.
@@ -116,23 +116,23 @@ class DiscreteMode : public HybridModeStructure {
     OutputStream& _write(OutputStream& os) const;
 };
 
-inline OutputStream& operator<<(OutputStream& os, const DiscreteMode& dm) {
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridMode& dm) {
     return dm._write(os);
 }
 
-/** @brief CompactDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
-class CompactDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+/** @brief CompactContinuousTimeHybridModeWriter for hybrid automata, discrete modes, and transitions. */
+class CompactContinuousTimeHybridModeWriter : public WriterInterface<ContinuousTimeHybridMode> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const DiscreteMode& m) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridMode& m) const final override;
 };
 
-/** @brief VerboseDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
-class VerboseDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+/** @brief VerboseContinuousTimeHybridModeWriter for hybrid automata, discrete modes, and transitions. */
+class VerboseContinuousTimeHybridModeWriter : public WriterInterface<ContinuousTimeHybridMode> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const DiscreteMode& m) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridMode& m) const final override;
 };
 
-inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
+inline Bool operator<(const ContinuousTimeHybridMode& mode1, const ContinuousTimeHybridMode& mode2) {
     return mode1.location() < mode2.location();
 }
 
@@ -149,7 +149,7 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! is the <em>continuous state space</em> of corresponding to
 //! each discrete state.
 //!
-//! For each %DiscreteMode, the dynamics is given by a
+//! For each %ContinuousTimeHybridMode, the dynamics is given by a
 //! %OrdinaryDifferentialAlgebraicEquation describing the continuous dynamics,
 //! and a %Set giving an invariants which must be satisified at
 //! all times.
@@ -168,9 +168,9 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! elsewhere, even if this is permissive.
 //!
 //!
-//! \sa \ref DiscreteMode, \ref CompositeContinuousTimeHybridAutomaton
+//! \sa \ref ContinuousTimeHybridMode, \ref CompositeContinuousTimeHybridAutomaton
 class ContinuousTimeHybridAutomaton
-    : public ContinuousTimeHybridAutomatonInterface, protected HybridModeRegistry<DiscreteMode> {
+    : public ContinuousTimeHybridAutomatonInterface, protected HybridModeRegistry<ContinuousTimeHybridMode> {
     friend class CompositeContinuousTimeHybridAutomaton;
     static Writer<ContinuousTimeHybridAutomaton> _default_writer;
 
@@ -353,7 +353,7 @@ class ContinuousTimeHybridAutomaton
                        const ContinuousPredicate& invariant,
                        DiscreteEvent event) {
         /** @brief Return the requested system property. */
-        DiscreteMode& mode = this->_modes.value(location);
+        ContinuousTimeHybridMode& mode = this->_modes.value(location);
         mode._invariants[event] = invariant;
         mode._kinds[event] = EventKind::INVARIANT;
     }
@@ -372,7 +372,7 @@ class ContinuousTimeHybridAutomaton
                    const ContinuousPredicate& guard,
                    EventKind kind) {
         /** @brief Return the requested system property. */
-        DiscreteMode& mode = this->_modes.value(location);
+        ContinuousTimeHybridMode& mode = this->_modes.value(location);
         mode._guards[event] = guard;
         mode._kinds[event] = kind;
     }
@@ -502,7 +502,7 @@ class ContinuousTimeHybridAutomaton
     const Identifier& name() const { return _name; }
 
     //! \brief The modes of the automaton.
-    const Map<DiscreteLocation, DiscreteMode>& modes() const;
+    const Map<DiscreteLocation, ContinuousTimeHybridMode>& modes() const;
 
     //! \brief The set of discrete locations.
     Set<DiscreteLocation> locations() const;
@@ -511,9 +511,9 @@ class ContinuousTimeHybridAutomaton
     Bool has_location(DiscreteLocation location) const;
 
     //! \brief The discrete mode with given discrete state.
-    const DiscreteMode& mode(DiscreteLocation location) const;
+    const ContinuousTimeHybridMode& mode(DiscreteLocation location) const;
     /** @brief Return the requested system property. */
-    DiscreteMode& mode(DiscreteLocation location);
+    ContinuousTimeHybridMode& mode(DiscreteLocation location);
 
     //! \brief Checks validity of the mode for the given \a location.
     //! Only checks for underspecified dynamics; overspecification is determined at build-time.

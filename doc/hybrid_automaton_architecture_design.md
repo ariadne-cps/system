@@ -54,7 +54,7 @@ The public `HybridModeStructure` owns the discrete mode location and its
 independent of continuous flows and discrete-time tick policies. It exposes
 mode location, event lookup, event labels, target lookup with explicit
 fallback, insertion of an already validated target and product-mode topology
-composition. The existing continuous `DiscreteMode` derives from it.
+composition. The existing continuous `ContinuousTimeHybridMode` derives from it.
 
 The continuous atomic and composite automata now delegate target storage,
 transition membership, transition-event enumeration and labelled product-target
@@ -106,3 +106,20 @@ multiple invalid preconditions; existing continuous API tests exercise the
 same public exception behaviour. No discrete hybrid model has been added.
 Format changes remain deferred by design. New System and consuming Evolution
 CI runs are required to validate this extraction.
+
+## Explicit mode types (fifth implementation slice)
+
+The concrete continuous-time mode is named `ContinuousTimeHybridMode`
+(previously `DiscreteMode`). This identifies the temporal model rather than
+confusing the discrete *location* with discrete *time*. The corresponding
+writers are `CompactContinuousTimeHybridModeWriter` and
+`VerboseContinuousTimeHybridModeWriter`. No legacy type aliases are retained.
+
+`HybridModeRegistry<Mode>` retains a template parameter because it owns
+complete mode objects, not only their locations. `Mode` must derive from
+`HybridModeStructure`, which supplies labelled transition topology.
+This requirement is now enforced explicitly with a compile-time assertion.
+The continuous automaton instantiates
+`HybridModeRegistry<ContinuousTimeHybridMode>`, and a future discrete-time
+automaton may instantiate `HybridModeRegistry<DiscreteTimeHybridMode>`.
+No discrete-time semantics are introduced in this change.

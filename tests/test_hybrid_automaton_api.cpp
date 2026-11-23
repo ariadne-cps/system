@@ -26,7 +26,7 @@
  *  @brief Test hybrid automaton api behavior.
  */
 
-// Exercises the full public API of ContinuousTimeHybridAutomaton / DiscreteMode /
+// Exercises the full public API of ContinuousTimeHybridAutomaton / ContinuousTimeHybridMode /
 // DiscreteTransition: constructors, mode/transition building (including
 // every error path), accessors, check_mode validation errors, and the
 // verbose/compact writers plus EventKind streaming.
@@ -181,12 +181,12 @@ Void TestHybridAutomatonApi::test_constructors() {
     ARIADNE_TESTING_EXPECT_EQUAL(copy->name(), Identifier("named"));
     delete copy;
 
-    // DiscreteMode objects are only created through ContinuousTimeHybridAutomaton.
+    // ContinuousTimeHybridMode objects are only created through ContinuousTimeHybridAutomaton.
     ContinuousTimeHybridAutomaton ha;
     RealVariable x("x");
     DiscreteLocation q1({q | "1"});
     ha.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
-    DiscreteMode dm = ha.mode(q1);
+    ContinuousTimeHybridMode dm = ha.mode(q1);
     ARIADNE_TESTING_EXPECT_EQUAL(dm.location(), q1);
 }
 
@@ -319,7 +319,7 @@ Void TestHybridAutomatonApi::test_accessors() {
     ARIADNE_TESTING_PROVE(!ha.has_mode(q9));
     ARIADNE_TESTING_PROVE(ha.modes().has_key(q1));
     ARIADNE_TESTING_PROVE(ha.mode(q1).location() == q1);
-    DiscreteMode& mutable_mode = ha.mode(q1);
+    ContinuousTimeHybridMode& mutable_mode = ha.mode(q1);
     ARIADNE_TESTING_PROVE(mutable_mode.location() == q1);
     ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, ha.mode(q9));
 
@@ -448,11 +448,11 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
     ARIADNE_TESTING_PROVE(compact_single.str().size() > 0u);
     ContinuousTimeHybridAutomaton::set_default_writer(previous);
 
-    DiscreteMode mode = ha.mode(q1);
+    ContinuousTimeHybridMode mode = ha.mode(q1);
     std::ostringstream mode_verbose;
     mode_verbose << mode;
-    Writer<DiscreteMode> previous_mode = DiscreteMode::default_writer();
-    DiscreteMode::set_default_writer(CompactDiscreteModeWriter());
+    Writer<ContinuousTimeHybridMode> previous_mode = ContinuousTimeHybridMode::default_writer();
+    ContinuousTimeHybridMode::set_default_writer(CompactContinuousTimeHybridModeWriter());
     std::ostringstream mode_compact;
     mode_compact << mode;
     ARIADNE_TESTING_PROVE(mode_compact.str().size() > 0u);
@@ -478,7 +478,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
             os << bare_empty.mode(DiscreteLocation());
         }
     }
-    DiscreteMode::set_default_writer(previous_mode);
+    ContinuousTimeHybridMode::set_default_writer(previous_mode);
 
     std::ostringstream kinds;
     kinds << EventKind::INVARIANT << " " << EventKind::PROGRESS << " "

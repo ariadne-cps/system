@@ -140,7 +140,7 @@ const ContinuousTimeHybridAutomaton&
     return this->_components[k];
 }
 
-typedef Map<DiscreteLocation, DiscreteMode>::ConstIterator ModesConstIterator;
+typedef Map<DiscreteLocation, ContinuousTimeHybridMode>::ConstIterator ModesConstIterator;
 
 Bool CompositeContinuousTimeHybridAutomaton::has_mode(DiscreteLocation location) const {
     DiscreteLocation automaton_location;
@@ -189,18 +189,18 @@ Bool CompositeContinuousTimeHybridAutomaton::has_transition(DiscreteLocation sou
     return false;
 }
 
-const DiscreteMode& CompositeContinuousTimeHybridAutomaton::mode(DiscreteLocation location) const {
+const ContinuousTimeHybridMode& CompositeContinuousTimeHybridAutomaton::mode(DiscreteLocation location) const {
     if (not this->_modes_cache.has_label(location))
         this->_cache_mode(location);
     return this->_modes_cache.get(location);
 }
 
 Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation location) const {
-    DiscreteMode cached_mode;
+    ContinuousTimeHybridMode cached_mode;
 
     for (List<ContinuousTimeHybridAutomaton>::ConstIterator component_iter = this->_components.begin();
          component_iter != this->_components.end(); ++component_iter) {
-        const DiscreteMode& component_mode = component_iter->mode(location);
+        const ContinuousTimeHybridMode& component_mode = component_iter->mode(location);
         if (component_mode._equation || component_mode._inclusion) {
             throw std::invalid_argument("Composition of typed ordinary-dynamics modes requires an explicit role/domain composition contract");
         }
@@ -239,7 +239,7 @@ Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation locati
             ARIADNE_ERROR("Event " << event << " in location " << location << " triggers a transition to mode " << cached_mode._targets[event] << " with reset " << cached_mode._resets[event]
                                    << " but no guard is defined.")
             for (const ContinuousTimeHybridAutomaton& component: this->_components) {
-                for (const DiscreteMode& mode: component.modes().values()) {
+                for (const ContinuousTimeHybridMode& mode: component.modes().values()) {
                     if (mode._kinds.has_key(event)) {
                         ARIADNE_NOTIFY("  Component " << component.name() << " defines guard " << mode._guards[event] << " for " << event << " in location " << mode.location());
                     }
@@ -255,7 +255,7 @@ Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation locati
 
 Set<DiscreteEvent>
     CompositeContinuousTimeHybridAutomaton::events(DiscreteLocation location) const {
-    const DiscreteMode& mode = this->mode(location);
+    const ContinuousTimeHybridMode& mode = this->mode(location);
     return join(join(mode._invariants.keys(), mode._guards.keys()), mode.transition_events());
 }
 
@@ -268,7 +268,7 @@ DiscreteLocation
     CompositeContinuousTimeHybridAutomaton::target(DiscreteLocation source, DiscreteEvent event) const {
     DiscreteLocation result;
     for (SizeType i = 0; i != this->_components.size(); ++i) {
-        const DiscreteMode& component_mode = this->_components[i].mode(source);
+        const ContinuousTimeHybridMode& component_mode = this->_components[i].mode(source);
         if (component_mode._targets.has_key(event)) {
             result.adjoin(component_mode._targets[event]);
         } else {

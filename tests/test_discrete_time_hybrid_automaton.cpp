@@ -49,8 +49,8 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
     Void test_modes_and_structure() {
         RealVariable x("x"), y("y");
         DiscreteLocation first(1), second(2);
-        IteratedMap f({next(x) = x + 1});
-        IteratedMap g({next(y) = y + 1});
+        IteratedMap f(List<PrimedRealAssignment>{next(x) = x + 1});
+        IteratedMap g(List<PrimedRealAssignment>{next(y) = y + 1});
         DiscreteTimeHybridAutomaton system("discrete");
         system.new_mode(first, f);
         system.new_mode(second, g);
@@ -72,8 +72,8 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         DiscreteLocation source(1), destination(2);
         DiscreteEvent urgent("urgent"), permissive("permissive");
         DiscreteTimeHybridAutomaton system("time discrete");
-        system.new_mode(source, IteratedMap({next(x) = x + 1}));
-        system.new_mode(destination, IteratedMap({next(x) = x - 1}));
+        system.new_mode(source, IteratedMap(List<PrimedRealAssignment>{next(x) = x + 1}));
+        system.new_mode(destination, IteratedMap(List<PrimedRealAssignment>{next(x) = x - 1}));
 
         system.new_urgent_transition(source, urgent, destination,
                                       {next(x) = x}, x >= 1);
@@ -99,24 +99,25 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
     Void test_transition_errors() {
         RealVariable x("x"), y("y");
         DiscreteLocation source(1), destination(2), missing(3);
+        const DiscreteEvent edge("edge");
         DiscreteTimeHybridAutomaton system;
-        system.new_mode(source, IteratedMap({next(x) = x}));
-        system.new_mode(destination, IteratedMap({next(y) = y}));
+        system.new_mode(source, IteratedMap(List<PrimedRealAssignment>{next(x) = x}));
+        system.new_mode(destination, IteratedMap(List<PrimedRealAssignment>{next(y) = y}));
 
         ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.new_urgent_transition(
-            missing, "edge", destination, {next(y) = x}, x >= 0));
+            missing, edge, destination, {next(y) = x}, x >= 0));
         ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.new_urgent_transition(
-            source, "edge", missing, {next(y) = x}, x >= 0));
+            source, edge, missing, {next(y) = x}, x >= 0));
         ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_urgent_transition(
-            source, "edge", destination, {next(x) = x}, x >= 0));
+            source, edge, destination, {next(x) = x}, x >= 0));
         ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_urgent_transition(
-            source, "edge", destination, {next(y) = x, next(y) = x}, x >= 0));
+            source, edge, destination, {next(y) = x, next(y) = x}, x >= 0));
 
-        system.new_permissive_transition(source, "edge", destination,
+        system.new_permissive_transition(source, edge, destination,
                                           {next(y) = x}, x >= 0, x <= 1);
-        ARIADNE_TESTING_PROVE(system.has_transition(source, "edge"));
+        ARIADNE_TESTING_PROVE(system.has_transition(source, edge));
         ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_permissive_transition(
-            source, "edge", destination, {next(y) = x}, x >= 0, x <= 1));
+            source, edge, destination, {next(y) = x}, x >= 0, x <= 1));
     }
 };
 

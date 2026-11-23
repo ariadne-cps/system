@@ -26,10 +26,15 @@
  *  @brief Test system header behavior.
  */
 
+#include <type_traits>
+
 #include "logging/test_runner.hpp"
 
 #include "ariadne-system.hpp"
 #include "ariadne-testing.hpp"
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonStructureInterface, Ariadne::HybridAutomatonInterface>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonStructureInterface, Ariadne::HybridAutomaton>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonStructureInterface, Ariadne::CompositeHybridAutomaton>);
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicEquation) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicInclusion) > 0);

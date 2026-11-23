@@ -35,6 +35,7 @@
 #include "function/function.hpp"
 #include "hybrid/discrete_location.hpp"
 #include "system/discrete_event.hpp"
+#include "system/hybrid_automaton_structure_interface.hpp"
 
 namespace Ariadne {
 
@@ -194,7 +195,7 @@ class UnderspecifiedResetError : public UnderspecifiedSystemError {
 //! \ingroup SystemModule
 //! \ingroup HybridAutomataSubModule
 //! \brief Interface for hybrid systems required to perform analysis.
-class HybridAutomatonInterface {
+class HybridAutomatonInterface : public HybridAutomatonStructureInterface {
   public:
     //! \brief The type used to represent time.
     typedef HybridTime TimeType;
@@ -212,16 +213,13 @@ class HybridAutomatonInterface {
     //! \name Data access and queries.
 
     //! \brief The name of the automaton.
-    virtual const Identifier& name() const = 0;
 
     //!@{
     //! \name Methods for testing and extracting the discrete dynamics.
 
     //! \brief Test if the hybrid automaton has a valid discrete mode \a location.
-    virtual Bool has_mode(DiscreteLocation location) const = 0;
 
     //! \brief The set of all events possible in the given \a location.
-    virtual Set<DiscreteEvent> events(DiscreteLocation location) const = 0;
 
     //! \brief The kind (permissive, urgent etc) of the event.
     virtual EventKind event_kind(DiscreteLocation location, DiscreteEvent event) const = 0;
@@ -233,10 +231,8 @@ class HybridAutomatonInterface {
     virtual Bool has_guard(DiscreteLocation location, DiscreteEvent event) const = 0;
 
     //! \brief Test if the hybrid automaton has a discrete transition in \a source due to \a event.
-    virtual Bool has_transition(DiscreteLocation source, DiscreteEvent event) const = 0;
 
     //! \brief The target location of \a event starting in the \a source location.
-    virtual DiscreteLocation target(DiscreteLocation source, DiscreteEvent event) const = 0;
 
     //!@}
 
@@ -244,7 +240,6 @@ class HybridAutomatonInterface {
     //! \name Methods for extracting the continuous dynamics.
 
     //! \brief The dimension of the state space in the given \a location.
-    virtual DimensionType dimension(DiscreteLocation location) const = 0;
 
     //! \brief The function giving the auxiliary variables in the mode \a location.
     virtual EffectiveVectorMultivariateFunction auxiliary_function(DiscreteLocation location) const = 0;

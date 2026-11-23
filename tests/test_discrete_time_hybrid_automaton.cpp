@@ -1,0 +1,129 @@
+/***************************************************************************
+ *            test_discrete_time_hybrid_automaton.cpp
+ *
+ *  Copyright  2026  Luca Geretti
+ *
+ ****************************************************************************/
+
+/*
+ *  This file is part of Ariadne System.
+ *
+ *  Ariadne System is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Ariadne System is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Ariadne System. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/** @file tests/test_discrete_time_hybrid_automaton.cpp
+ *  @brief Structural and semantic declaration tests for integer-time hybrid modes.
+ */
+
+#include <memory>
+#include <stdexcept>
+#include <type_traits>
+
+#include "logging/test_runner.hpp"
+#include "symbolic/assignment.hpp"
+#include "symbolic/variable.hpp"
+#include "system/discrete_time_hybrid_automaton.hpp"
+#include "ariadne-testing.hpp"
+
+using namespace Ariadne;
+
+static_assert(std::is_base_of_v<HybridModeStructure, DiscreteTimeHybridMode>);
+static_assert(std::is_base_of_v<HybridAutomatonInterface, DiscreteTimeHybridAutomatonInterface>);
+static_assert(std::is_base_of_v<DiscreteTimeHybridAutomatonInterface, DiscreteTimeHybridAutomaton>);
+
+class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture {
+  public:
+    using ContextFixture::ContextFixture;
+
+    Void test_modes_and_structure() {
+        RealVariable x("x"), y("y");
+        DiscreteLocation first(1), second(2);
+        IteratedMap f({next(x) = x + 1});
+        IteratedMap g({next(y) = y + 1});
+        DiscreteTimeHybridAutomaton system("discrete");
+        system.new_mode(first, f);
+        system.new_mode(second, g);
+        ARIADNE_TESTING_PROVE(system.has_mode(first));
+        ARIADNE_TESTING_PROVE(system.has_mode(second));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.dimension(first), 1u);
+        ARIADNE_TESTING_PROVE(system.state_space(first) == RealSpace({x}));
+        ARIADNE_TESTING_PROVE(system.events(first).empty());
+        ARIADNE_TESTING_PROVE(!system.has_transition(first, DiscreteEvent("absent")));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.target(first, DiscreteEvent("absent")), first);
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_mode(first, f));
+        ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.mode(DiscreteLocation(9)));
+        std::unique_ptr<DiscreteTimeHybridAutomaton> copy(system.clone());
+        ARIADNE_TESTING_PROVE(copy->has_mode(second));
+    }
+
+    Void test_urgent_and_permissive_declarations() {
+        RealVariable x("x");
+        DiscreteLocation source(1), destination(2);
+        DiscreteEvent urgent("urgent"), permissive("permissive");
+        DiscreteTimeHybridAutomaton system("time discrete");
+        system.new_mode(source, IteratedMap({next(x) = x + 1}));
+        system.new_mode(destination, IteratedMap({next(x) = x - 1}));
+
+        system.new_urgent_transition(source, urgent, destination,
+                                      {next(x) = x}, x >= 1);
+        ARIADNE_TESTING_PROVE(system.has_transition(source, urgent));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.target(source, urgent), destination);
+        ARIADNE_TESTING_PROVE(system.transition_kind(source, urgent) == DiscreteTimeTransitionKind::URGENT);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.reset_assignments(source, urgent).size(), 1u);
+        ARIADNE_TESTING_NOTE(system.invariant_predicate(source, urgent));
+
+        // The permissive guard and the progression invariant deliberately overlap.
+        // This declares two possible branches; an evolver must preserve both.
+        system.new_permissive_transition(source, permissive, destination,
+                                          {next(x) = x + 2}, x >= 0, x <= 2);
+        ARIADNE_TESTING_PROVE(system.transition_kind(source, permissive) == DiscreteTimeTransitionKind::PERMISSIVE);
+        ARIADNE_TESTING_PROVE(system.events(source).contains(urgent));
+        ARIADNE_TESTING_PROVE(system.events(source).contains(permissive));
+        ARIADNE_TESTING_NOTE(system.guard_predicate(source, permissive));
+        ARIADNE_TESTING_NOTE(system.invariant_predicate(source, permissive));
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_urgent_transition(
+            source, permissive, destination, {next(x) = x}, x >= 0));
+    }
+
+    Void test_transition_errors() {
+        RealVariable x("x"), y("y");
+        DiscreteLocation source(1), destination(2), missing(3);
+        DiscreteTimeHybridAutomaton system;
+        system.new_mode(source, IteratedMap({next(x) = x}));
+        system.new_mode(destination, IteratedMap({next(y) = y}));
+
+        ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.new_urgent_transition(
+            missing, "edge", destination, {next(y) = x}, x >= 0));
+        ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.new_urgent_transition(
+            source, "edge", missing, {next(y) = x}, x >= 0));
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_urgent_transition(
+            source, "edge", destination, {next(x) = x}, x >= 0));
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_urgent_transition(
+            source, "edge", destination, {next(y) = x, next(y) = x}, x >= 0));
+
+        system.new_permissive_transition(source, "edge", destination,
+                                          {next(y) = x}, x >= 0, x <= 1);
+        ARIADNE_TESTING_PROVE(system.has_transition(source, "edge"));
+        ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, system.new_permissive_transition(
+            source, "edge", destination, {next(y) = x}, x >= 0, x <= 1));
+    }
+};
+
+int main(int argc, char** argv) {
+    ARIADNE_TESTING_SUITE("test_discrete_time_hybrid_automaton");
+    ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_modes_and_structure);
+    ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_urgent_and_permissive_declarations);
+    ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_transition_errors);
+    return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
+}

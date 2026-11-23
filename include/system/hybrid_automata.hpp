@@ -33,6 +33,7 @@ namespace Ariadne {
 
 }
 
+#include "system/discrete_time_hybrid_automaton.hpp"
 #include "system/continuous_time_hybrid_automaton.hpp"
 #include "system/continuous_time_hybrid_automaton_interface.hpp"
 

@@ -2,6 +2,7 @@ include(CTest)
 set(UNIT_TESTS
     test_discrete_event
     test_iterated_map
+    test_discrete_time_hybrid_automaton
     test_odae
     test_hybrid_automaton
     test_hybrid_mode_structure

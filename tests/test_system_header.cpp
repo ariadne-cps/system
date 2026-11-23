@@ -35,6 +35,8 @@
 static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::ContinuousTimeHybridAutomatonInterface>);
 static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::ContinuousTimeHybridAutomaton>);
 static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::CompositeContinuousTimeHybridAutomaton>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::DiscreteTimeHybridAutomatonInterface>);
+static_assert(std::is_base_of_v<Ariadne::DiscreteTimeHybridAutomatonInterface, Ariadne::DiscreteTimeHybridAutomaton>);
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicEquation) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicInclusion) > 0);

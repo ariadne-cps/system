@@ -123,3 +123,39 @@ The continuous automaton instantiates
 `HybridModeRegistry<ContinuousTimeHybridMode>`, and a future discrete-time
 automaton may instantiate `HybridModeRegistry<DiscreteTimeHybridMode>`.
 No discrete-time semantics are introduced in this change.
+
+## Native integer-time hybrid model (sixth implementation slice)
+
+The first native `DiscreteTimeHybridAutomaton` uses
+`HybridModeRegistry<DiscreteTimeHybridMode>` and `HybridModeStructure`.
+Each mode owns a concrete `IteratedMap` and stores separate symbolic
+transition guards, progression invariants, reset assignments and event kinds.
+The discrete specialization `DiscreteTimeHybridAutomatonInterface` inherits
+only the time-independent `HybridAutomatonInterface`, not the continuous
+interface. There is no implicit continuous-to-discrete conversion.
+
+**Progression versus jump.** For each enabled transition, its guard admits a
+reset successor. Whether applying the mode's map is admissible depends on
+the conjunction of all associated progression invariants. An urgent
+transition has the implicit invariant `!guard`; for a permissive
+transition the invariant is declared explicitly and can overlap its
+guard. Consequently a permissive transition may admit both a map
+successor and a reset successor. Neither is silently discarded.
+Independent enabled transitions remain nondeterministic alternatives.
+
+The model validates mode collisions, existence of source/target, unique
+event labels, source-variable use in guards/invariants/reset expressions,
+and complete, non-duplicated reset assignments to target state variables.
+The model itself does not evaluate predicates numerically or construct
+validated set images. Discrete evolvers must handle uncertain predicates
+conservatively and preserve all admissible branches.
+
+**Still open:** precise jump time accounting, whether zero-time chains are
+permitted, synchronisation of simultaneous transitions, and scheduling
+policies. Those questions must be fixed with separate tests before writing
+the discrete hybrid evolvers. The model does not inherit continuous
+URGENT/PERMISSIVE/IMPACT event-crossing algorithms, and it has no IMPACT
+event kind.
+
+Existing System and Evolution regression suites must pass after this
+increment. Format is intentionally deferred until the entire redesign.

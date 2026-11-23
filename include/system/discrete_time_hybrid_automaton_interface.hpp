@@ -30,7 +30,7 @@
 #define ARIADNE_DISCRETE_TIME_HYBRID_AUTOMATON_INTERFACE_HPP
 
 #include "system/hybrid_automaton_interface.hpp"
-#include "system/iterated_map.hpp"
+#include "system/difference_algebraic_equation.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 
@@ -45,7 +45,7 @@ enum class DiscreteTimeTransitionKind { URGENT, PERMISSIVE };
 //! \ingroup SystemModule
 //! \brief Structural and symbolic data for a hybrid system on integer time.
 //! \details The common interface describes the graph; this specialization
-//! describes per-mode iteration maps, guarded transitions and progression
+//! describes per-mode discrete algebraic equations, guarded transitions and progression
 //! invariants. At a state, a map successor is possible when every progression
 //! invariant holds. Every enabled guard independently admits a reset successor.
 //! Hence for permissive events mapping and jumping can both be possible.
@@ -59,8 +59,10 @@ class DiscreteTimeHybridAutomatonInterface : public HybridAutomatonInterface {
     virtual ~DiscreteTimeHybridAutomatonInterface() = default;
     virtual DiscreteTimeHybridAutomatonInterface* clone() const = 0;
 
-    //! \brief Autonomous map applied by an allowed time-progression step.
-    virtual const IteratedMap& iterated_map(DiscreteLocation location) const = 0;
+    //! \brief Declarative discrete-time equations for the given mode.
+    virtual const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const = 0;
+    //! \brief Operational map obtained from the declared discrete-time equations.
+    virtual const IteratedMap& iterated_map(DiscreteLocation location) const { return equation(location).iterated_map(); }
     //! \brief Continuous state space of a discrete mode.
     virtual RealSpace state_space(DiscreteLocation location) const = 0;
     //! \brief Whether a transition restricts time progression when enabled.

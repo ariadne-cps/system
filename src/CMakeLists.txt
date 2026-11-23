@@ -3,6 +3,7 @@ add_library(SYSTEM_SRC OBJECT
     ordinary_dynamics.cpp
     odae.cpp
     iterated_map.cpp
+    difference_algebraic_equation.cpp
     discrete_time_hybrid_automaton.cpp
     odai.cpp
     first_order_pde.cpp

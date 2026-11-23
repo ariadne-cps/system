@@ -34,6 +34,7 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/variable.hpp"
 #include "system/discrete_time_hybrid_automaton.hpp"
+#include "system/difference_algebraic_equation.hpp"
 #include "ariadne-testing.hpp"
 
 using namespace Ariadne;
@@ -49,14 +50,16 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
     Void test_modes_and_structure() {
         RealVariable x("x"), y("y");
         DiscreteLocation first(1), second(2);
-        IteratedMap f(List<PrimedRealAssignment>{next(x) = x + 1});
-        IteratedMap g(List<PrimedRealAssignment>{next(y) = y + 1});
+        DifferenceAlgebraicEquation f(List<PrimedRealAssignment>{next(x) = x + 1});
+        DifferenceAlgebraicEquation g(List<PrimedRealAssignment>{next(y) = y + 1});
         DiscreteTimeHybridAutomaton system("discrete");
         system.new_mode(first, f);
         system.new_mode(second, g);
         ARIADNE_TESTING_PROVE(system.has_mode(first));
         ARIADNE_TESTING_PROVE(system.has_mode(second));
         ARIADNE_TESTING_EXPECT_EQUAL(system.dimension(first), 1u);
+        ARIADNE_TESTING_PROVE(system.equation(first).state_space() == RealSpace({x}));
+        ARIADNE_TESTING_PROVE(&system.iterated_map(first) == &system.equation(first).iterated_map());
         ARIADNE_TESTING_PROVE(system.state_space(first) == RealSpace({x}));
         ARIADNE_TESTING_PROVE(system.events(first).empty());
         ARIADNE_TESTING_PROVE(!system.has_transition(first, DiscreteEvent("absent")));
@@ -65,6 +68,30 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.mode(DiscreteLocation(9)));
         std::unique_ptr<DiscreteTimeHybridAutomaton> copy(system.clone());
         ARIADNE_TESTING_PROVE(copy->has_mode(second));
+        ARIADNE_TESTING_PROVE(copy->equation(second).state_space() == RealSpace({y}));
+    }
+
+    Void test_explicit_algebraic_outputs() {
+        const RealVariable x("x"), a("a");
+        const DiscreteLocation location(1);
+        const DifferenceAlgebraicEquation declared(
+            List<PrimedRealAssignment>{next(x) = x + a},
+            List<RealAssignment>{let(a) = x + 1});
+
+        DiscreteTimeHybridAutomaton system("algebraic discrete");
+        system.new_mode(location, declared);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.equation(location).dimension(), 1u);
+        ARIADNE_TESTING_PROVE(system.equation(location).state_space() == RealSpace({x}));
+        ARIADNE_TESTING_PROVE(system.equation(location).auxiliary_space() == RealSpace({a}));
+        ARIADNE_TESTING_EXPECT_EQUAL(system.equation(location).updates().size(), 1u);
+        ARIADNE_TESTING_EXPECT_EQUAL(system.equation(location).auxiliary_assignments().size(), 1u);
+        ARIADNE_TESTING_PROVE(&system.equation(location).update_function() ==
+                             &system.iterated_map(location).update_function());
+        ARIADNE_TESTING_PROVE(&system.equation(location).auxiliary_function() ==
+                             &system.iterated_map(location).auxiliary_function());
+
+        std::unique_ptr<DiscreteTimeHybridAutomaton> copied(system.clone());
+        ARIADNE_TESTING_PROVE(copied->equation(location).auxiliary_space() == RealSpace({a}));
     }
 
     Void test_urgent_and_permissive_declarations() {
@@ -72,8 +99,8 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         DiscreteLocation source(1), destination(2);
         DiscreteEvent urgent("urgent"), permissive("permissive");
         DiscreteTimeHybridAutomaton system("time discrete");
-        system.new_mode(source, IteratedMap(List<PrimedRealAssignment>{next(x) = x + 1}));
-        system.new_mode(destination, IteratedMap(List<PrimedRealAssignment>{next(x) = x - 1}));
+        system.new_mode(source, DifferenceAlgebraicEquation(List<PrimedRealAssignment>{next(x) = x + 1}));
+        system.new_mode(destination, DifferenceAlgebraicEquation(List<PrimedRealAssignment>{next(x) = x - 1}));
 
         system.new_urgent_transition(source, urgent, destination,
                                       {next(x) = x}, x >= 1);
@@ -101,8 +128,8 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         DiscreteLocation source(1), destination(2), missing(3);
         const DiscreteEvent edge("edge");
         DiscreteTimeHybridAutomaton system;
-        system.new_mode(source, IteratedMap(List<PrimedRealAssignment>{next(x) = x}));
-        system.new_mode(destination, IteratedMap(List<PrimedRealAssignment>{next(y) = y}));
+        system.new_mode(source, DifferenceAlgebraicEquation(List<PrimedRealAssignment>{next(x) = x}));
+        system.new_mode(destination, DifferenceAlgebraicEquation(List<PrimedRealAssignment>{next(y) = y}));
 
         ARIADNE_TESTING_EXPECT_THROWS(std::out_of_range, system.new_urgent_transition(
             missing, edge, destination, {next(y) = x}, x >= 0));
@@ -124,6 +151,7 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_discrete_time_hybrid_automaton");
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_modes_and_structure);
+    ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_explicit_algebraic_outputs);
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_urgent_and_permissive_declarations);
     ARIADNE_TESTING_ADD_TEST(TestDiscreteTimeHybridAutomaton, test_transition_errors);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);

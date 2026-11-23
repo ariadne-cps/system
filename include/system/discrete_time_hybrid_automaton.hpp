@@ -23,7 +23,7 @@
  */
 
 /** @file system/discrete_time_hybrid_automaton.hpp
- *  @brief Native hybrid automaton with integer-time iteration maps.
+ *  @brief Native hybrid automaton with integer-time algebraic equations.
  */
 
 #ifndef ARIADNE_DISCRETE_TIME_HYBRID_AUTOMATON_HPP
@@ -47,7 +47,7 @@ class DiscreteTimeHybridMode : public HybridModeStructure {
     friend class DiscreteTimeHybridAutomaton;
 
   private:
-    std::shared_ptr<const IteratedMap> _map;
+    std::shared_ptr<const DifferenceAlgebraicEquation> _equation;
     Map<DiscreteEvent, ContinuousPredicate> _guards;
     Map<DiscreteEvent, ContinuousPredicate> _invariants;
     Map<DiscreteEvent, DiscreteTimeTransitionKind> _kinds;
@@ -55,14 +55,16 @@ class DiscreteTimeHybridMode : public HybridModeStructure {
 
   public:
     DiscreteTimeHybridMode() = default;
-    DiscreteTimeHybridMode(DiscreteLocation location, const IteratedMap& map)
-        : HybridModeStructure(location), _map(std::make_shared<const IteratedMap>(map)) {}
+    DiscreteTimeHybridMode(DiscreteLocation location, const DifferenceAlgebraicEquation& equation)
+        : HybridModeStructure(location), _equation(std::make_shared<const DifferenceAlgebraicEquation>(equation)) {}
 
-    const IteratedMap& iterated_map() const {
-        if (!_map)
-            throw std::logic_error("DiscreteTimeHybridMode has no iteration map");
-        return *_map;
+    const DifferenceAlgebraicEquation& equation() const {
+        if (!_equation)
+            throw std::logic_error("DiscreteTimeHybridMode has no discrete-time equations");
+        return *_equation;
     }
+
+    const IteratedMap& iterated_map() const { return equation().iterated_map(); }
 };
 
 //! \ingroup SystemModule
@@ -86,8 +88,8 @@ class DiscreteTimeHybridAutomaton
     DiscreteTimeHybridAutomaton* clone() const override;
     const Identifier& name() const override { return _name; }
 
-    //! \brief Add a distinguishable location and its autonomous iteration map.
-    Void new_mode(DiscreteLocation location, const IteratedMap& map);
+    //! \brief Add a distinguishable location with explicit discrete algebraic equations.
+    Void new_mode(DiscreteLocation location, const DifferenceAlgebraicEquation& equation);
 
     //! \brief Add an urgent transition with implicit invariant equal to !guard.
     Void new_urgent_transition(DiscreteLocation source, DiscreteEvent event, DiscreteLocation target,
@@ -112,6 +114,7 @@ class DiscreteTimeHybridAutomaton
     DiscreteLocation target(DiscreteLocation source, DiscreteEvent event) const override;
     DimensionType dimension(DiscreteLocation location) const override;
 
+    const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const override;
     const IteratedMap& iterated_map(DiscreteLocation location) const override;
     RealSpace state_space(DiscreteLocation location) const override;
     DiscreteTimeTransitionKind transition_kind(DiscreteLocation location, DiscreteEvent event) const override;

@@ -159,3 +159,31 @@ event kind.
 
 Existing System and Evolution regression suites must pass after this
 increment. Format is intentionally deferred until the entire redesign.
+
+## Difference-algebraic model for the discrete-time family (v6.36)
+
+The deterministic native discrete hybrid family now declares a
+`DifferenceAlgebraicEquation` per mode, not an `IteratedMap` as its
+primary mathematical model. Its symbolic updates and explicit auxiliary
+algebraic assignments are retained in one operational `IteratedMap` instance
+and exposed read-only through the declaration. This avoids duplicating
+symbolic assignments or silently converting continuous-time dynamics.
+
+The name *difference-algebraic* mirrors the continuous family's
+`OrdinaryDifferentialAlgebraicEquation`; it describes equations in
+successive samples plus explicit algebraic outputs. It does not claim
+support for implicit algebraic constraints or nonautonomous dynamics.
+
+The model's `equation(location)` returns the declaration; its
+`iterated_map(location)` still provides the operational map. A new mode
+must be declared using `DifferenceAlgebraicEquation`, with no legacy
+`IteratedMap` overload. `DifferenceAlgebraicInclusion` is reserved for a
+future separate design and is not implemented here.
+
+The urgent/permissive separation of guards versus progression invariants
+remains unchanged, including nondeterministic co-existence of map and jump
+branches when the permissive guard and invariant overlap. Time accounting,
+simultaneous events, and discrete hybrid evolvers remain to be specified.
+
+All prior continuous System and Evolution APIs and kernels are unchanged.
+Format is deliberately deferred until the overall redesign is complete.

@@ -62,6 +62,11 @@ class IteratedMap {
     /** @brief Perform the system operation. */
     const EffectiveVectorMultivariateFunction& auxiliary_mapping() const { return this->_auxiliary_function; }
 
+    /** @brief Original symbolic next-state assignments. */
+    const List<PrimedRealAssignment>& updates() const { return _updates; }
+    /** @brief Original explicit algebraic assignments. */
+    const List<RealAssignment>& auxiliary_assignments() const { return _auxiliary; }
+
     /** @brief Perform the system operation. */
     RealSpace state_space() const;
     /** @brief Perform the system operation. */

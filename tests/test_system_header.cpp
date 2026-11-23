@@ -40,6 +40,7 @@ static_assert(std::is_base_of_v<Ariadne::DiscreteTimeHybridAutomatonInterface, A
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicEquation) > 0);
 static_assert(sizeof(Ariadne::DifferenceAlgebraicEquation) > 0);
+static_assert(sizeof(Ariadne::DifferenceAlgebraicInclusion) > 0);
 static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicInclusion) > 0);
 class TestSystemHeader : public Ariadne::Testing::ContextFixture {
   public:

@@ -39,6 +39,7 @@
 #include "system/hybrid_paving.hpp"
 #include "system/iterated_map.hpp"
 #include "system/difference_algebraic_equation.hpp"
+#include "system/difference_algebraic_inclusion.hpp"
 #include "system/discrete_time_hybrid_automaton_interface.hpp"
 #include "system/discrete_time_hybrid_automaton.hpp"
 #include "system/odae.hpp"

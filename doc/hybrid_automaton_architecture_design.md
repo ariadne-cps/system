@@ -187,3 +187,33 @@ simultaneous events, and discrete hybrid evolvers remain to be specified.
 
 All prior continuous System and Evolution APIs and kernels are unchanged.
 Format is deliberately deferred until the overall redesign is complete.
+
+## Structured difference algebraic inclusion (v6.37 — initial declaration)
+
+A new `DifferenceAlgebraicInclusion` provides an explicitly set-valued
+model over integer time. It declares next-state assignments and explicit
+algebraic outputs, together with a nonempty box of free inputs. At each
+sample, inputs may vary independently within that box; the update is a
+function of both state and inputs, not an autonomous `IteratedMap`.
+The model does not fix an input selection, freeze inputs, introduce a
+continuous-time flow, or claim an implicit constraint solver.
+
+The current implementation supports structured, bounded-input equations
+only. It validates distinct variable roles and names, complete declared
+argument coverage, absence of unused input variables, and non-duplicated
+update and auxiliary left-hand sides. Symbolic functions retain their
+ordered arguments [state, input]. The declaration owns its update and
+auxiliary assignments and constructs the corresponding symbolic functions.
+It does not yet support the interval-Taylor multifunction representation
+available on the continuous-time ODAI side.
+
+The next model integration must allow a discrete hybrid mode to own either
+`DifferenceAlgebraicEquation` or `DifferenceAlgebraicInclusion`, without
+converting an inclusion into a single-valued iteration map. An eventual
+validated evolver must compute conservative images over all admissible input
+values, preserve overlaps between permissive guards and progression
+invariants, and never silently underapproximate the inclusion.
+
+This commit only introduces the System declaration and targeted tests;
+Evolution's numerical kernels are unchanged. CI is required to validate
+the new code; Format remains deliberately deferred.

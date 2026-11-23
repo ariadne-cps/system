@@ -4,6 +4,7 @@ add_library(SYSTEM_SRC OBJECT
     odae.cpp
     iterated_map.cpp
     difference_algebraic_equation.cpp
+    difference_algebraic_inclusion.cpp
     discrete_time_hybrid_automaton.cpp
     odai.cpp
     first_order_pde.cpp

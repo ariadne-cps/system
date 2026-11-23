@@ -34,6 +34,25 @@
 #include "system/system_function.hpp"
 
 namespace Ariadne {
+namespace {
+
+// Validate assignments before constructing RealSpace: duplicate variables can
+// violate its invariant in Debug builds before constructor-body checks run.
+RealSpace validated_state_space(const List<PrimedRealAssignment>& updates) {
+    const auto variables = left_hand_sides(updates);
+    if (!unique_elements(variables))
+        throw std::invalid_argument("Difference inclusion defines a next-state variable more than once");
+    return RealSpace(variables);
+}
+
+RealSpace validated_auxiliary_space(const List<RealAssignment>& auxiliary) {
+    const auto variables = left_hand_sides(auxiliary);
+    if (!unique_elements(variables))
+        throw std::invalid_argument("Difference inclusion defines an auxiliary variable more than once");
+    return RealSpace(variables);
+}
+
+} // namespace
 
 DifferenceAlgebraicInclusion::DifferenceAlgebraicInclusion(
     const List<PrimedRealAssignment>& updates, const RealVariablesBox& inputs)
@@ -43,16 +62,12 @@ DifferenceAlgebraicInclusion::DifferenceAlgebraicInclusion(
     const List<PrimedRealAssignment>& updates, const List<RealAssignment>& auxiliary,
     const RealVariablesBox& inputs)
     : _updates(updates), _auxiliary(auxiliary),
-      _states(left_hand_sides(updates)), _auxiliary_space(left_hand_sides(auxiliary)),
+      _states(validated_state_space(updates)), _auxiliary_space(validated_auxiliary_space(auxiliary)),
       _input_space(Detail::variables_space(inputs)), _inputs(Detail::variables_domain(inputs)),
       _argument_space(Detail::ordinary_argument_space(_states, std::nullopt, RealSpace(),
                                                       _input_space, _auxiliary_space)) {
     if (_input_space.size() == 0u)
         throw std::invalid_argument("DifferenceAlgebraicInclusion requires a nonempty input box");
-    if (!unique_elements(left_hand_sides(_updates)))
-        throw std::invalid_argument("Difference inclusion defines a next-state variable more than once");
-    if (!unique_elements(left_hand_sides(_auxiliary)))
-        throw std::invalid_argument("Difference inclusion defines an auxiliary variable more than once");
     Set<UntypedVariable> available;
     for (const auto& variable: _argument_space.variables())
         available.insert(variable);

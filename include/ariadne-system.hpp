@@ -34,6 +34,7 @@
 #include "system/continuous_time_hybrid_automaton.hpp"
 #include "system/continuous_time_hybrid_automaton_interface.hpp"
 #include "system/hybrid_automaton_interface.hpp"
+#include "system/hybrid_mode_structure.hpp"
 #include "system/hybrid_paving.hpp"
 #include "system/iterated_map.hpp"
 #include "system/odae.hpp"

@@ -72,7 +72,7 @@ DiscreteMode::
     DiscreteMode(DiscreteLocation location,
                  const List<RealAssignment>& auxiliary,
                  const List<DottedRealAssignment>& dynamic)
-    : _location(location), _auxiliary(auxiliary), _dynamic(dynamic) {
+    : HybridModeStructure(location), _auxiliary(auxiliary), _dynamic(dynamic) {
     _sorted_auxiliary = algebraic_sort(auxiliary);
 }
 
@@ -359,7 +359,7 @@ Void ContinuousTimeHybridAutomaton::_new_update(DiscreteLocation source,
     Set<RealVariable> target_state_variables(target_state_space);
     Set<RealVariable> reset_variables(left_hand_sides(reset));
 
-    source_mode._targets.insert(event, target);
+    source_mode.add_transition(event, target);
     source_mode._resets.insert(event, reset);
 }
 
@@ -409,7 +409,7 @@ Bool ContinuousTimeHybridAutomaton::has_partial_mode(DiscreteLocation location) 
 }
 
 Bool ContinuousTimeHybridAutomaton::has_transition(DiscreteLocation source, DiscreteEvent event) const {
-    return this->has_partial_mode(source) && this->mode(source)._targets.has_key(event);
+    return this->has_partial_mode(source) && this->mode(source).has_transition(event);
 }
 
 Bool ContinuousTimeHybridAutomaton::has_invariant(DiscreteLocation source, DiscreteEvent event) const {
@@ -558,7 +558,7 @@ Set<RealVariable>
 DiscreteLocation
     ContinuousTimeHybridAutomaton::target(DiscreteLocation source, DiscreteEvent event) const {
     if (this->has_transition(source, event)) {
-        return this->mode(source)._targets[event];
+        return this->mode(source).transition_target(event, source);
     } else {
         return source;
     }
@@ -641,7 +641,7 @@ HybridSpace ContinuousTimeHybridAutomaton::state_auxiliary_space() const {
 
 Set<DiscreteEvent> ContinuousTimeHybridAutomaton::events(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
-    return join(join(mode._invariants.keys(), mode._guards.keys()), mode._targets.keys());
+    return join(join(mode._invariants.keys(), mode._guards.keys()), mode.transition_events());
 }
 
 DimensionType ContinuousTimeHybridAutomaton::dimension(DiscreteLocation location) const {

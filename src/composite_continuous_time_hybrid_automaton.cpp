@@ -205,7 +205,7 @@ Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation locati
             throw std::invalid_argument("Composition of typed ordinary-dynamics modes requires an explicit role/domain composition contract");
         }
 
-        cached_mode._location.adjoin(component_mode._location);
+        cached_mode.adjoin_structure(component_mode);
         cached_mode._auxiliary.append(component_mode._auxiliary);
         cached_mode._dynamic.append(component_mode._dynamic);
 
@@ -224,12 +224,6 @@ Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation locati
             cached_mode._kinds.insert(*kind_iter);
         }
 
-        // FIXME: Need to introduce missing updates
-        for (Map<DiscreteEvent, DiscreteLocation>::ConstIterator target_iter = component_mode._targets.begin();
-             target_iter != component_mode._targets.end(); ++target_iter) {
-            DiscreteLocation& target = cached_mode._targets[target_iter->first];
-            target = join(target, target_iter->second);
-        }
 
         for (Map<DiscreteEvent, List<PrimedRealAssignment> >::ConstIterator reset_iter = component_mode._resets.begin();
              reset_iter != component_mode._resets.end(); ++reset_iter) {
@@ -262,7 +256,7 @@ Void CompositeContinuousTimeHybridAutomaton::_cache_mode(DiscreteLocation locati
 Set<DiscreteEvent>
     CompositeContinuousTimeHybridAutomaton::events(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
-    return join(join(mode._invariants.keys(), mode._guards.keys()), mode._targets.keys());
+    return join(join(mode._invariants.keys(), mode._guards.keys()), mode.transition_events());
 }
 
 EventKind

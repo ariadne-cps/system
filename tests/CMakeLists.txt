@@ -4,6 +4,7 @@ set(UNIT_TESTS
     test_iterated_map
     test_odae
     test_hybrid_automaton
+    test_hybrid_mode_structure
     test_hybrid_automaton_api
     test_hybrid_automaton_composite
     test_hybrid_paving

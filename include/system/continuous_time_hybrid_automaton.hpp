@@ -42,6 +42,7 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "system/discrete_event.hpp"
+#include "system/hybrid_mode_structure.hpp"
 #include "system/continuous_time_hybrid_automaton_interface.hpp"
 
 namespace Ariadne {
@@ -66,16 +67,13 @@ class ContinuousTimeHybridAutomaton;
 //! the %ContinuousTimeHybridAutomaton class.
 //!
 //! \sa \ref ContinuousTimeHybridAutomaton
-class DiscreteMode {
+class DiscreteMode : public HybridModeStructure {
     friend class ContinuousTimeHybridAutomaton;
     friend class CompositeContinuousTimeHybridAutomaton;
     friend class CompactDiscreteModeWriter;
     friend class VerboseDiscreteModeWriter;
 
   private:
-    // The discrete mode's discrete state.
-    DiscreteLocation _location;
-
     // The algebraic equations
     List<RealAssignment> _auxiliary;
     mutable List<RealAssignment> _sorted_auxiliary;
@@ -93,9 +91,6 @@ class DiscreteMode {
 
     // The kind of each event
     Map<DiscreteEvent, EventKind> _kinds;
-
-    // The target locations for the discrete transitions.
-    Map<DiscreteEvent, DiscreteLocation> _targets;
 
     // The update assignments for the doscrete transitions.
     Map<DiscreteEvent, List<PrimedRealAssignment> > _resets;
@@ -115,7 +110,6 @@ class DiscreteMode {
 
   public:
     //! \brief The mode's discrete state.
-    DiscreteLocation location() const { return this->_location; }
 
     //! \brief Write to an output stream.
     OutputStream& _write(OutputStream& os) const;

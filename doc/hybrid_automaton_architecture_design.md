@@ -46,3 +46,22 @@ Source-level migration only; no numerical algorithms are intentionally changed.
 The prior System `20d4994` CI covered extraction of the structural contract.
 The coordinated migration requires fresh compile/test/format CI and a joint
 Evolution consumer build before it can be called validated.
+
+## Reusable transition topology (second implementation slice)
+
+The public `HybridModeStructure` owns the discrete mode location and its
+`DiscreteEvent -> DiscreteLocation` transition-target map. This model is
+independent of continuous flows and discrete-time tick policies. It exposes
+mode location, event lookup, event labels, target lookup with explicit
+fallback, insertion of an already validated target and product-mode topology
+composition. The existing continuous `DiscreteMode` derives from it.
+
+The continuous atomic and composite automata now delegate target storage,
+transition membership, transition-event enumeration and labelled product-target
+joining to the shared structure. Existing guards, resets, invariant semantics,
+ODE dynamics and event priorities are deliberately left in the continuous
+model. The composite retains the same target join and conflict behaviour.
+
+A dedicated System unit test covers the generic mode structure and existing
+hybrid automaton tests cover the unchanged continuous semantics. Neither the
+new discrete model nor any discrete-time transition semantics are implemented.

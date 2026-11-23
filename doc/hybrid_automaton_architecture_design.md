@@ -65,3 +65,23 @@ model. The composite retains the same target join and conflict behaviour.
 A dedicated System unit test covers the generic mode structure and existing
 hybrid automaton tests cover the unchanged continuous semantics. Neither the
 new discrete model nor any discrete-time transition semantics are implemented.
+
+## Shared mode registry and location matching (third implementation slice)
+
+`HybridModeRegistry<Mode>` owns the mode map and shares exact location-key
+queries, location equivalence, compatible partial-location lookup and
+indistinguishability detection. `ContinuousTimeHybridAutomaton` now inherits
+this storage and delegates the corresponding queries, collision check and
+mode lookup. The existing exception types, error paths, insertion order and
+continuous dynamics, event, guard and reset handling remain unchanged.
+
+Tests cover an empty registry, multiple modes for one named location variable,
+exact versus partial matching, extended coordinate queries and incompatible
+location variables. The existing atomic and composite System tests continue
+checking public behaviour. The registry does not prescribe how a discrete-time
+mode's update map, guards or tick transition relation should work.
+
+The registry and topology have separate responsibilities: the registry owns a
+map of modes; `HybridModeStructure` owns one mode's location and outgoing
+targets. The planned discrete-time model can use both without inheriting any
+continuous-time numerical or event contracts.

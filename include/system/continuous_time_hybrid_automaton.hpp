@@ -42,6 +42,7 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "system/discrete_event.hpp"
+#include "system/hybrid_mode_registry.hpp"
 #include "system/hybrid_mode_structure.hpp"
 #include "system/continuous_time_hybrid_automaton_interface.hpp"
 
@@ -169,7 +170,7 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //!
 //! \sa \ref DiscreteMode, \ref CompositeContinuousTimeHybridAutomaton
 class ContinuousTimeHybridAutomaton
-    : public ContinuousTimeHybridAutomatonInterface {
+    : public ContinuousTimeHybridAutomatonInterface, protected HybridModeRegistry<DiscreteMode> {
     friend class CompositeContinuousTimeHybridAutomaton;
     static Writer<ContinuousTimeHybridAutomaton> _default_writer;
 
@@ -190,8 +191,6 @@ class ContinuousTimeHybridAutomaton
   protected:
     //! \brief The automaton name.
     Identifier _name;
-    //! \brief The list of the hybrid automaton's discrete modes.
-    Map<DiscreteLocation, DiscreteMode> _modes;
 
   protected:
     Void _new_mode(DiscreteLocation location,

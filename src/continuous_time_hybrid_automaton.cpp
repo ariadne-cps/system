@@ -180,26 +180,25 @@ OutputStream&
 }
 
 ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton()
-    : _name("automaton"), _modes() {
+    : _name("automaton") {
 }
 
 ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton(Identifier name)
-    : _name(name), _modes() {
+    : _name(name) {
 }
 
 ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton(
     Identifier name,
     const List<StringVariable>&)
-    : _name(name), _modes() {
+    : _name(name) {
 }
 
 Void ContinuousTimeHybridAutomaton::_new_mode(DiscreteLocation location,
                                 const List<RealAssignment>& auxiliary,
                                 const List<DottedRealAssignment>& dynamic) {
-    for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin(); mode_iter != this->_modes.end(); ++mode_iter) {
-        if (!are_distinguishable(location, mode_iter->first))
-            ARIADNE_THROW(IndistinguishableModeError, "ContinuousTimeHybridAutomaton::new_mode",
-                          "Location " << location << " is indistinguishable from location " << mode_iter->first << " in hybrid automaton with locations " << this->locations());
+    if (const auto conflicting = this->_first_indistinguishable_mode(location)) {
+        ARIADNE_THROW(IndistinguishableModeError, "ContinuousTimeHybridAutomaton::new_mode",
+                      "Location " << location << " is indistinguishable from location " << *conflicting << " in hybrid automaton with locations " << this->locations());
     }
 
     Set<UntypedVariable> defined_variables;
@@ -381,31 +380,19 @@ Void ContinuousTimeHybridAutomaton::_new_transition(DiscreteLocation source,
 
 Set<DiscreteLocation>
     ContinuousTimeHybridAutomaton::locations() const {
-    return this->_modes.keys();
+    return HybridModeRegistry<DiscreteMode>::locations();
 }
 
 Bool ContinuousTimeHybridAutomaton::has_location(DiscreteLocation location) const {
-    return this->_modes.has_key(location);
+    return HybridModeRegistry<DiscreteMode>::has_location(location);
 }
 
 Bool ContinuousTimeHybridAutomaton::has_mode(DiscreteLocation location) const {
-    for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
-         mode_iter != this->_modes.end(); ++mode_iter) {
-        if (are_same(mode_iter->first, location)) {
-            return true;
-        }
-    }
-    return false;
+    return HybridModeRegistry<DiscreteMode>::has_mode(location);
 }
 
 Bool ContinuousTimeHybridAutomaton::has_partial_mode(DiscreteLocation location) const {
-    for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
-         mode_iter != this->_modes.end(); ++mode_iter) {
-        if (is_restriction(mode_iter->first, location)) {
-            return true;
-        }
-    }
-    return false;
+    return HybridModeRegistry<DiscreteMode>::has_partial_mode(location);
 }
 
 Bool ContinuousTimeHybridAutomaton::has_transition(DiscreteLocation source, DiscreteEvent event) const {
@@ -422,7 +409,7 @@ Bool ContinuousTimeHybridAutomaton::has_guard(DiscreteLocation source, DiscreteE
 
 const Map<DiscreteLocation, DiscreteMode>&
     ContinuousTimeHybridAutomaton::modes() const {
-    return this->_modes;
+    return HybridModeRegistry<DiscreteMode>::modes();
 }
 
 // Set<DiscreteMode>
@@ -439,14 +426,7 @@ DiscreteMode&
 
 const DiscreteMode&
     ContinuousTimeHybridAutomaton::mode(DiscreteLocation location) const {
-    const DiscreteMode* result = nullptr;
-    for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
-         mode_iter != this->_modes.end(); ++mode_iter) {
-        if (is_restriction(mode_iter->first, location)) {
-            result = &mode_iter->second;
-            break;
-        }
-    }
+    const DiscreteMode* result = this->_find_mode(location);
     if (result == nullptr)
         ARIADNE_THROW(SystemSpecificationError, "ContinuousTimeHybridAutomaton::mode(DiscreteLocation)",
                       location << " does not define a mode of the automaton with locations " << this->locations());

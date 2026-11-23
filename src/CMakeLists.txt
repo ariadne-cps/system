@@ -6,8 +6,8 @@ add_library(SYSTEM_SRC OBJECT
     odai.cpp
     first_order_pde.cpp
     odai_grid.cpp
-    hybrid_automaton.cpp
-    hybrid_automaton-composite.cpp
+    continuous_time_hybrid_automaton.cpp
+    composite_continuous_time_hybrid_automaton.cpp
     hybrid_paving.cpp
 )
 target_include_directories(SYSTEM_SRC PRIVATE "${PROJECT_SOURCE_DIR}/include/system")

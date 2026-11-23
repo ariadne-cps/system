@@ -1,5 +1,5 @@
 /***************************************************************************
- *            hybrid_automaton-composite.cpp
+ *            composite_continuous_time_hybrid_automaton.cpp
  *
  *  Copyright  2004-20  Alberto Casagrande, Pieter Collins
  *
@@ -22,11 +22,11 @@
  *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file src/hybrid_automaton.cpp
+/** @file src/continuous_time_hybrid_automaton.cpp
  *  @brief Implement hybrid automata and discrete modes.
  */
 
-#include "system/hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
 
 #include <map>
 
@@ -45,10 +45,10 @@
 
 namespace Ariadne {
 
-const OrdinaryDifferentialAlgebraicEquation* HybridAutomatonInterface::equation(DiscreteLocation) const { return nullptr; }
-const OrdinaryDifferentialAlgebraicInclusion* HybridAutomatonInterface::inclusion(DiscreteLocation) const { return nullptr; }
+const OrdinaryDifferentialAlgebraicEquation* ContinuousTimeHybridAutomatonInterface::equation(DiscreteLocation) const { return nullptr; }
+const OrdinaryDifferentialAlgebraicInclusion* ContinuousTimeHybridAutomatonInterface::inclusion(DiscreteLocation) const { return nullptr; }
 
-std::optional<RealVariable> HybridAutomatonInterface::time_variable(DiscreteLocation location) const {
+std::optional<RealVariable> ContinuousTimeHybridAutomatonInterface::time_variable(DiscreteLocation location) const {
     if (const auto* model = equation(location))
         return model->time_variable();
     if (const auto* model = inclusion(location))
@@ -56,7 +56,7 @@ std::optional<RealVariable> HybridAutomatonInterface::time_variable(DiscreteLoca
     return std::nullopt;
 }
 
-RealSpace HybridAutomatonInterface::continuous_argument_space(DiscreteLocation location) const {
+RealSpace ContinuousTimeHybridAutomatonInterface::continuous_argument_space(DiscreteLocation location) const {
     RealSpace parameters;
     if (const auto* model = equation(location))
         parameters = model->parameter_space();
@@ -179,26 +179,26 @@ OutputStream&
     return os;
 }
 
-HybridAutomaton::HybridAutomaton()
+ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton()
     : _name("automaton"), _modes() {
 }
 
-HybridAutomaton::HybridAutomaton(Identifier name)
+ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton(Identifier name)
     : _name(name), _modes() {
 }
 
-HybridAutomaton::HybridAutomaton(
+ContinuousTimeHybridAutomaton::ContinuousTimeHybridAutomaton(
     Identifier name,
     const List<StringVariable>&)
     : _name(name), _modes() {
 }
 
-Void HybridAutomaton::_new_mode(DiscreteLocation location,
+Void ContinuousTimeHybridAutomaton::_new_mode(DiscreteLocation location,
                                 const List<RealAssignment>& auxiliary,
                                 const List<DottedRealAssignment>& dynamic) {
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin(); mode_iter != this->_modes.end(); ++mode_iter) {
         if (!are_distinguishable(location, mode_iter->first))
-            ARIADNE_THROW(IndistinguishableModeError, "HybridAutomaton::new_mode",
+            ARIADNE_THROW(IndistinguishableModeError, "ContinuousTimeHybridAutomaton::new_mode",
                           "Location " << location << " is indistinguishable from location " << mode_iter->first << " in hybrid automaton with locations " << this->locations());
     }
 
@@ -208,7 +208,7 @@ Void HybridAutomaton::_new_mode(DiscreteLocation location,
     // Compute the auxiliary variables ordered by the given equations
     for (SizeType i = 0; i != auxiliary.size(); ++i) {
         if (defined_variables.contains(auxiliary[i].lhs))
-            ARIADNE_THROW(SystemSpecificationError, "HybridAutomaton::new_mode",
+            ARIADNE_THROW(SystemSpecificationError, "ContinuousTimeHybridAutomaton::new_mode",
                           "Variable " << auxiliary[i].lhs << " is defined twice by the algebraic equations " << auxiliary << " for mode " << location);
 
         defined_variables.insert(auxiliary[i].lhs);
@@ -218,7 +218,7 @@ Void HybridAutomaton::_new_mode(DiscreteLocation location,
     // Compute the state variables ordered by the given differential equations
     for (SizeType i = 0; i != dynamic.size(); ++i) {
         if (defined_variables.contains(dynamic[i].lhs.base()))
-            ARIADNE_THROW(SystemSpecificationError, "HybridAutomaton::new_mode",
+            ARIADNE_THROW(SystemSpecificationError, "ContinuousTimeHybridAutomaton::new_mode",
                           "Variable " << dynamic[i].lhs.base() << " defined by the differential equations " << dynamic << " for mode " << location << " is also defined in the algebraic equations " << auxiliary);
 
         defined_variables.insert(dynamic[i].lhs.base());
@@ -230,28 +230,28 @@ Void HybridAutomaton::_new_mode(DiscreteLocation location,
     this->_modes.insert(location, new_mode);
 }
 
-Void HybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicEquation& dynamics) {
+Void ContinuousTimeHybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicEquation& dynamics) {
     auto owned = std::shared_ptr<const OrdinaryDifferentialAlgebraicEquation>(dynamics.clone());
     this->_new_mode(location, dynamics._auxiliary, {});
     this->_modes.value(location)._equation = std::move(owned);
 }
 
-Void HybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicInclusion& dynamics) {
+Void ContinuousTimeHybridAutomaton::new_mode(DiscreteLocation location, const OrdinaryDifferentialAlgebraicInclusion& dynamics) {
     auto owned = std::shared_ptr<const OrdinaryDifferentialAlgebraicInclusion>(dynamics.clone());
     this->_new_mode(location, {}, {});
     this->_modes.value(location)._inclusion = std::move(owned);
 }
 
-const OrdinaryDifferentialAlgebraicEquation* HybridAutomaton::equation(DiscreteLocation location) const {
+const OrdinaryDifferentialAlgebraicEquation* ContinuousTimeHybridAutomaton::equation(DiscreteLocation location) const {
     return this->mode(location)._equation.get();
 }
 
-const OrdinaryDifferentialAlgebraicInclusion* HybridAutomaton::inclusion(DiscreteLocation location) const {
+const OrdinaryDifferentialAlgebraicInclusion* ContinuousTimeHybridAutomaton::inclusion(DiscreteLocation location) const {
     return this->mode(location)._inclusion.get();
 }
 
-std::optional<RealVariable> HybridAutomaton::time_variable(DiscreteLocation location) const {
-    if (const auto declared = HybridAutomatonInterface::time_variable(location))
+std::optional<RealVariable> ContinuousTimeHybridAutomaton::time_variable(DiscreteLocation location) const {
+    if (const auto declared = ContinuousTimeHybridAutomatonInterface::time_variable(location))
         return declared;
     const RealVariable clock = TimeVariable();
     if (continuous_state_space(location).contains(clock) || continuous_auxiliary_space(location).contains(clock))
@@ -282,46 +282,46 @@ std::optional<RealVariable> HybridAutomaton::time_variable(DiscreteLocation loca
     return std::nullopt;
 }
 
-Void HybridAutomaton::_new_invariant(DiscreteLocation location, ContinuousPredicate invariant, DiscreteEvent event) {
+Void ContinuousTimeHybridAutomaton::_new_invariant(DiscreteLocation location, ContinuousPredicate invariant, DiscreteEvent event) {
     if (!this->has_location(location))
-        ARIADNE_THROW(NonExistentModeError, "HybridAutomaton::new_invariant",
+        ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_invariant",
                       "mode " << location << " is not a location of the automaton with locations " << this->locations());
 
     DiscreteMode& mode = this->_modes.value(location);
     if (mode._kinds.has_key(event))
-        ARIADNE_THROW(MultipleGuardError, "HybridAutomaton::new_invariant",
+        ARIADNE_THROW(MultipleGuardError, "ContinuousTimeHybridAutomaton::new_invariant",
                       "Constraint for event " << event << " is already defined in mode " << mode);
 
     mode._invariants.insert(event, invariant);
     mode._kinds.insert(event, EventKind::INVARIANT);
 }
 
-Void HybridAutomaton::_new_guard(DiscreteLocation location, DiscreteEvent event, ContinuousPredicate guard, EventKind kind) {
+Void ContinuousTimeHybridAutomaton::_new_guard(DiscreteLocation location, DiscreteEvent event, ContinuousPredicate guard, EventKind kind) {
     if (!this->has_location(location))
-        ARIADNE_THROW(NonExistentModeError, "HybridAutomaton::new_guard",
+        ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_guard",
                       "mode " << location << " is not a location of the automaton with locations " << this->locations());
 
     DiscreteMode& mode = this->_modes.value(location);
     if (mode._kinds.has_key(event))
-        ARIADNE_THROW(MultipleGuardError, "HybridAutomaton::new_guard",
+        ARIADNE_THROW(MultipleGuardError, "ContinuousTimeHybridAutomaton::new_guard",
                       "Constraint for event " << event << " is already defined in mode " << mode);
 
     mode._guards.insert(event, guard);
     mode._kinds.insert(event, kind);
 }
 
-Void HybridAutomaton::_new_action(DiscreteLocation location,
+Void ContinuousTimeHybridAutomaton::_new_action(DiscreteLocation location,
                                   ContinuousPredicate invariant,
                                   DiscreteEvent event,
                                   ContinuousPredicate guard,
                                   EventKind kind) {
     if (!this->has_location(location))
-        ARIADNE_THROW(NonExistentModeError, "HybridAutomaton::new_action",
+        ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_action",
                       "mode " << location << " is not a location of the automaton with locations " << this->locations());
 
     DiscreteMode& mode = this->_modes.value(location);
     if (mode._kinds.has_key(event))
-        ARIADNE_THROW(MultipleGuardError, "HybridAutomaton::new_action",
+        ARIADNE_THROW(MultipleGuardError, "ContinuousTimeHybridAutomaton::new_action",
                       "Constraint for event " << event << " is already defined in mode " << mode);
 
     mode._invariants.insert(event, invariant);
@@ -329,30 +329,30 @@ Void HybridAutomaton::_new_action(DiscreteLocation location,
     mode._kinds.insert(event, kind);
 }
 
-Void HybridAutomaton::_new_update(DiscreteLocation source,
+Void ContinuousTimeHybridAutomaton::_new_update(DiscreteLocation source,
                                   DiscreteEvent event,
                                   DiscreteLocation target,
                                   const List<PrimedRealAssignment>& reset) {
     if (!this->has_location(source))
-        ARIADNE_THROW(NonExistentModeError, "HybridAutomaton::new_reset",
+        ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_reset",
                       "Source mode " << source << " is not a location of the automaton with locations " << this->locations());
 
     if (!this->has_location(target))
-        ARIADNE_THROW(NonExistentModeError, "HybridAutomaton::new_reset",
+        ARIADNE_THROW(NonExistentModeError, "ContinuousTimeHybridAutomaton::new_reset",
                       "Target mode " << target << " is not a location of the automaton with locations " << this->locations());
 
     DiscreteMode& source_mode = this->mode(source); // Non-constant since we may wish to update input variables
     if (source_mode._targets.has_key(event))
-        ARIADNE_THROW(MultipleTransitionError, "HybridAutomaton::new_update",
+        ARIADNE_THROW(MultipleTransitionError, "ContinuousTimeHybridAutomaton::new_update",
                       "Update for event " << event << " is already defined in mode " << source);
 
     Set<RealVariable> target_auxiliary_variable = make_set(this->auxiliary_variables(target));
     if (!disjoint(target_auxiliary_variable, left_hand_sides(reset)))
-        ARIADNE_THROW(OverspecifiedResetError, "HybridAutomaton::new_update",
+        ARIADNE_THROW(OverspecifiedResetError, "ContinuousTimeHybridAutomaton::new_update",
                       "reset " << reset << " for event " << event << " in source " << source << " specifies variables " << intersection(target_auxiliary_variable, left_hand_sides(reset)) << " which are auxiliary variables in target " << target);
 
     if (!unique_elements(left_hand_sides(reset)))
-        ARIADNE_THROW(OverspecifiedResetError, "HybridAutomaton::new_update",
+        ARIADNE_THROW(OverspecifiedResetError, "ContinuousTimeHybridAutomaton::new_update",
                       "reset " << reset << " for event " << event << " in source " << source << "overspecifies variables " << duplicate_elements(left_hand_sides(reset)));
 
     List<RealVariable> target_state_space = this->state_variables(target);
@@ -363,7 +363,7 @@ Void HybridAutomaton::_new_update(DiscreteLocation source,
     source_mode._resets.insert(event, reset);
 }
 
-Void HybridAutomaton::_new_transition(DiscreteLocation source,
+Void ContinuousTimeHybridAutomaton::_new_transition(DiscreteLocation source,
                                       DiscreteEvent event,
                                       DiscreteLocation target,
                                       const List<PrimedRealAssignment>& reset,
@@ -380,15 +380,15 @@ Void HybridAutomaton::_new_transition(DiscreteLocation source,
 }
 
 Set<DiscreteLocation>
-    HybridAutomaton::locations() const {
+    ContinuousTimeHybridAutomaton::locations() const {
     return this->_modes.keys();
 }
 
-Bool HybridAutomaton::has_location(DiscreteLocation location) const {
+Bool ContinuousTimeHybridAutomaton::has_location(DiscreteLocation location) const {
     return this->_modes.has_key(location);
 }
 
-Bool HybridAutomaton::has_mode(DiscreteLocation location) const {
+Bool ContinuousTimeHybridAutomaton::has_mode(DiscreteLocation location) const {
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
          mode_iter != this->_modes.end(); ++mode_iter) {
         if (are_same(mode_iter->first, location)) {
@@ -398,7 +398,7 @@ Bool HybridAutomaton::has_mode(DiscreteLocation location) const {
     return false;
 }
 
-Bool HybridAutomaton::has_partial_mode(DiscreteLocation location) const {
+Bool ContinuousTimeHybridAutomaton::has_partial_mode(DiscreteLocation location) const {
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
          mode_iter != this->_modes.end(); ++mode_iter) {
         if (is_restriction(mode_iter->first, location)) {
@@ -408,37 +408,37 @@ Bool HybridAutomaton::has_partial_mode(DiscreteLocation location) const {
     return false;
 }
 
-Bool HybridAutomaton::has_transition(DiscreteLocation source, DiscreteEvent event) const {
+Bool ContinuousTimeHybridAutomaton::has_transition(DiscreteLocation source, DiscreteEvent event) const {
     return this->has_partial_mode(source) && this->mode(source)._targets.has_key(event);
 }
 
-Bool HybridAutomaton::has_invariant(DiscreteLocation source, DiscreteEvent event) const {
+Bool ContinuousTimeHybridAutomaton::has_invariant(DiscreteLocation source, DiscreteEvent event) const {
     return this->has_partial_mode(source) && this->mode(source)._invariants.has_key(event);
 }
 
-Bool HybridAutomaton::has_guard(DiscreteLocation source, DiscreteEvent event) const {
+Bool ContinuousTimeHybridAutomaton::has_guard(DiscreteLocation source, DiscreteEvent event) const {
     return this->has_partial_mode(source) && this->mode(source)._guards.has_key(event);
 }
 
 const Map<DiscreteLocation, DiscreteMode>&
-    HybridAutomaton::modes() const {
+    ContinuousTimeHybridAutomaton::modes() const {
     return this->_modes;
 }
 
 // Set<DiscreteMode>
-// HybridAutomaton::modes() const
+// ContinuousTimeHybridAutomaton::modes() const
 //{
 //     return Set<DiscreteMode>(this->_modes.values());
 // }
 
 DiscreteMode&
-    HybridAutomaton::mode(DiscreteLocation location) {
-    const HybridAutomaton& self = *this;
+    ContinuousTimeHybridAutomaton::mode(DiscreteLocation location) {
+    const ContinuousTimeHybridAutomaton& self = *this;
     return const_cast<DiscreteMode&>(self.mode(location));
 }
 
 const DiscreteMode&
-    HybridAutomaton::mode(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::mode(DiscreteLocation location) const {
     const DiscreteMode* result = nullptr;
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator mode_iter = this->_modes.begin();
          mode_iter != this->_modes.end(); ++mode_iter) {
@@ -448,20 +448,20 @@ const DiscreteMode&
         }
     }
     if (result == nullptr)
-        ARIADNE_THROW(SystemSpecificationError, "HybridAutomaton::mode(DiscreteLocation)",
+        ARIADNE_THROW(SystemSpecificationError, "ContinuousTimeHybridAutomaton::mode(DiscreteLocation)",
                       location << " does not define a mode of the automaton with locations " << this->locations());
     return *result;
 }
 
-Writer<HybridAutomaton> HybridAutomaton::_default_writer(new VerboseHybridAutomatonWriter());
+Writer<ContinuousTimeHybridAutomaton> ContinuousTimeHybridAutomaton::_default_writer(new VerboseHybridAutomatonWriter());
 
 OutputStream&
-    HybridAutomaton::_write(OutputStream& os) const {
+    ContinuousTimeHybridAutomaton::_write(OutputStream& os) const {
     return os << _default_writer(*this);
 }
 
 OutputStream&
-    VerboseHybridAutomatonWriter::_write(OutputStream& os, const HybridAutomaton& ha) const {
+    VerboseHybridAutomatonWriter::_write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const {
     os << "\nHybridAutomaton( \n  modes=\n";
     Set<DiscreteMode> modes(ha.modes().values());
     for (Set<DiscreteMode>::ConstIterator mode_iter = modes.begin();
@@ -472,7 +472,7 @@ OutputStream&
 }
 
 OutputStream&
-    CompactHybridAutomatonWriter::_write(OutputStream& os, const HybridAutomaton& ha) const {
+    CompactHybridAutomatonWriter::_write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const {
     os << ha.name() << ": ";
     Set<DiscreteMode> modes(ha.modes().values());
     Bool multiple_modes = (modes.size() > 1);
@@ -489,7 +489,7 @@ OutputStream&
 }
 
 List<RealVariable>
-    HybridAutomaton::state_variables(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::state_variables(DiscreteLocation location) const {
     List<RealVariable> result;
     const DiscreteMode& mode = this->mode(location);
     if (mode._equation)
@@ -503,7 +503,7 @@ List<RealVariable>
 }
 
 List<RealVariable>
-    HybridAutomaton::auxiliary_variables(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::auxiliary_variables(DiscreteLocation location) const {
     List<RealVariable> result;
     const DiscreteMode& mode = this->mode(location);
     if (mode._equation)
@@ -517,7 +517,7 @@ List<RealVariable>
 }
 
 Set<RealVariable>
-    HybridAutomaton::input_variables(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::input_variables(DiscreteLocation location) const {
     Set<UntypedVariable> used;
     Set<RealVariable> defined;
     const DiscreteMode& mode = this->mode(location);
@@ -556,7 +556,7 @@ Set<RealVariable>
 }
 
 DiscreteLocation
-    HybridAutomaton::target(DiscreteLocation source, DiscreteEvent event) const {
+    ContinuousTimeHybridAutomaton::target(DiscreteLocation source, DiscreteEvent event) const {
     if (this->has_transition(source, event)) {
         return this->mode(source)._targets[event];
     } else {
@@ -565,14 +565,14 @@ DiscreteLocation
 }
 
 List<RealAssignment>
-    HybridAutomaton::auxiliary_assignments(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::auxiliary_assignments(DiscreteLocation location) const {
     const auto& mode = this->mode(location);
     return mode._auxiliary;
 }
 
 /*
 List<RealAssignment>
-HybridAutomaton::sorted_auxiliary_assignments(DiscreteLocation location) const {
+ContinuousTimeHybridAutomaton::sorted_auxiliary_assignments(DiscreteLocation location) const {
     DiscreteMode const& mode=this->mode(location);
     assert(mode._sorted_auxiliary.size()==mode._auxiliary.size());
     return mode._sorted_auxiliary;
@@ -580,7 +580,7 @@ HybridAutomaton::sorted_auxiliary_assignments(DiscreteLocation location) const {
 */
 
 List<DottedRealAssignment>
-    HybridAutomaton::dynamic_assignments(DiscreteLocation location) const {
+    ContinuousTimeHybridAutomaton::dynamic_assignments(DiscreteLocation location) const {
     const auto& mode = this->mode(location);
     if (mode._equation || mode._inclusion)
         throw std::logic_error("Use the original typed dynamics declaration for this mode");
@@ -588,7 +588,7 @@ List<DottedRealAssignment>
 }
 
 List<PrimedRealAssignment>
-    HybridAutomaton::reset_assignments(DiscreteLocation source, DiscreteEvent event) const {
+    ContinuousTimeHybridAutomaton::reset_assignments(DiscreteLocation source, DiscreteEvent event) const {
     if (this->has_transition(source, event)) {
         return this->mode(source)._resets[event];
     } else {
@@ -602,7 +602,7 @@ List<PrimedRealAssignment>
 }
 
 ContinuousPredicate
-    HybridAutomaton::invariant_predicate(DiscreteLocation location, DiscreteEvent action) const {
+    ContinuousTimeHybridAutomaton::invariant_predicate(DiscreteLocation location, DiscreteEvent action) const {
     const DiscreteMode& mode = this->mode(location);
     if (mode._invariants.has_key(action)) {
         return mode._invariants[action];
@@ -612,7 +612,7 @@ ContinuousPredicate
 }
 
 ContinuousPredicate
-    HybridAutomaton::guard_predicate(DiscreteLocation location, DiscreteEvent event) const {
+    ContinuousTimeHybridAutomaton::guard_predicate(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
     if (mode._guards.has_key(event)) {
         return mode._guards[event];
@@ -621,7 +621,7 @@ ContinuousPredicate
     }
 }
 
-HybridSpace HybridAutomaton::state_space() const {
+HybridSpace ContinuousTimeHybridAutomaton::state_space() const {
     MonolithicHybridSpace space;
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator iter = this->_modes.begin(); iter != this->_modes.end(); ++iter) {
         const DiscreteLocation& loc = iter->first;
@@ -630,7 +630,7 @@ HybridSpace HybridAutomaton::state_space() const {
     return space;
 }
 
-HybridSpace HybridAutomaton::state_auxiliary_space() const {
+HybridSpace ContinuousTimeHybridAutomaton::state_auxiliary_space() const {
     MonolithicHybridSpace space;
     for (Map<DiscreteLocation, DiscreteMode>::ConstIterator iter = this->_modes.begin(); iter != this->_modes.end(); ++iter) {
         const DiscreteLocation& loc = iter->first;
@@ -639,20 +639,20 @@ HybridSpace HybridAutomaton::state_auxiliary_space() const {
     return space;
 }
 
-Set<DiscreteEvent> HybridAutomaton::events(DiscreteLocation location) const {
+Set<DiscreteEvent> ContinuousTimeHybridAutomaton::events(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
     return join(join(mode._invariants.keys(), mode._guards.keys()), mode._targets.keys());
 }
 
-DimensionType HybridAutomaton::dimension(DiscreteLocation location) const {
+DimensionType ContinuousTimeHybridAutomaton::dimension(DiscreteLocation location) const {
     return this->continuous_state_space(location).dimension();
 }
 
-RealSpace HybridAutomaton::continuous_state_space(DiscreteLocation location) const {
+RealSpace ContinuousTimeHybridAutomaton::continuous_state_space(DiscreteLocation location) const {
     return RealSpace(this->state_variables(location));
 }
 
-RealSpace HybridAutomaton::continuous_auxiliary_space(DiscreteLocation location) const {
+RealSpace ContinuousTimeHybridAutomaton::continuous_auxiliary_space(DiscreteLocation location) const {
     const auto& mode = this->mode(location);
     if (mode._equation)
         return mode._equation->auxiliary_space();
@@ -661,16 +661,16 @@ RealSpace HybridAutomaton::continuous_auxiliary_space(DiscreteLocation location)
     return RealSpace(left_hand_sides(mode._sorted_auxiliary));
 }
 
-EventKind HybridAutomaton::event_kind(DiscreteLocation location, DiscreteEvent event) const {
+EventKind ContinuousTimeHybridAutomaton::event_kind(DiscreteLocation location, DiscreteEvent event) const {
     return this->mode(location)._kinds[event];
 }
 
-EffectiveVectorMultivariateFunction HybridAutomaton::auxiliary_function(DiscreteLocation location) const {
+EffectiveVectorMultivariateFunction ContinuousTimeHybridAutomaton::auxiliary_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
     return Ariadne::make_auxiliary_function(this->continuous_argument_space(location), mode._sorted_auxiliary);
 }
 
-EffectiveVectorMultivariateFunction HybridAutomaton::dynamic_function(DiscreteLocation location) const {
+EffectiveVectorMultivariateFunction ContinuousTimeHybridAutomaton::dynamic_function(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
     if (mode._inclusion)
         throw std::logic_error("An inclusion mode has no single-valued state-only dynamic function");
@@ -678,22 +678,22 @@ EffectiveVectorMultivariateFunction HybridAutomaton::dynamic_function(DiscreteLo
                                           mode._equation ? mode._equation->_dynamics : mode._dynamic);
 }
 
-EffectiveVectorMultivariateFunction HybridAutomaton::reset_function(DiscreteLocation location, DiscreteEvent event) const {
+EffectiveVectorMultivariateFunction ContinuousTimeHybridAutomaton::reset_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
     return Ariadne::make_reset_function(this->continuous_argument_space(location), mode._sorted_auxiliary, mode._resets[event]);
 }
 
-EffectiveScalarMultivariateFunction HybridAutomaton::invariant_function(DiscreteLocation location, DiscreteEvent event) const {
+EffectiveScalarMultivariateFunction ContinuousTimeHybridAutomaton::invariant_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
     return Ariadne::make_constraint_function(this->continuous_argument_space(location), mode._auxiliary, mode._invariants[event], Sign::NEGATIVE);
 }
 
-EffectiveScalarMultivariateFunction HybridAutomaton::guard_function(DiscreteLocation location, DiscreteEvent event) const {
+EffectiveScalarMultivariateFunction ContinuousTimeHybridAutomaton::guard_function(DiscreteLocation location, DiscreteEvent event) const {
     const DiscreteMode& mode = this->mode(location);
     return Ariadne::make_constraint_function(this->continuous_argument_space(location), mode._sorted_auxiliary, mode._guards[event], Sign::POSITIVE);
 }
 
-Void HybridAutomaton::check_mode(DiscreteLocation location) const {
+Void ContinuousTimeHybridAutomaton::check_mode(DiscreteLocation location) const {
     const DiscreteMode& mode = this->mode(location);
 
     List<RealVariable> defined_real_variables(catenate(this->continuous_argument_space(location).variables(), this->auxiliary_variables(location)));
@@ -702,25 +702,25 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
     if (!mode._equation)
         for (List<RealAssignment>::ConstIterator aux_iter = mode._auxiliary.begin(); aux_iter != mode._auxiliary.end(); ++aux_iter) {
             if (!subset(aux_iter->rhs.arguments(), defined_variables))
-                ARIADNE_THROW(UnderspecifiedDynamicError, "HybridAutomaton::check_mode(...)",
+                ARIADNE_THROW(UnderspecifiedDynamicError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                               "Arguments " << difference(aux_iter->rhs.arguments(), defined_variables) << " of " << *aux_iter << " are not defined in location " << location << " with variables " << defined_variables);
         }
 
     for (List<DottedRealAssignment>::ConstIterator dyn_iter = mode._dynamic.begin(); dyn_iter != mode._dynamic.end(); ++dyn_iter) {
         if (!subset(dyn_iter->rhs.arguments(), defined_variables))
-            ARIADNE_THROW(UnderspecifiedDynamicError, "HybridAutomaton::check_mode(...)",
+            ARIADNE_THROW(UnderspecifiedDynamicError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                           "Arguments " << difference(dyn_iter->rhs.arguments(), defined_variables) << " of " << *dyn_iter << " are not defined in location " << location << " with variables " << defined_variables);
     }
 
     for (Map<DiscreteEvent, ContinuousPredicate>::ConstIterator inv_iter = mode._invariants.begin(); inv_iter != mode._invariants.end(); ++inv_iter) {
         if (!subset(inv_iter->second.arguments(), defined_variables))
-            ARIADNE_THROW(UnderspecifiedConstraintError, "HybridAutomaton::check_mode(...)",
+            ARIADNE_THROW(UnderspecifiedConstraintError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                           "Arguments " << difference(inv_iter->second.arguments(), defined_variables) << " of " << *inv_iter << " are not defined in location " << location << " with variables " << defined_variables);
     }
 
     for (Map<DiscreteEvent, ContinuousPredicate>::ConstIterator grd_iter = mode._guards.begin(); grd_iter != mode._guards.end(); ++grd_iter) {
         if (!subset(grd_iter->second.arguments(), defined_variables))
-            ARIADNE_THROW(UnderspecifiedConstraintError, "HybridAutomaton::check_mode(...)",
+            ARIADNE_THROW(UnderspecifiedConstraintError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                           "Arguments " << difference(grd_iter->second.arguments(), defined_variables) << " of " << *grd_iter << " are not defined in location " << location << " with variables " << defined_variables);
     }
 
@@ -728,7 +728,7 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
         const List<PrimedRealAssignment>& reset = rst_iter->second;
         for (List<PrimedRealAssignment>::ConstIterator pra_iter = reset.begin(); pra_iter != reset.end(); ++pra_iter) {
             if (!subset(pra_iter->rhs.arguments(), defined_variables))
-                ARIADNE_THROW(UnderspecifiedResetError, "HybridAutomaton::check_mode(...)",
+                ARIADNE_THROW(UnderspecifiedResetError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                               "Arguments " << difference(pra_iter->rhs.arguments(), defined_variables) << " of reset " << *pra_iter << " are not defined in location " << location << " with variables " << defined_variables);
         }
     }
@@ -738,24 +738,24 @@ Void HybridAutomaton::check_mode(DiscreteLocation location) const {
         Set<RealVariable> reset_variables(left_hand_sides(rst_iter->second));
         Set<RealVariable> target_state_variables(this->state_variables(target));
         if (!subset(reset_variables, target_state_variables))
-            ARIADNE_THROW(UnderspecifiedDynamicError, "HybridAutomaton::check_mode(...)",
+            ARIADNE_THROW(UnderspecifiedDynamicError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                           "Variables " << difference(reset_variables, target_state_variables) << " of reset" << *rst_iter << " are not defined in location " << target << " with state variables " << target_state_variables);
 
         if (!subset(target_state_variables, reset_variables))
-            ARIADNE_THROW(UnderspecifiedResetError, "HybridAutomaton::check_mode(...)",
+            ARIADNE_THROW(UnderspecifiedResetError, "ContinuousTimeHybridAutomaton::check_mode(...)",
                           "Variables " << difference(target_state_variables, reset_variables) << " in target" << target << " are not defined reset " << *rst_iter);
     }
 }
 
-Void HybridAutomaton::check_reachable_modes(const Set<DiscreteLocation>& initial_locations) const {
+Void ContinuousTimeHybridAutomaton::check_reachable_modes(const Set<DiscreteLocation>& initial_locations) const {
     Set<DiscreteLocation> reachable_locations = this->discrete_reachability(initial_locations);
     for (Set<DiscreteLocation>::ConstIterator iter = reachable_locations.begin(); iter != reachable_locations.end(); ++iter) {
         this->check_mode(*iter);
     }
 }
 
-Set<DiscreteLocation> HybridAutomaton::discrete_reachability(const Set<DiscreteLocation>& initial_locations) const {
-    const HybridAutomaton& automaton = *this;
+Set<DiscreteLocation> ContinuousTimeHybridAutomaton::discrete_reachability(const Set<DiscreteLocation>& initial_locations) const {
+    const ContinuousTimeHybridAutomaton& automaton = *this;
 
     Set<DiscreteLocation> reached = initial_locations;
     Set<DiscreteLocation> working = initial_locations;

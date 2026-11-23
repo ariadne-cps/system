@@ -1,5 +1,5 @@
 /***************************************************************************
- *            hybrid/hybrid_automaton_interface.hpp
+ *            hybrid/continuous_time_hybrid_automaton_interface.hpp
  *
  *  Copyright  2010-20  Pieter Collins
  *
@@ -22,12 +22,12 @@
  *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file system/hybrid_automaton_interface.hpp
+/** @file system/continuous_time_hybrid_automaton_interface.hpp
  *  @brief Interfaces and specification errors for hybrid automata.
  */
 
-#ifndef ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP
-#define ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP
+#ifndef ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP
+#define ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP
 
 #include <cassert>
 #include <optional>
@@ -35,7 +35,7 @@
 #include "function/function.hpp"
 #include "hybrid/discrete_location.hpp"
 #include "system/discrete_event.hpp"
-#include "system/hybrid_automaton_structure_interface.hpp"
+#include "system/hybrid_automaton_interface.hpp"
 
 namespace Ariadne {
 
@@ -195,7 +195,7 @@ class UnderspecifiedResetError : public UnderspecifiedSystemError {
 //! \ingroup SystemModule
 //! \ingroup HybridAutomataSubModule
 //! \brief Interface for hybrid systems required to perform analysis.
-class HybridAutomatonInterface : public HybridAutomatonStructureInterface {
+class ContinuousTimeHybridAutomatonInterface : public HybridAutomatonInterface {
   public:
     //! \brief The type used to represent time.
     typedef HybridTime TimeType;
@@ -204,10 +204,10 @@ class HybridAutomatonInterface : public HybridAutomatonStructureInterface {
 
   public:
     //! \brief Virtual destructor.
-    virtual ~HybridAutomatonInterface() = default;
+    virtual ~ContinuousTimeHybridAutomatonInterface() = default;
 
     //! \brief Cloning operator.
-    virtual HybridAutomatonInterface* clone() const = 0;
+    virtual ContinuousTimeHybridAutomatonInterface* clone() const = 0;
 
     //!@{
     //! \name Data access and queries.
@@ -293,7 +293,7 @@ class HybridAutomatonInterface : public HybridAutomatonStructureInterface {
     //!@}
 };
 
-inline OutputStream& operator<<(OutputStream& os, const HybridAutomatonInterface& ha) {
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridAutomatonInterface& ha) {
     /** @brief Perform the system operation. */
     ha._write(os);
     return os;
@@ -322,4 +322,4 @@ inline OutputStream& operator<<(OutputStream& os, const EventKind& evk) {
 
 } // namespace Ariadne
 
-#endif // ARIADNE_HYBRID_AUTOMATON_INTERFACE_HPP
+#endif // ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP

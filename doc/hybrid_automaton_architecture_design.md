@@ -1,41 +1,48 @@
-# Common structure of hybrid automata (first implementation slice)
+# Shared structure and explicit continuous hybrid automata (v6.29)
 
-Status: initial System-side implementation toward cross-repository design v6.29.
-This increment intentionally preserves the existing public continuous-time names
-and numerical behaviour until dependent repositories can be migrated together.
+The public `HybridAutomatonInterface` describes time-independent structural
+queries: `name`, `has_mode`, `events`, `has_transition`, `target`
+and `dimension`.
 
-## Implemented
+`ContinuousTimeHybridAutomatonInterface` inherits this contract and retains
+the continuous-time capabilities of the former `HybridAutomatonInterface`,
+including `HybridTime`, ODAE/ODAI metadata, guard, invariant, reset, event
+kind, auxiliary and dynamics access. The two concrete implementations are
+`ContinuousTimeHybridAutomaton` and
+`CompositeContinuousTimeHybridAutomaton`. No old-name compatibility aliases
+are introduced. Continuous-time event and numerical semantics are unchanged.
 
-`HybridAutomatonStructureInterface` provides six pure structural queries:
-`name`, `has_mode`, `events`, `has_transition`, `target` and
-`dimension`. The existing `HybridAutomatonInterface` derives from it;
-`HybridAutomaton` and `CompositeHybridAutomaton` therefore implement it
-without adapters or duplicated dispatch. Continuous-time operations and event
-semantics remain in the existing interface.
+This first coordinated migration renames continuous System types, headers,
+source files, existing System Python bindings and tests. Evolution must update
+its consumer types and its System gitlink to this commit before attempting a
+joint build. Use `ContinuousTimeHybridAutomatonInterface` as the Evolution
+`SystemType` for the continuous hybrid family.
 
-The umbrella header exports the structural contract, and compile-time checks
-cover both concrete implementations. The implementation does not change any
-continuous dynamics, guards, resets, or time handling.
+Structural inheritance alone does not provide full implementation reuse.
+The next extraction should isolate common mode/event/transition graph storage,
+validation and composition in reusable internal components, without imposing
+continuous-time guards, crossing semantics or `HybridTime` on discrete systems.
 
-## Planned coordinated migration (not implemented by this commit)
+## Planned discrete model
 
-1. Rename `HybridAutomaton` to `ContinuousTimeHybridAutomaton` and
-   `HybridAutomatonInterface` to `ContinuousTimeHybridAutomatonInterface`.
-2. Rename the continuous composite, migrate C++/Python users in System and
-   Evolution and preserve complete continuous regression behaviour. Afterwards
-   the structural interface can take the shorter name `HybridAutomatonInterface`.
-   No permanent compatibility aliases are intended.
-3. Introduce `DiscreteTimeHybridAutomaton` with its own time-specific interface
-   and precise tick/event semantics. Reuse structural graph, validation and
-   composition logic only when contracts are equivalent.
-4. Extract shared hybrid orchestration in Evolution while keeping the discrete
-   iteration kernel and continuous flow/crossing kernels separate.
+`DiscreteTimeHybridAutomaton` and
+`DiscreteTimeHybridAutomatonInterface` will share the structural interface
+but use integer time and native per-location iteration maps/relations.
+Before implementation specify the tick transition relation: order of map
+application and guard evaluation, preemption, reset time, simultaneous enabled
+events, priorities, and whether transitions without consuming a tick are
+permitted. Continuous `URGENT`, `PERMISSIVE` and `IMPACT` have no
+automatic discrete analogues.
 
-A tick policy must specify guard evaluation order, simultaneous events, reset
-timing and whether zero-time transition chains are allowed. Do not import
-URGENT/PERMISSIVE/IMPACT semantics implicitly from the continuous model.
+Discrete validated and approximate evolvers should reuse compatible scheduling
+and publication infrastructure, not continuous integration, reach tubes,
+Lie derivatives, or contact certification. Keep paving work on its separate
+`decoupling` branch. New Python capabilities and tutorial parity remain the
+final Evolution phase.
 
-## Verification boundary
+## Validation
 
-This is a compile-time API extraction with no numerical algorithm change.
-Integrated System/Evolution compilation and CI must be checked after publication.
+Source-level migration only; no numerical algorithms are intentionally changed.
+The prior System `20d4994` CI covered extraction of the structural contract.
+The coordinated migration requires fresh compile/test/format CI and a joint
+Evolution consumer build before it can be called validated.

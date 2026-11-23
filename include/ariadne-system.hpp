@@ -31,9 +31,9 @@
 #include "system/discrete_event.hpp"
 #include "system/first_order_pde.hpp"
 #include "system/hybrid_automata.hpp"
-#include "system/hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 #include "system/hybrid_automaton_interface.hpp"
-#include "system/hybrid_automaton_structure_interface.hpp"
 #include "system/hybrid_paving.hpp"
 #include "system/iterated_map.hpp"
 #include "system/odae.hpp"
@@ -42,5 +42,5 @@
 
 #include "ariadne-hybrid.hpp"
 #include "ariadne-neural-set.hpp"
-#include "system/hybrid_automaton-composite.hpp"
+#include "system/composite_continuous_time_hybrid_automaton.hpp"
 #endif // ARIADNE_ARIADNE_SYSTEM_HPP

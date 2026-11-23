@@ -30,7 +30,7 @@
 #include "hybrid/hybrid_paving.hpp"
 #include "hybrid/hybrid_space.hpp"
 #include "logging/test_runner.hpp"
-#include "system/hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
 #include "system/hybrid_paving.hpp"
 
 #include "ariadne-testing.hpp"
@@ -47,7 +47,7 @@ class TestHybridPaving : public Ariadne::Testing::ContextFixture {
         DiscreteLocation loc({q | "1"});
 
         // A mode with an auxiliary (algebraic) variable a = x + 1.
-        HybridAutomaton automaton;
+        ContinuousTimeHybridAutomaton automaton;
         ARIADNE_TESTING_EXPECT_NO_THROW(automaton.new_mode(loc,
                                                            List<RealAssignment>{let(a) = x + 1},
                                                            List<DottedRealAssignment>{dot(x) = -x}));

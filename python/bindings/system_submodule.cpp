@@ -30,7 +30,7 @@
 
 #include "pybind11.hpp"
 #include "system/discrete_event.hpp"
-#include "system/hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
 #include "system/iterated_map.hpp"
 #include "system/odae.hpp"
 #include "system/odai.hpp"
@@ -119,26 +119,26 @@ void system_submodule(pybind11::module& module) {
     inclusion_class.def("is_input_additive", &OrdinaryDifferentialAlgebraicInclusion::is_input_additive);
     inclusion_class.def("__str__", &__cstr__<OrdinaryDifferentialAlgebraicInclusion>);
 
-    pybind11::class_<HybridAutomaton> automaton_class(module, "HybridAutomaton");
+    pybind11::class_<ContinuousTimeHybridAutomaton> automaton_class(module, "ContinuousTimeHybridAutomaton");
     automaton_class.def(pybind11::init<>());
-    automaton_class.def("new_mode", [](HybridAutomaton& a, DiscreteLocation q) { a.new_mode(q); });
-    automaton_class.def("new_mode", [](HybridAutomaton& a, DiscreteLocation q,
+    automaton_class.def("new_mode", [](ContinuousTimeHybridAutomaton& a, DiscreteLocation q) { a.new_mode(q); });
+    automaton_class.def("new_mode", [](ContinuousTimeHybridAutomaton& a, DiscreteLocation q,
                                        const std::vector<DottedRealAssignment>& dynamics) {
         a.new_mode(q, List<DottedRealAssignment>(dynamics));
     });
-    automaton_class.def("has_mode", &HybridAutomaton::has_mode);
+    automaton_class.def("has_mode", &ContinuousTimeHybridAutomaton::has_mode);
     // Expose the unguarded discrete transition overload, with no reset.
     // This form is intended for systems without continuous state variables.
     automaton_class.def("new_transition",
-                        [](HybridAutomaton& a, DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) {
+                        [](ContinuousTimeHybridAutomaton& a, DiscreteLocation source, DiscreteEvent event, DiscreteLocation target) {
                             a.new_transition(source, event, target);
                         });
-    automaton_class.def("has_transition", &HybridAutomaton::has_transition);
-    automaton_class.def("target", &HybridAutomaton::target);
+    automaton_class.def("has_transition", &ContinuousTimeHybridAutomaton::has_transition);
+    automaton_class.def("target", &ContinuousTimeHybridAutomaton::target);
     automaton_class.def("number_of_modes",
-                        [](const HybridAutomaton& a) { return a.locations().size(); });
-    automaton_class.def("__str__", &__cstr__<HybridAutomaton>);
-    automaton_class.def("__repr__", &__cstr__<HybridAutomaton>);
+                        [](const ContinuousTimeHybridAutomaton& a) { return a.locations().size(); });
+    automaton_class.def("__str__", &__cstr__<ContinuousTimeHybridAutomaton>);
+    automaton_class.def("__repr__", &__cstr__<ContinuousTimeHybridAutomaton>);
 
     // Construct system models from the symbolic assignments already bound by
     // symbolic_submodule.  The vector conversion is handled by pybind11.

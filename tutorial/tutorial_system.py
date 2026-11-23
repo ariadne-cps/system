@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The same two-mode system as tutorial_system.cpp, using pyariadne_system."""
 
-from pyariadne_system import (DiscreteEvent, DiscreteLocation, HybridAutomaton,
+from pyariadne_system import (DiscreteEvent, DiscreteLocation, ContinuousTimeHybridAutomaton,
                        RealVariable, OrdinaryDifferentialAlgebraicEquation, IteratedMap, OrdinaryDifferentialAlgebraicInclusion,
                        RealVariablesBox, dot, next)
 
@@ -24,7 +24,7 @@ def tutorial_system():
     print(f"activation event: {activate}")
 
     section("A two-mode hybrid automaton")
-    automaton = HybridAutomaton()
+    automaton = ContinuousTimeHybridAutomaton()
     assert not automaton.has_mode(idle)
     automaton.new_mode(idle)
     automaton.new_mode(active)

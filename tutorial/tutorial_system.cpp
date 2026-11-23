@@ -58,7 +58,7 @@ int main() {
               << "activation event: " << activate << "\n";
 
     section("A two-mode hybrid automaton");
-    HybridAutomaton automaton;
+    ContinuousTimeHybridAutomaton automaton;
     assert(!automaton.has_mode(idle));
     automaton.new_mode(idle);
     automaton.new_mode(active);

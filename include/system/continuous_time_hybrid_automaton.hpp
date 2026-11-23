@@ -1,5 +1,5 @@
 /***************************************************************************
- *            hybrid/hybrid_automaton.hpp
+ *            hybrid/continuous_time_hybrid_automaton.hpp
  *
  *  Copyright  2004-20  Alberto Casagrande, Pieter Collins
  *
@@ -22,12 +22,12 @@
  *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file system/hybrid_automaton.hpp
+/** @file system/continuous_time_hybrid_automaton.hpp
  *  @brief Hybrid automata, discrete modes, and transitions.
  */
 
-#ifndef ARIADNE_HYBRID_AUTOMATON_HPP
-#define ARIADNE_HYBRID_AUTOMATON_HPP
+#ifndef ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
+#define ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
 
 #include <iostream>
 #include <map>
@@ -42,7 +42,7 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "system/discrete_event.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 
 namespace Ariadne {
 
@@ -55,20 +55,20 @@ class HybridSpace;
 class DiscreteLocation;
 /** @brief DiscreteMode for hybrid automata, discrete modes, and transitions. */
 class DiscreteMode;
-/** @brief HybridAutomaton for hybrid automata, discrete modes, and transitions. */
-class HybridAutomaton;
+/** @brief ContinuousTimeHybridAutomaton for hybrid automata, discrete modes, and transitions. */
+class ContinuousTimeHybridAutomaton;
 
-//! \related HybridAutomaton
+//! \related ContinuousTimeHybridAutomaton
 //! \brief A discrete mode of a hybrid automaton, comprising continuous evolution given by a vector field
 //! within and invariant constraint set.
 //!
 //! A %DiscreteMode can only be created using the new_mode() method in
-//! the %HybridAutomaton class.
+//! the %ContinuousTimeHybridAutomaton class.
 //!
-//! \sa \ref HybridAutomaton
+//! \sa \ref ContinuousTimeHybridAutomaton
 class DiscreteMode {
-    friend class HybridAutomaton;
-    friend class CompositeHybridAutomaton;
+    friend class ContinuousTimeHybridAutomaton;
+    friend class CompositeContinuousTimeHybridAutomaton;
     friend class CompactDiscreteModeWriter;
     friend class VerboseDiscreteModeWriter;
 
@@ -173,17 +173,17 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! elsewhere, even if this is permissive.
 //!
 //!
-//! \sa \ref DiscreteMode, \ref CompositeHybridAutomaton
-class HybridAutomaton
-    : public HybridAutomatonInterface {
-    friend class CompositeHybridAutomaton;
-    static Writer<HybridAutomaton> _default_writer;
+//! \sa \ref DiscreteMode, \ref CompositeContinuousTimeHybridAutomaton
+class ContinuousTimeHybridAutomaton
+    : public ContinuousTimeHybridAutomatonInterface {
+    friend class CompositeContinuousTimeHybridAutomaton;
+    static Writer<ContinuousTimeHybridAutomaton> _default_writer;
 
   public:
     /** @brief Perform the system operation. */
-    static Void set_default_writer(Writer<HybridAutomaton> w) { _default_writer = w; }
+    static Void set_default_writer(Writer<ContinuousTimeHybridAutomaton> w) { _default_writer = w; }
     /** @brief Perform the system operation. */
-    static Writer<HybridAutomaton> default_writer() { return _default_writer; }
+    static Writer<ContinuousTimeHybridAutomaton> default_writer() { return _default_writer; }
 
   public:
     //! \brief The type used to represent time.
@@ -236,21 +236,21 @@ class HybridAutomaton
     //! \name Constructors and destructors
 
     //! \brief Default constructor with "system" name.
-    HybridAutomaton();
+    ContinuousTimeHybridAutomaton();
 
     //! \brief Construct an empty automaton with the given name
-    HybridAutomaton(Identifier name);
+    ContinuousTimeHybridAutomaton(Identifier name);
 
     //! \brief Construct an empty automaton with the given name
-    HybridAutomaton(
+    ContinuousTimeHybridAutomaton(
         Identifier name,
         const List<StringVariable>& discrete_variables);
 
     //! \brief Construct dynamically-allocated copy. (Not currently implemented)
-    HybridAutomaton* clone() const { return new HybridAutomaton(*this); }
+    ContinuousTimeHybridAutomaton* clone() const { return new ContinuousTimeHybridAutomaton(*this); }
 
     //! \brief Destructor.
-    virtual ~HybridAutomaton() = default;
+    virtual ~ContinuousTimeHybridAutomaton() = default;
     //!@}
 
     //!@{
@@ -560,7 +560,7 @@ class HybridAutomaton
     //!@}
 
     //!@{
-    //! \name Functions for conformance to HybridAutomatonInterface
+    //! \name Functions for conformance to ContinuousTimeHybridAutomatonInterface
 
     //! \brief The continuous state space for each location.
     virtual HybridSpace state_space() const;
@@ -611,22 +611,22 @@ class HybridAutomaton
     OutputStream& _write(OutputStream&) const;
 };
 
-inline OutputStream& operator<<(OutputStream& os, const HybridAutomaton& ha) {
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) {
     return ha._write(os);
 }
 
 /** @brief CompactHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
-class CompactHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+class CompactHybridAutomatonWriter : public WriterInterface<ContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const HybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 /** @brief VerboseHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
-class VerboseHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+class VerboseHybridAutomatonWriter : public WriterInterface<ContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const HybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 } // namespace Ariadne
 
-#endif // ARIADNE_HYBRID_AUTOMATON_HPP
+#endif // ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP

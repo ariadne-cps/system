@@ -1,6 +1,6 @@
 """Smoke tests for real dynamical system definitions in the composed pyariadne_system extension."""
 import unittest
-from pyariadne_system import DiscreteEvent, DiscreteLocation, HybridAutomaton
+from pyariadne_system import DiscreteEvent, DiscreteLocation, ContinuousTimeHybridAutomaton
 
 
 def test_discrete_event():
@@ -14,7 +14,7 @@ def test_discrete_event():
 
 
 def test_hybrid_automaton_mode():
-    automaton = HybridAutomaton()
+    automaton = ContinuousTimeHybridAutomaton()
     location = DiscreteLocation(1)
     assert not automaton.has_mode(location)
     automaton.new_mode(location)
@@ -25,7 +25,7 @@ def test_hybrid_automaton_mode():
 def test_unguarded_transition():
     idle, active = DiscreteLocation(0), DiscreteLocation(1)
     activate, deactivate = DiscreteEvent("activate"), DiscreteEvent("deactivate")
-    automaton = HybridAutomaton()
+    automaton = ContinuousTimeHybridAutomaton()
     automaton.new_mode(idle)
     automaton.new_mode(active)
     automaton.new_transition(idle, activate, active)

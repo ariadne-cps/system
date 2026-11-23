@@ -33,12 +33,12 @@
 
 namespace Ariadne {
 
-/** @brief HybridAutomatonInterface for auxiliary-variable extensions for hybrid pavings. */
-class HybridAutomatonInterface;
+/** @brief ContinuousTimeHybridAutomatonInterface for auxiliary-variable extensions for hybrid pavings. */
+class ContinuousTimeHybridAutomatonInterface;
 
 //! Extend a hybrid state paving with the auxiliary variables of a system.
 HybridPaving extend_auxiliary(const HybridPaving& hgtp,
-                              const HybridAutomatonInterface& ha);
+                              const ContinuousTimeHybridAutomatonInterface& ha);
 
 } // namespace Ariadne
 

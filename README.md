@@ -78,8 +78,8 @@ consumes these declarations through its numerical adapters.
 
 ## Ordinary dynamics in hybrid modes
 
-`HybridAutomaton::new_mode(location, equation_or_inclusion)` owns an immutable
-copy of an ODAE or ODAI declaration. The `HybridAutomatonInterface::equation()`
+`ContinuousTimeHybridAutomaton::new_mode(location, equation_or_inclusion)` owns an immutable
+copy of an ODAE or ODAI declaration. The `ContinuousTimeHybridAutomatonInterface::equation()`
 and `inclusion()` queries expose the original declaration for a mode; legacy
 symbolic-assignment modes return null for both. State dimension and labels
 come from the declaration. Inputs, fixed parameters and explicit time keep

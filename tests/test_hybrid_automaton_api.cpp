@@ -26,7 +26,7 @@
  *  @brief Test hybrid automaton api behavior.
  */
 
-// Exercises the full public API of HybridAutomaton / DiscreteMode /
+// Exercises the full public API of ContinuousTimeHybridAutomaton / DiscreteMode /
 // DiscreteTransition: constructors, mode/transition building (including
 // every error path), accessors, check_mode validation errors, and the
 // verbose/compact writers plus EventKind streaming.
@@ -39,13 +39,13 @@
 #include "symbolic/expression.hpp"
 #include "symbolic/space.hpp"
 #include "symbolic/variable.hpp"
-#include "system/hybrid_automaton.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 #include "system/odae.hpp"
 #include "system/odai.hpp"
 
 #include "ariadne-testing.hpp"
-#include "system/hybrid_automaton-composite.hpp"
+#include "system/composite_continuous_time_hybrid_automaton.hpp"
 
 using namespace Ariadne;
 
@@ -67,7 +67,7 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
         ARIADNE_TESTING_EXPECT_EQUAL(inclusion.parameter_space().size(), 0u);
         const DiscreteLocation source(1), target(2);
         const DiscreteEvent event("timer"), bound("horizon");
-        HybridAutomaton system;
+        ContinuousTimeHybridAutomaton system;
         system.new_mode(source, OrdinaryDifferentialAlgebraicEquation({dot(x) = 0}));
         system.new_mode(target, equation);
         system.new_invariant(source, t <= 2, bound);
@@ -99,7 +99,7 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
         const DiscreteEvent event("switch");
         const RealVariable x("x"), y("output"), u("u"), p("p"), t("t");
         auto system = [&]() {
-            HybridAutomaton owned;
+            ContinuousTimeHybridAutomaton owned;
             const OrdinaryDifferentialAlgebraicEquation equation({dot(x) = 1}, {let(y) = 2 * x});
             const OrdinaryDifferentialAlgebraicInclusion inclusion({dot(x) = u}, RealVariablesBox({-1 <= u <= 1}));
             owned.new_mode(q, equation);
@@ -132,13 +132,13 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
         ARIADNE_TESTING_PROVE(refines(FloatDPBounds(0, dp), system.guard_function(q, event)(point)));
         ARIADNE_TESTING_PROVE(refines(FloatDPBounds(2, dp), system.reset_function(q, event)(point)[0]));
         ARIADNE_TESTING_EXPECT_THROWS(IndistinguishableModeError, system.new_mode(q, *system.inclusion(r)));
-        HybridAutomaton copied(system);
-        system = HybridAutomaton();
+        ContinuousTimeHybridAutomaton copied(system);
+        system = ContinuousTimeHybridAutomaton();
         ARIADNE_TESTING_EXPECT_EQUAL(copied.inclusion(r)->state_space(), RealSpace({x}));
         std::ostringstream description;
         description << copied;
         ARIADNE_TESTING_PROVE(description.str().find("u") != std::string::npos);
-        CompositeHybridAutomaton composite(copied);
+        CompositeContinuousTimeHybridAutomaton composite(copied);
         ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, composite.dynamic_function(q));
     }
 
@@ -150,15 +150,15 @@ class TestHybridAutomatonApi : public Ariadne::Testing::ContextFixture {
     Void test_writers_and_streaming();
 
   private:
-    HybridAutomaton _make_automaton() const;
+    ContinuousTimeHybridAutomaton _make_automaton() const;
 };
 
-HybridAutomaton TestHybridAutomatonApi::_make_automaton() const {
+ContinuousTimeHybridAutomaton TestHybridAutomatonApi::_make_automaton() const {
     RealVariable x("x"), y("y"), a("a");
     StringVariable q("q");
     DiscreteLocation q1({q | "1"}), q2({q | "2"});
     DiscreteEvent e1("e1"), e2("e2");
-    HybridAutomaton ha("test");
+    ContinuousTimeHybridAutomaton ha("test");
     ha.new_mode(q1, List<RealAssignment>{let(a) = x + 1},
                 List<DottedRealAssignment>{dot(x) = -x, dot(y) = y});
     ha.new_mode(q2, List<DottedRealAssignment>{dot(x) = x});
@@ -171,18 +171,18 @@ HybridAutomaton TestHybridAutomatonApi::_make_automaton() const {
 
 Void TestHybridAutomatonApi::test_constructors() {
     StringVariable q("q");
-    HybridAutomaton ha0;
-    HybridAutomaton ha1("named");
-    HybridAutomaton ha2("named2", List<StringVariable>{q});
+    ContinuousTimeHybridAutomaton ha0;
+    ContinuousTimeHybridAutomaton ha1("named");
+    ContinuousTimeHybridAutomaton ha2("named2", List<StringVariable>{q});
     ARIADNE_TESTING_EXPECT_EQUAL(ha1.name(), Identifier("named"));
     ARIADNE_TESTING_EXPECT_EQUAL(ha0.locations().size(), 0u);
-    HybridAutomaton* copy = ha1.clone();
+    ContinuousTimeHybridAutomaton* copy = ha1.clone();
     ARIADNE_TESTING_PROVE(copy != nullptr);
     ARIADNE_TESTING_EXPECT_EQUAL(copy->name(), Identifier("named"));
     delete copy;
 
-    // DiscreteMode objects are only created through HybridAutomaton.
-    HybridAutomaton ha;
+    // DiscreteMode objects are only created through ContinuousTimeHybridAutomaton.
+    ContinuousTimeHybridAutomaton ha;
     RealVariable x("x");
     DiscreteLocation q1({q | "1"});
     ha.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
@@ -195,7 +195,7 @@ Void TestHybridAutomatonApi::test_modes_and_errors() {
     StringVariable q("q");
     DiscreteLocation q1({q | "1"}), q2({q | "2"}), q9({q | "9"});
 
-    HybridAutomaton ha;
+    ContinuousTimeHybridAutomaton ha;
     // All new_mode overloads.
     ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_mode(q1,
                                                 List<RealAssignment>{let(a) = x + 1},
@@ -205,24 +205,24 @@ Void TestHybridAutomatonApi::test_modes_and_errors() {
                                                 List<RealAssignment>{}));
     ARIADNE_TESTING_EXPECT_THROWS(IndistinguishableModeError, ha.new_mode(q1));
     // Variable defined twice by the algebraic equations.
-    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, HybridAutomaton().new_mode(q2,
+    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, ContinuousTimeHybridAutomaton().new_mode(q2,
                                                                                        List<RealAssignment>{let(a) = x, let(a) = y},
                                                                                        List<DottedRealAssignment>{}));
     // Differential variable also defined algebraically.
-    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, HybridAutomaton().new_mode(q2,
+    ARIADNE_TESTING_EXPECT_THROWS(SystemSpecificationError, ContinuousTimeHybridAutomaton().new_mode(q2,
                                                                                        List<RealAssignment>{let(x) = 1},
                                                                                        List<DottedRealAssignment>{dot(x) = x}));
     // Overloads without a location all use the empty location, so each
     // needs a fresh automaton.
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode(
         List<RealAssignment>{let(a) = x}, List<DottedRealAssignment>{dot(x) = x}));
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode(
         List<DottedRealAssignment>{dot(x) = x}, List<RealAssignment>{let(a) = x}));
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode(
         List<DottedRealAssignment>{dot(x) = x}));
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode(
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode(
         List<RealAssignment>{let(a) = x}));
-    HybridAutomaton hb;
+    ContinuousTimeHybridAutomaton hb;
     ARIADNE_TESTING_EXPECT_NO_THROW(hb.new_mode(DiscreteLocation(1)));
     ARIADNE_TESTING_EXPECT_NO_THROW(hb.new_mode(DiscreteLocation(2),
                                                 List<DottedRealAssignment>{dot(x) = x}));
@@ -238,7 +238,7 @@ Void TestHybridAutomatonApi::test_invariants_guards_transitions() {
     DiscreteLocation q1({q | "1"}), q2({q | "2"}), q9({q | "9"});
     DiscreteEvent e1("e1"), e2("e2"), e3("e3"), e4("e4"), e5("e5"), e6("e6");
 
-    HybridAutomaton ha;
+    ContinuousTimeHybridAutomaton ha;
     ha.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
     ha.new_mode(q2, List<DottedRealAssignment>{dot(x) = -x});
 
@@ -282,7 +282,7 @@ Void TestHybridAutomatonApi::test_invariants_guards_transitions() {
     ARIADNE_TESTING_EXPECT_NO_THROW(ha.new_update(q1, DiscreteEvent("x"), q2));
     // Overloads without a source location need an automaton with the
     // empty location.
-    HybridAutomaton he;
+    ContinuousTimeHybridAutomaton he;
     he.new_mode(DiscreteLocation(), List<DottedRealAssignment>{dot(x) = x});
     ARIADNE_TESTING_EXPECT_NO_THROW(he.new_update(DiscreteEvent("y"),
                                                   List<PrimedRealAssignment>{prime(x) = x}));
@@ -305,7 +305,7 @@ Void TestHybridAutomatonApi::test_invariants_guards_transitions() {
 }
 
 Void TestHybridAutomatonApi::test_accessors() {
-    HybridAutomaton ha = _make_automaton();
+    ContinuousTimeHybridAutomaton ha = _make_automaton();
     RealVariable x("x"), y("y"), a("a");
     StringVariable q("q");
     DiscreteLocation q1({q | "1"}), q2({q | "2"}), q9({q | "9"});
@@ -372,31 +372,31 @@ Void TestHybridAutomatonApi::test_check_mode_errors() {
     DiscreteEvent e1("e1"), e2("e2"), e3("e3");
 
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<RealAssignment>{let(a) = z},
                      List<DottedRealAssignment>{dot(x) = x});
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<RealAssignment>{let(a) = x},
                      List<DottedRealAssignment>{dot(x) = x + z});
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
         bad.new_invariant(q1, z <= 1, e1);
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
         bad.new_guard(q1, e2, z >= 0, EventKind::PERMISSIVE);
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedConstraintError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
         bad.new_mode(q2, List<DottedRealAssignment>{dot(x) = x});
         bad.new_transition(q1, e3, q2,
@@ -404,7 +404,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors() {
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
         bad.new_mode(q2, List<DottedRealAssignment>{dot(x) = x, dot(a) = a});
         bad.new_transition(q1, e3, q2,
@@ -413,7 +413,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors() {
         ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedResetError, bad.check_mode(q1));
     }
     {
-        HybridAutomaton bad;
+        ContinuousTimeHybridAutomaton bad;
         bad.new_mode(q1, List<DottedRealAssignment>{dot(x) = x});
         bad.new_mode(q2, List<DottedRealAssignment>{dot(x) = x});
         // The reset defines y, which is not a state variable of the target.
@@ -425,7 +425,7 @@ Void TestHybridAutomatonApi::test_check_mode_errors() {
 }
 
 Void TestHybridAutomatonApi::test_writers_and_streaming() {
-    HybridAutomaton ha = _make_automaton();
+    ContinuousTimeHybridAutomaton ha = _make_automaton();
     RealVariable x("x"), a("a");
     StringVariable q("q");
     DiscreteLocation q1({q | "1"}), q2({q | "2"});
@@ -435,18 +435,18 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
     verbose << ha;
     ARIADNE_TESTING_PROVE(verbose.str().size() > 0u);
 
-    Writer<HybridAutomaton> previous = HybridAutomaton::default_writer();
-    HybridAutomaton::set_default_writer(CompactHybridAutomatonWriter());
+    Writer<ContinuousTimeHybridAutomaton> previous = ContinuousTimeHybridAutomaton::default_writer();
+    ContinuousTimeHybridAutomaton::set_default_writer(CompactHybridAutomatonWriter());
     std::ostringstream compact;
     compact << ha;
     ARIADNE_TESTING_PROVE(compact.str().size() > 0u);
     // A single-mode automaton takes the non-multiple branch.
-    HybridAutomaton single_mode;
+    ContinuousTimeHybridAutomaton single_mode;
     single_mode.new_mode(DiscreteLocation(1), List<DottedRealAssignment>{dot(x) = x});
     std::ostringstream compact_single;
     compact_single << single_mode;
     ARIADNE_TESTING_PROVE(compact_single.str().size() > 0u);
-    HybridAutomaton::set_default_writer(previous);
+    ContinuousTimeHybridAutomaton::set_default_writer(previous);
 
     DiscreteMode mode = ha.mode(q1);
     std::ostringstream mode_verbose;
@@ -459,7 +459,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
     // Empty, auxiliary-only, dynamic-only and reset-less modes cover the
     // remaining compact-writer branches.
     {
-        HybridAutomaton bare;
+        ContinuousTimeHybridAutomaton bare;
         bare.new_mode(DiscreteLocation(1), List<RealAssignment>{let(a) = 1});
         bare.new_mode(DiscreteLocation(2), List<DottedRealAssignment>{dot(x) = x});
         bare.new_mode(DiscreteLocation(3));
@@ -470,7 +470,7 @@ Void TestHybridAutomatonApi::test_writers_and_streaming() {
             os << m;
             ARIADNE_TESTING_PROVE(os.str().size() > 0u);
         }
-        HybridAutomaton bare_empty;
+        ContinuousTimeHybridAutomaton bare_empty;
         bare_empty.new_mode(DiscreteLocation());
         {
             // A completely empty mode prints as the empty string in compact form.

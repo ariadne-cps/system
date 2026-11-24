@@ -50,8 +50,13 @@ enum class DiscreteTimeTransitionKind { URGENT, PERMISSIVE };
 //! invariants. At a state, a dynamics successor is possible when every progression
 //! invariant holds. Every enabled guard independently admits a reset successor.
 //! Hence for permissive events a dynamics step and jump can both be possible.
-//! Jump time accounting, zero-time chains and scheduling are deliberately
-//! left to be specified before implementing discrete hybrid evolvers.
+//! Both a dynamics step and a transition reset take one integer tick:
+//! every successor of a state at index n belongs to index n+1.
+//! Guards and progression invariants are evaluated at the source state n,
+//! before either an update or a reset. Each enabled event yields a separate
+//! successor; simultaneous events are never silently prioritized or
+//! combined into a reset chain. There are no zero-time transitions.
+//! Numeric evaluation and inclusion image computation remain evolver duties.
 //! This interface does not implement set-valued guard evaluation or evolution.
 class DiscreteTimeHybridAutomatonInterface : public HybridAutomatonInterface {
   public:

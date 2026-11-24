@@ -259,3 +259,42 @@ and preservation of both kinds through clone. No discrete evolver or
 scheduling policy is introduced here. All continuous numerical kernels
 remain untouched. CI must validate the Debug regression correction and
 this integration; Format remains deferred.
+
+## Single-tick transition contract (v6.39)
+
+The native discrete-time hybrid model uses **integer-indexed, pre-state
+evaluation**. From a state `(location, x[n])` at index `n`:
+
+1. Evaluate all outgoing guards `G_e` and progression invariants `I_e`
+   on the *same pre-step state* and its auxiliary outputs.
+2. A dynamics successor at index `n+1` exists wherever the conjunction
+   of all progression invariants holds. In equation modes this uses the
+   deterministic difference update; in inclusion modes it contains every
+   image admitted by the free-input box.
+3. For every enabled guard, a separate reset successor at index `n+1`
+   exists in that event's target mode. The mode's update is **not**
+   applied before a reset.
+4. Urgent events use `I_e = !G_e`; permissive events have independent
+   explicit `I_e`. Thus an enabled permissive event may coexist with
+   a dynamics successor. Multiple enabled events produce alternative
+   successor branches, with no unspecified priority, reset composition
+   or event order.
+5. A transition itself consumes exactly one tick. There are no
+   zero-time chains or repeated event evaluations at one index.
+   Events in the target mode are next considered at index `n+1`.
+
+This defines the one-step *structural* semantics. Numerical evolvers
+remain responsible for sound predicate classification and set images.
+A guard or invariant indeterminate over an enclosure must not be
+treated as false; UPPER evolution retains every possibly admissible
+branch. Any LOWER capability needs independent certification and
+must not be inferred from UPPER branching. In inclusion modes the same
+input dependencies must be preserved when auxiliary outputs influence
+event conditions. Direct event expressions in free input symbols remain
+rejected by the current System model until correlations are designed.
+
+The event scheduler will be implemented and tested in Evolution,
+separately from equation/inclusion image kernels. This clarification
+does not introduce an evolver, an implicit discretization of continuous
+systems, or a continuous-time event-crossing algorithm. Format remains
+deferred.

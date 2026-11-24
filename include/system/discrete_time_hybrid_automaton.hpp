@@ -81,8 +81,6 @@ class DiscreteTimeHybridMode : public HybridModeStructure {
         throw std::logic_error("DiscreteTimeHybridMode does not contain a difference inclusion");
     }
 
-    //! \brief Valid only for deterministic modes; inclusion modes must not be sampled.
-    const IteratedMap& iterated_map() const { return equation().iterated_map(); }
     DimensionType dimension() const { return has_equation() ? equation().dimension() : inclusion().dimension(); }
     RealSpace state_space() const { return has_equation() ? equation().state_space() : inclusion().state_space(); }
     RealSpace state_auxiliary_space() const {
@@ -149,7 +147,6 @@ class DiscreteTimeHybridAutomaton
     Bool has_inclusion(DiscreteLocation location) const override;
     const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const override;
     const DifferenceAlgebraicInclusion& inclusion(DiscreteLocation location) const override;
-    const IteratedMap& iterated_map(DiscreteLocation location) const override;
     const EffectiveVectorMultivariateFunction& update_function(DiscreteLocation location) const override;
     const EffectiveVectorMultivariateFunction& auxiliary_function(DiscreteLocation location) const override;
     RealSpace state_space(DiscreteLocation location) const override;

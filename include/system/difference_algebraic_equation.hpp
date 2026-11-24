@@ -29,7 +29,9 @@
 #ifndef ARIADNE_DIFFERENCE_ALGEBRAIC_EQUATION_HPP
 #define ARIADNE_DIFFERENCE_ALGEBRAIC_EQUATION_HPP
 
-#include "system/iterated_map.hpp"
+#include "function/function.hpp"
+#include "symbolic/assignment.hpp"
+#include "symbolic/space.hpp"
 
 namespace Ariadne {
 
@@ -37,8 +39,8 @@ namespace Ariadne {
  *  @details A state update x[n+1] = f(x[n], a[n]) and explicit algebraic
  *  assignments a[n] = g(x[n]) define an autonomous discrete-time model.
  *  Algebraic outputs are assignments, not implicit equations to be solved.
- *  This declaration stores an IteratedMap as its operational representation;
- *  symbolic assignments are retained by that map, without duplication.
+ *  Symbolic assignments and compiled functions are owned directly by
+ *  the equation; no legacy iterated-map wrapper is exposed.
  *  Inputs, time-varying parameters and set-valued updates are not modelled
  *  by this deterministic contract.
  */
@@ -55,29 +57,30 @@ class DifferenceAlgebraicEquation {
     /** @brief Clone this declaration, preserving its explicit assignments. */
     DifferenceAlgebraicEquation* clone() const { return new DifferenceAlgebraicEquation(*this); }
 
-    /** @brief Resulting deterministic iteration operator. */
-    const IteratedMap& iterated_map() const { return _map; }
     /** @brief State update function after substitution of auxiliary outputs. */
-    const EffectiveVectorMultivariateFunction& update_function() const { return _map.update_function(); }
+    const EffectiveVectorMultivariateFunction& update_function() const { return _update_function; }
     /** @brief Alias for the state update function. */
-    const EffectiveVectorMultivariateFunction& function() const { return _map.function(); }
+    const EffectiveVectorMultivariateFunction& function() const { return _update_function; }
     /** @brief Explicit auxiliary output function. */
-    const EffectiveVectorMultivariateFunction& auxiliary_function() const { return _map.auxiliary_function(); }
+    const EffectiveVectorMultivariateFunction& auxiliary_function() const { return _auxiliary_function; }
 
     /** @brief Symbolic next-state assignments. */
-    const List<PrimedRealAssignment>& updates() const { return _map.updates(); }
+    const List<PrimedRealAssignment>& updates() const { return _updates; }
     /** @brief Explicit algebraic assignments, not implicit constraints. */
-    const List<RealAssignment>& auxiliary_assignments() const { return _map.auxiliary_assignments(); }
+    const List<RealAssignment>& auxiliary_assignments() const { return _auxiliary; }
 
-    DimensionType dimension() const { return _map.dimension(); }
-    RealSpace state_space() const { return _map.state_space(); }
-    RealSpace auxiliary_space() const { return _map.auxiliary_space(); }
-    RealSpace state_auxiliary_space() const { return _map.state_auxiliary_space(); }
+    DimensionType dimension() const { return _update_function.result_size(); }
+    RealSpace state_space() const { return RealSpace(left_hand_sides(_updates)); }
+    RealSpace auxiliary_space() const { return RealSpace(left_hand_sides(_auxiliary)); }
+    RealSpace state_auxiliary_space() const { return join(state_space(), auxiliary_space()); }
 
     friend OutputStream& operator<<(OutputStream&, const DifferenceAlgebraicEquation&);
 
   private:
-    IteratedMap _map;
+    List<PrimedRealAssignment> _updates;
+    List<RealAssignment> _auxiliary;
+    EffectiveVectorMultivariateFunction _update_function;
+    EffectiveVectorMultivariateFunction _auxiliary_function;
 };
 
 } // namespace Ariadne

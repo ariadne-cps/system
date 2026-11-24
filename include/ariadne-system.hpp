@@ -37,7 +37,6 @@
 #include "system/hybrid_mode_structure.hpp"
 #include "system/hybrid_mode_registry.hpp"
 #include "system/hybrid_paving.hpp"
-#include "system/iterated_map.hpp"
 #include "system/difference_algebraic_equation.hpp"
 #include "system/difference_algebraic_inclusion.hpp"
 #include "system/discrete_time_hybrid_automaton_interface.hpp"

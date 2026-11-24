@@ -27,16 +27,19 @@
  */
 
 #include "system/difference_algebraic_equation.hpp"
+#include "system/system_function.hpp"
 
 namespace Ariadne {
 
 DifferenceAlgebraicEquation::DifferenceAlgebraicEquation(
     const List<PrimedRealAssignment>& updates)
-    : _map(updates) {}
+    : DifferenceAlgebraicEquation(updates, List<RealAssignment>()) {}
 
 DifferenceAlgebraicEquation::DifferenceAlgebraicEquation(
     const List<PrimedRealAssignment>& updates, const List<RealAssignment>& auxiliary)
-    : _map(updates, auxiliary) {}
+    : _updates(updates), _auxiliary(auxiliary),
+      _update_function(make_reset_function(left_hand_sides(updates), auxiliary, updates)),
+      _auxiliary_function(make_auxiliary_function(left_hand_sides(updates), auxiliary)) {}
 
 OutputStream& operator<<(OutputStream& os, const DifferenceAlgebraicEquation& model) {
     return os << "DifferenceAlgebraicEquation( updates=" << model.updates()

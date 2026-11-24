@@ -150,10 +150,6 @@ const DifferenceAlgebraicInclusion& DiscreteTimeHybridAutomaton::inclusion(Discr
     return this->mode(location).inclusion();
 }
 
-const IteratedMap& DiscreteTimeHybridAutomaton::iterated_map(DiscreteLocation location) const {
-    return this->mode(location).iterated_map();
-}
-
 const EffectiveVectorMultivariateFunction& DiscreteTimeHybridAutomaton::update_function(DiscreteLocation location) const {
     return this->mode(location).update_function();
 }

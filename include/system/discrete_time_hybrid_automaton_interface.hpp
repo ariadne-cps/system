@@ -74,8 +74,6 @@ class DiscreteTimeHybridAutomatonInterface : public HybridAutomatonInterface {
     virtual const DifferenceAlgebraicEquation& equation(DiscreteLocation location) const = 0;
     //! \brief Set-valued declaration; throws for a deterministic mode.
     virtual const DifferenceAlgebraicInclusion& inclusion(DiscreteLocation location) const = 0;
-    //! \brief Operational map for deterministic modes only; never samples an inclusion.
-    virtual const IteratedMap& iterated_map(DiscreteLocation location) const { return equation(location).iterated_map(); }
     //! \brief Source dynamics function; inclusion arguments include free inputs.
     virtual const EffectiveVectorMultivariateFunction& update_function(DiscreteLocation location) const = 0;
     //! \brief Auxiliary output function for either dynamics declaration.

@@ -1,7 +1,7 @@
 # Ariadne System tutorial
 
 Both tutorials construct a hybrid automaton, a continuous-time `OrdinaryDifferentialAlgebraicEquation`,
-a discrete-time `IteratedMap`, and a bounded-input `OrdinaryDifferentialAlgebraicInclusion`.
+a discrete-time `DifferenceAlgebraicEquation`, and a bounded-input `OrdinaryDifferentialAlgebraicInclusion`.
 The C++ tutorial additionally builds a homogeneous two-dimensional
 `FirstOrderPDE` using `FirstOrderPDE::homogeneous()` and `add_direction()`.
 Its model owns its coefficient matrices and source function, instead of

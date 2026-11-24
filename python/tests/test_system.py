@@ -40,11 +40,11 @@ def test_unguarded_transition():
     assert automaton.target(idle, deactivate) == idle
 
 
-def test_odae_and_iterated_map():
-    from pyariadne_system import RealVariable, OrdinaryDifferentialAlgebraicEquation, IteratedMap, dot, next
+def test_odae_and_difference_algebraic_equation():
+    from pyariadne_system import RealVariable, OrdinaryDifferentialAlgebraicEquation, DifferenceAlgebraicEquation, dot, next
     x = RealVariable("x")
     field = OrdinaryDifferentialAlgebraicEquation([dot(x) << -x])
-    mapping = IteratedMap([next(x) << x / 2])
+    mapping = DifferenceAlgebraicEquation([next(x) << x / 2])
     assert field.dimension() == 1
     assert mapping.dimension() == 1
     assert str(field) and str(mapping)
@@ -134,3 +134,5 @@ def test_public_names_have_no_compatibility_aliases():
     assert hasattr(system, "OrdinaryDifferentialAlgebraicInclusion")
     assert not hasattr(system, "VectorField")
     assert not hasattr(system, "DifferentialInclusion")
+    assert hasattr(system, "DifferenceAlgebraicEquation")
+    assert not hasattr(system, "IteratedMap")

@@ -1,5 +1,5 @@
 /***************************************************************************
- *            tests/test_iterated_map.cpp
+ *            tests/test_difference_algebraic_equation.cpp
  *
  *  Copyright  2026  Luca Geretti
  *
@@ -22,42 +22,41 @@
  *  along with Ariadne System. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file tests/test_iterated_map.cpp
- *  @brief Test iterated map construction and auxiliary assignments.
+/** @file tests/test_difference_algebraic_equation.cpp
+ *  @brief Test difference algebraic equation construction and auxiliary assignments.
  */
 
 #include "logging/test_runner.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/space.hpp"
 #include "symbolic/variable.hpp"
-#include "system/iterated_map.hpp"
+#include "system/difference_algebraic_equation.hpp"
 
 #include "ariadne-testing.hpp"
 
 using namespace Ariadne;
 
-class TestIteratedMap : public Ariadne::Testing::ContextFixture {
+class TestDifferenceAlgebraicEquation : public Ariadne::Testing::ContextFixture {
   public:
     using ContextFixture::ContextFixture;
 
-    Void test_iterated_map() {
+    Void test_difference_algebraic_equation() {
         RealVariable x("x"), y("y"), a("a");
         {
-            IteratedMap map(List<PrimedRealAssignment>{prime(x) = x + 1, prime(y) = y});
+            DifferenceAlgebraicEquation map(List<PrimedRealAssignment>{prime(x) = x + 1, prime(y) = y});
             ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 2u);
             ARIADNE_TESTING_PROVE(map.state_space() == RealSpace({x, y}));
             ARIADNE_TESTING_EXPECT_EQUAL(map.auxiliary_space().size(), 0u);
             ARIADNE_TESTING_EXPECT_EQUAL(map.state_auxiliary_space().size(), 2u);
             ARIADNE_TESTING_PROVE(&map.function() == &map.update_function());
-            ARIADNE_TESTING_PROVE(&map.auxiliary_function() == &map.auxiliary_mapping());
-            IteratedMap* copy = map.clone();
+            DifferenceAlgebraicEquation* copy = map.clone();
             ARIADNE_TESTING_PROVE(copy != nullptr);
             ARIADNE_TESTING_EXPECT_EQUAL(copy->dimension(), 2u);
             delete copy;
             ARIADNE_TESTING_NOTE(map);
         }
         {
-            IteratedMap map(List<PrimedRealAssignment>{prime(x) = x + a},
+            DifferenceAlgebraicEquation map(List<PrimedRealAssignment>{prime(x) = x + a},
                             List<RealAssignment>{let(a) = x + 1});
             ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 1u);
             ARIADNE_TESTING_PROVE(map.auxiliary_space() == RealSpace({a}));
@@ -67,7 +66,7 @@ class TestIteratedMap : public Ariadne::Testing::ContextFixture {
         {
             // Chained auxiliary assignments exercise the sorting loop.
             RealVariable b("b");
-            IteratedMap map(List<PrimedRealAssignment>{prime(x) = x + a},
+            DifferenceAlgebraicEquation map(List<PrimedRealAssignment>{prime(x) = x + a},
                             List<RealAssignment>{let(a) = x, let(b) = a + 1});
             ARIADNE_TESTING_EXPECT_EQUAL(map.dimension(), 1u);
             ARIADNE_TESTING_EXPECT_EQUAL(map.auxiliary_space().size(), 2u);
@@ -78,7 +77,7 @@ class TestIteratedMap : public Ariadne::Testing::ContextFixture {
 };
 
 int main(int argc, char** argv) {
-    ARIADNE_TESTING_SUITE("test_iterated_map");
-    ARIADNE_TESTING_ADD_TEST(TestIteratedMap, test_iterated_map);
+    ARIADNE_TESTING_SUITE("test_difference_algebraic_equation");
+    ARIADNE_TESTING_ADD_TEST(TestDifferenceAlgebraicEquation, test_difference_algebraic_equation);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

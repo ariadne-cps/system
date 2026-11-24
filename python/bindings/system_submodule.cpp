@@ -31,7 +31,7 @@
 #include "pybind11.hpp"
 #include "system/discrete_event.hpp"
 #include "system/continuous_time_hybrid_automaton.hpp"
-#include "system/iterated_map.hpp"
+#include "system/difference_algebraic_equation.hpp"
 #include "system/odae.hpp"
 #include "system/odai.hpp"
 
@@ -166,10 +166,19 @@ void system_submodule(pybind11::module& module) {
     odae_class.def("dimension", &OrdinaryDifferentialAlgebraicEquation::dimension);
     odae_class.def("__str__", &__cstr__<OrdinaryDifferentialAlgebraicEquation>);
 
-    pybind11::class_<IteratedMap> iterated_map_class(module, "IteratedMap");
-    iterated_map_class.def(pybind11::init([](const std::vector<PrimedRealAssignment>& updates) {
-        return IteratedMap(List<PrimedRealAssignment>(updates));
+    pybind11::class_<DifferenceAlgebraicEquation> difference_equation_class(module, "DifferenceAlgebraicEquation");
+    difference_equation_class.def(pybind11::init([](const std::vector<PrimedRealAssignment>& updates) {
+        return DifferenceAlgebraicEquation(List<PrimedRealAssignment>(updates));
     }));
-    iterated_map_class.def("dimension", &IteratedMap::dimension);
-    iterated_map_class.def("__str__", &__cstr__<IteratedMap>);
+    difference_equation_class.def(pybind11::init([](const std::vector<PrimedRealAssignment>& updates,
+                                                   const std::vector<RealAssignment>& auxiliary) {
+        return DifferenceAlgebraicEquation(List<PrimedRealAssignment>(updates),
+                                            List<RealAssignment>(auxiliary));
+    }));
+    difference_equation_class.def("dimension", &DifferenceAlgebraicEquation::dimension);
+    difference_equation_class.def("state_space", &DifferenceAlgebraicEquation::state_space);
+    difference_equation_class.def("auxiliary_space", &DifferenceAlgebraicEquation::auxiliary_space);
+    difference_equation_class.def("function", &DifferenceAlgebraicEquation::function,
+                                  pybind11::return_value_policy::copy);
+    difference_equation_class.def("__str__", &__cstr__<DifferenceAlgebraicEquation>);
 }

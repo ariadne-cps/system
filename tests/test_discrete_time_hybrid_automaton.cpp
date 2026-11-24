@@ -60,7 +60,7 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         ARIADNE_TESTING_PROVE(system.has_mode(second));
         ARIADNE_TESTING_EXPECT_EQUAL(system.dimension(first), 1u);
         ARIADNE_TESTING_PROVE(system.equation(first).state_space() == RealSpace({x}));
-        ARIADNE_TESTING_PROVE(&system.iterated_map(first) == &system.equation(first).iterated_map());
+        ARIADNE_TESTING_PROVE(&system.update_function(first) == &system.equation(first).update_function());
         ARIADNE_TESTING_PROVE(system.state_space(first) == RealSpace({x}));
         ARIADNE_TESTING_PROVE(system.events(first).empty());
         ARIADNE_TESTING_PROVE(!system.has_transition(first, DiscreteEvent("absent")));
@@ -87,9 +87,9 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         ARIADNE_TESTING_EXPECT_EQUAL(system.equation(location).updates().size(), 1u);
         ARIADNE_TESTING_EXPECT_EQUAL(system.equation(location).auxiliary_assignments().size(), 1u);
         ARIADNE_TESTING_PROVE(&system.equation(location).update_function() ==
-                             &system.iterated_map(location).update_function());
+                             &system.update_function(location));
         ARIADNE_TESTING_PROVE(&system.equation(location).auxiliary_function() ==
-                             &system.iterated_map(location).auxiliary_function());
+                             &system.auxiliary_function(location));
 
         std::unique_ptr<DiscreteTimeHybridAutomaton> copied(system.clone());
         ARIADNE_TESTING_PROVE(copied->equation(location).auxiliary_space() == RealSpace({a}));
@@ -124,14 +124,13 @@ class TestDiscreteTimeHybridAutomaton : public Ariadne::Testing::ContextFixture 
         ARIADNE_TESTING_EXPECT_EQUAL(automaton.update_function(set_valued).argument_size(), 2u);
         ARIADNE_TESTING_EXPECT_EQUAL(automaton.auxiliary_function(set_valued).result_size(), 1u);
         ARIADNE_TESTING_PROVE(&automaton.update_function(deterministic) ==
-                             &automaton.iterated_map(deterministic).update_function());
+                             &automaton.equation(deterministic).update_function());
         ARIADNE_TESTING_PROVE(&automaton.update_function(set_valued) ==
                              &automaton.inclusion(set_valued).update_function());
 
         // Wrong-family access must fail rather than select or freeze an input.
         ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.equation(set_valued));
         ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.inclusion(deterministic));
-        ARIADNE_TESTING_EXPECT_THROWS(std::logic_error, automaton.iterated_map(set_valued));
         ARIADNE_TESTING_EXPECT_THROWS(std::invalid_argument, automaton.new_mode(deterministic, inclusion));
 
         // Both directions of a mixed transition graph have unchanged

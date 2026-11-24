@@ -94,11 +94,11 @@ int main() {
     OrdinaryDifferentialAlgebraicEquation decay(dynamics);
     List<PrimedRealAssignment> updates;
     updates.append(next(x) = x / 2);
-    IteratedMap contraction(updates);
+    DifferenceAlgebraicEquation contraction(updates);
     assert(decay.dimension() == 1u);
     assert(contraction.dimension() == 1u);
     std::cout << "vector field: " << decay << "\n";
-    std::cout << "iterated map: " << contraction << "\n";
+    std::cout << "difference equation: " << contraction << "\n";
     section("Differential inclusion with bounded input");
     RealVariable u("u");
     DottedRealAssignments uncertain_dynamics = {dot(x) = -x + u};

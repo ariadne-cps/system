@@ -2,7 +2,7 @@
 """The same two-mode system as tutorial_system.cpp, using pyariadne_system."""
 
 from pyariadne_system import (DiscreteEvent, DiscreteLocation, ContinuousTimeHybridAutomaton,
-                       RealVariable, OrdinaryDifferentialAlgebraicEquation, IteratedMap, OrdinaryDifferentialAlgebraicInclusion,
+                       RealVariable, OrdinaryDifferentialAlgebraicEquation, DifferenceAlgebraicEquation, OrdinaryDifferentialAlgebraicInclusion,
                        RealVariablesBox, dot, next)
 
 
@@ -54,11 +54,11 @@ def tutorial_system():
     section("Continuous and discrete-time systems")
     x = RealVariable("x")
     decay = OrdinaryDifferentialAlgebraicEquation([dot(x) << -x])
-    contraction = IteratedMap([next(x) << x / 2])
+    contraction = DifferenceAlgebraicEquation([next(x) << x / 2])
     assert decay.dimension() == 1
     assert contraction.dimension() == 1
     print(f"vector field: {decay}")
-    print(f"iterated map: {contraction}")
+    print(f"difference equation: {contraction}")
 
     section("Differential inclusion with bounded input")
     u = RealVariable("u")

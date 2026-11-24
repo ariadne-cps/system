@@ -1,7 +1,7 @@
 include(CTest)
 set(UNIT_TESTS
     test_discrete_event
-    test_iterated_map
+    test_difference_algebraic_equation
     test_discrete_time_hybrid_automaton
     test_difference_algebraic_inclusion
     test_odae

@@ -34,7 +34,7 @@
 #include "symbolic/expression.hpp"
 #include "symbolic/valuation.hpp"
 #include "system/hybrid_automata.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 
 #include "ariadne-testing.hpp"
 
@@ -60,14 +60,14 @@ class TestHybridAutomaton : public Ariadne::Testing::ContextFixture {
     Void test_static_analysis();
 
   private:
-    CompositeHybridAutomaton _system;
-    HybridAutomaton _get_tank();
-    HybridAutomaton _get_valve();
-    HybridAutomaton _get_controller();
+    CompositeContinuousTimeHybridAutomaton _system;
+    ContinuousTimeHybridAutomaton _get_tank();
+    ContinuousTimeHybridAutomaton _get_valve();
+    ContinuousTimeHybridAutomaton _get_controller();
 };
 
 Void TestHybridAutomaton::test_distinct_modes() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     StringVariable q1("q1");
     StringVariable q2("q2");
     ARIADNE_TESTING_EXPECT_NO_THROW(system.new_mode(q1 | "s1"));
@@ -80,7 +80,7 @@ Void TestHybridAutomaton::test_overspecified_location() {
     StringVariable q2("q2");
     StringVariable q3("q3");
 
-    HybridAutomaton system1;
+    ContinuousTimeHybridAutomaton system1;
     ARIADNE_TESTING_EXPECT_NO_THROW(system1.new_mode(q1 | "s1"));
     DiscreteLocation loc1({q1 | "s1"});
     ARIADNE_TESTING_PROVE(system1.has_mode(loc1));
@@ -91,9 +91,9 @@ Void TestHybridAutomaton::test_overspecified_location() {
     ARIADNE_TESTING_PROVE(system1.has_partial_mode(loc1e));
     ARIADNE_TESTING_NOTE(system1.mode(loc1e));
 
-    HybridAutomaton system2;
+    ContinuousTimeHybridAutomaton system2;
     ARIADNE_TESTING_EXPECT_NO_THROW(system2.new_mode(q2 | "s2"));
-    CompositeHybridAutomaton system({system1, system2});
+    CompositeContinuousTimeHybridAutomaton system({system1, system2});
     DiscreteLocation loc({q1 | "s1", q2 | "s2"});
     ARIADNE_TESTING_PROVE(system.has_mode(loc));
     ARIADNE_TESTING_PROVE(system.has_partial_mode(loc));
@@ -105,7 +105,7 @@ Void TestHybridAutomaton::test_overspecified_location() {
 }
 
 Void TestHybridAutomaton::test_overspecified_dynamic() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     RealVariable x("x");
     RealVariable y("y");
     ARIADNE_TESTING_EXPECT_NO_THROW(system.new_mode({let(x) = y}, {dot(y) = x}));
@@ -115,18 +115,18 @@ Void TestHybridAutomaton::test_overspecified_dynamic() {
 }
 
 Void TestHybridAutomaton::test_algebraic_loops() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     RealVariable x("x");
     RealVariable y("y");
     RealVariable z("z");
-    ARIADNE_TESTING_EXPECT_THROWS(AlgebraicLoopError, HybridAutomaton().new_mode({let(x) = y + 1, let(y) = x}));
-    ARIADNE_TESTING_EXPECT_THROWS(AlgebraicLoopError, HybridAutomaton().new_mode({let(x) = 2 * x + 1}));
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode({let(x) = y, let(y) = z}));
-    ARIADNE_TESTING_EXPECT_NO_THROW(HybridAutomaton().new_mode({let(x) = y, let(y) = z}, {dot(z) = x + y + z}));
+    ARIADNE_TESTING_EXPECT_THROWS(AlgebraicLoopError, ContinuousTimeHybridAutomaton().new_mode({let(x) = y + 1, let(y) = x}));
+    ARIADNE_TESTING_EXPECT_THROWS(AlgebraicLoopError, ContinuousTimeHybridAutomaton().new_mode({let(x) = 2 * x + 1}));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode({let(x) = y, let(y) = z}));
+    ARIADNE_TESTING_EXPECT_NO_THROW(ContinuousTimeHybridAutomaton().new_mode({let(x) = y, let(y) = z}, {dot(z) = x + y + z}));
 }
 
 Void TestHybridAutomaton::test_nonexistent_mode() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     StringVariable q("q");
     StringVariable r("r");
     DiscreteEvent e("e");
@@ -143,7 +143,7 @@ Void TestHybridAutomaton::test_nonexistent_mode() {
 }
 
 Void TestHybridAutomaton::test_multiple_guard() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     DiscreteLocation q1(1);
     DiscreteLocation q2(2);
     DiscreteEvent e1("e1");
@@ -160,7 +160,7 @@ Void TestHybridAutomaton::test_multiple_guard() {
 }
 
 Void TestHybridAutomaton::test_multiple_transition() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     DiscreteLocation q1(1);
     DiscreteLocation q2(2);
     DiscreteEvent e1("e1");
@@ -175,7 +175,7 @@ Void TestHybridAutomaton::test_multiple_transition() {
 }
 
 Void TestHybridAutomaton::test_overspecified_reset() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     DiscreteLocation q1(1);
     DiscreteEvent e1("e1");
     DiscreteEvent e2("e2");
@@ -194,7 +194,7 @@ Void TestHybridAutomaton::test_overspecified_reset() {
 }
 
 Void TestHybridAutomaton::test_underspecified_mode() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     DiscreteLocation qs(0);
     DiscreteLocation q1(1);
     DiscreteLocation q2(2);
@@ -228,7 +228,7 @@ Void TestHybridAutomaton::test_underspecified_mode() {
 }
 
 Void TestHybridAutomaton::test_underspecified_reset() {
-    HybridAutomaton system;
+    ContinuousTimeHybridAutomaton system;
     StringVariable q("q");
     DiscreteLocation q1(q | "1");
     DiscreteLocation q2(q | "2");
@@ -251,14 +251,14 @@ Void TestHybridAutomaton::test_underspecified_reset() {
     ARIADNE_TESTING_EXPECT_THROWS(UnderspecifiedDynamicError, system.check_mode(q3));
 }
 
-HybridAutomaton TestHybridAutomaton::_get_tank() {
+ContinuousTimeHybridAutomaton TestHybridAutomaton::_get_tank() {
     RealConstant alpha("alpha", 0.02_decimal);
     RealConstant beta("beta", 0.3_decimal);
 
     RealVariable aperture("aperture");
     RealVariable height("height");
 
-    HybridAutomaton automaton("tank");
+    ContinuousTimeHybridAutomaton automaton("tank");
 
     DiscreteLocation flow;
 
@@ -269,7 +269,7 @@ HybridAutomaton TestHybridAutomaton::_get_tank() {
     return automaton;
 }
 
-HybridAutomaton TestHybridAutomaton::_get_valve() {
+ContinuousTimeHybridAutomaton TestHybridAutomaton::_get_valve() {
     RealConstant T("T", 4);
 
     RealVariable aperture("aperture");
@@ -281,7 +281,7 @@ HybridAutomaton TestHybridAutomaton::_get_valve() {
 
     StringVariable valve("valve");
 
-    HybridAutomaton automaton(valve.name());
+    ContinuousTimeHybridAutomaton automaton(valve.name());
 
     DiscreteLocation opening(valve | "opening");
     DiscreteLocation closed(valve | "closed");
@@ -303,7 +303,7 @@ HybridAutomaton TestHybridAutomaton::_get_valve() {
     return automaton;
 }
 
-HybridAutomaton TestHybridAutomaton::_get_controller() {
+ContinuousTimeHybridAutomaton TestHybridAutomaton::_get_controller() {
     RealConstant hmin("hmin", 5.75_decimal);
     RealConstant hmax("hmax", 7.75_decimal);
     RealConstant delta("delta", 0.02_decimal);
@@ -317,7 +317,7 @@ HybridAutomaton TestHybridAutomaton::_get_controller() {
 
     StringVariable controller("controller");
 
-    HybridAutomaton automaton(controller.name());
+    ContinuousTimeHybridAutomaton automaton(controller.name());
 
     DiscreteLocation rising(controller | "rising");
     DiscreteLocation falling(controller | "falling");
@@ -335,7 +335,7 @@ HybridAutomaton TestHybridAutomaton::_get_controller() {
 }
 
 Void TestHybridAutomaton::test_build_hybrid_system() {
-    CompositeHybridAutomaton watertank_system("watertank", {_get_tank(), _get_valve(), _get_controller()});
+    CompositeContinuousTimeHybridAutomaton watertank_system("watertank", {_get_tank(), _get_valve(), _get_controller()});
     std::cout << "watertank_system:\n"
               << watertank_system << "\n";
     ARIADNE_TESTING_EXPECT_EQUAL(watertank_system.number_of_components(), 3);
@@ -345,15 +345,15 @@ Void TestHybridAutomaton::test_build_hybrid_system() {
 Void TestHybridAutomaton::test_static_analysis() {
     // The original test inherited this state from a preceding case.
     // Rebuild it in this fixture so the analysis remains independent.
-    _system = CompositeHybridAutomaton("watertank", {_get_tank(), _get_valve(), _get_controller()});
+    _system = CompositeContinuousTimeHybridAutomaton("watertank", {_get_tank(), _get_valve(), _get_controller()});
     StringVariable valve("valve"), controller("controller");
     DiscreteLocation valve_opening_controller_rising = {valve | "opening", controller | "rising"};
 
     ARIADNE_TESTING_NOTE(_system.mode(valve_opening_controller_rising));
 
-    const HybridAutomaton& tank_automaton = _system.component(0);
-    const HybridAutomaton& valve_automaton = _system.component(1);
-    const HybridAutomaton& controller_automaton = _system.component(2);
+    const ContinuousTimeHybridAutomaton& tank_automaton = _system.component(0);
+    const ContinuousTimeHybridAutomaton& valve_automaton = _system.component(1);
+    const ContinuousTimeHybridAutomaton& controller_automaton = _system.component(2);
     ARIADNE_TESTING_NOTE(tank_automaton);
     ARIADNE_TESTING_NOTE(valve_automaton);
     ARIADNE_TESTING_NOTE(controller_automaton);

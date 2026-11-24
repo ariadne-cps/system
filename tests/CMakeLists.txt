@@ -1,14 +1,17 @@
 include(CTest)
 set(UNIT_TESTS
     test_discrete_event
-    test_iterated_map
-    test_vector_field
+    test_difference_algebraic_equation
+    test_discrete_time_hybrid_automaton
+    test_difference_algebraic_inclusion
+    test_odae
     test_hybrid_automaton
+    test_hybrid_mode_structure
     test_hybrid_automaton_api
     test_hybrid_automaton_composite
     test_hybrid_paving
-    test_differential_inclusion
-    test_differential_inclusion_grid
+    test_odai
+    test_odai_grid
     test_first_order_pde
     test_first_order_pde_model
     test_first_order_pde_model_header

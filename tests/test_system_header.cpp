@@ -26,11 +26,22 @@
  *  @brief Test system header behavior.
  */
 
+#include <type_traits>
+
 #include "logging/test_runner.hpp"
 
 #include "ariadne-system.hpp"
 #include "ariadne-testing.hpp"
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::ContinuousTimeHybridAutomatonInterface>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::ContinuousTimeHybridAutomaton>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::CompositeContinuousTimeHybridAutomaton>);
+static_assert(std::is_base_of_v<Ariadne::HybridAutomatonInterface, Ariadne::DiscreteTimeHybridAutomatonInterface>);
+static_assert(std::is_base_of_v<Ariadne::DiscreteTimeHybridAutomatonInterface, Ariadne::DiscreteTimeHybridAutomaton>);
 static_assert(sizeof(Ariadne::NeuralValidatedEvaluator) > 0);
+static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicEquation) > 0);
+static_assert(sizeof(Ariadne::DifferenceAlgebraicEquation) > 0);
+static_assert(sizeof(Ariadne::DifferenceAlgebraicInclusion) > 0);
+static_assert(sizeof(Ariadne::OrdinaryDifferentialAlgebraicInclusion) > 0);
 class TestSystemHeader : public Ariadne::Testing::ContextFixture {
   public:
     using ContextFixture::ContextFixture;

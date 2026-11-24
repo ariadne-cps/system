@@ -31,12 +31,12 @@
 
 #include "function/functional.hpp"
 #include "paving/binary_tree_paving.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 
 namespace Ariadne {
 
 HybridPaving extend_auxiliary(const HybridPaving& hybrid_paving,
-                              const HybridAutomatonInterface& hybrid_automaton) {
+                              const ContinuousTimeHybridAutomatonInterface& hybrid_automaton) {
     HybridGrid hybrid_state_grid = hybrid_paving.grid();
     HybridSpace hybrid_state_space = hybrid_state_grid.space();
     HybridScalings scalings = hybrid_state_grid.scalings();

@@ -1,5 +1,5 @@
 /***************************************************************************
- *            hybrid/hybrid_automaton.hpp
+ *            hybrid/continuous_time_hybrid_automaton.hpp
  *
  *  Copyright  2004-20  Alberto Casagrande, Pieter Collins
  *
@@ -22,15 +22,16 @@
  *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file system/hybrid_automaton.hpp
+/** @file system/continuous_time_hybrid_automaton.hpp
  *  @brief Hybrid automata, discrete modes, and transitions.
  */
 
-#ifndef ARIADNE_HYBRID_AUTOMATON_HPP
-#define ARIADNE_HYBRID_AUTOMATON_HPP
+#ifndef ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
+#define ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -41,7 +42,9 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "system/discrete_event.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/hybrid_mode_registry.hpp"
+#include "system/hybrid_mode_structure.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 
 namespace Ariadne {
 
@@ -52,35 +55,34 @@ class HybridSpace;
 
 /** @brief DiscreteLocation for hybrid automata, discrete modes, and transitions. */
 class DiscreteLocation;
-/** @brief DiscreteMode for hybrid automata, discrete modes, and transitions. */
-class DiscreteMode;
-/** @brief HybridAutomaton for hybrid automata, discrete modes, and transitions. */
-class HybridAutomaton;
+/** @brief ContinuousTimeHybridMode for hybrid automata, discrete modes, and transitions. */
+class ContinuousTimeHybridMode;
+/** @brief ContinuousTimeHybridAutomaton for hybrid automata, discrete modes, and transitions. */
+class ContinuousTimeHybridAutomaton;
 
-//! \related HybridAutomaton
+//! \related ContinuousTimeHybridAutomaton
 //! \brief A discrete mode of a hybrid automaton, comprising continuous evolution given by a vector field
 //! within and invariant constraint set.
 //!
-//! A %DiscreteMode can only be created using the new_mode() method in
-//! the %HybridAutomaton class.
+//! A %ContinuousTimeHybridMode can only be created using the new_mode() method in
+//! the %ContinuousTimeHybridAutomaton class.
 //!
-//! \sa \ref HybridAutomaton
-class DiscreteMode {
-    friend class HybridAutomaton;
-    friend class CompositeHybridAutomaton;
-    friend class CompactDiscreteModeWriter;
-    friend class VerboseDiscreteModeWriter;
+//! \sa \ref ContinuousTimeHybridAutomaton
+class ContinuousTimeHybridMode : public HybridModeStructure {
+    friend class ContinuousTimeHybridAutomaton;
+    friend class CompositeContinuousTimeHybridAutomaton;
+    friend class CompactContinuousTimeHybridModeWriter;
+    friend class VerboseContinuousTimeHybridModeWriter;
 
   private:
-    // The discrete mode's discrete state.
-    DiscreteLocation _location;
-
     // The algebraic equations
     List<RealAssignment> _auxiliary;
     mutable List<RealAssignment> _sorted_auxiliary;
 
     // The algebraic equations
     List<DottedRealAssignment> _dynamic;
+    std::shared_ptr<const OrdinaryDifferentialAlgebraicEquation> _equation;
+    std::shared_ptr<const OrdinaryDifferentialAlgebraicInclusion> _inclusion;
 
     // The discrete mode's invariants.
     Map<DiscreteEvent, ContinuousPredicate> _invariants;
@@ -91,50 +93,46 @@ class DiscreteMode {
     // The kind of each event
     Map<DiscreteEvent, EventKind> _kinds;
 
-    // The target locations for the discrete transitions.
-    Map<DiscreteEvent, DiscreteLocation> _targets;
-
     // The update assignments for the doscrete transitions.
     Map<DiscreteEvent, List<PrimedRealAssignment> > _resets;
 
   private:
     /** @brief Construct the object. */
-    DiscreteMode(DiscreteLocation, const List<RealAssignment>&, const List<DottedRealAssignment>&);
+    ContinuousTimeHybridMode(DiscreteLocation, const List<RealAssignment>&, const List<DottedRealAssignment>&);
     /** @brief Construct the object. */
-    DiscreteMode();
-    static Writer<DiscreteMode> _default_writer;
+    ContinuousTimeHybridMode();
+    static Writer<ContinuousTimeHybridMode> _default_writer;
 
   public:
     /** @brief Perform the system operation. */
-    static Void set_default_writer(Writer<DiscreteMode> w) { _default_writer = w; }
+    static Void set_default_writer(Writer<ContinuousTimeHybridMode> w) { _default_writer = w; }
     /** @brief Perform the system operation. */
-    static Writer<DiscreteMode> default_writer() { return _default_writer; }
+    static Writer<ContinuousTimeHybridMode> default_writer() { return _default_writer; }
 
   public:
     //! \brief The mode's discrete state.
-    DiscreteLocation location() const { return this->_location; }
 
     //! \brief Write to an output stream.
     OutputStream& _write(OutputStream& os) const;
 };
 
-inline OutputStream& operator<<(OutputStream& os, const DiscreteMode& dm) {
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridMode& dm) {
     return dm._write(os);
 }
 
-/** @brief CompactDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
-class CompactDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+/** @brief CompactContinuousTimeHybridModeWriter for hybrid automata, discrete modes, and transitions. */
+class CompactContinuousTimeHybridModeWriter : public WriterInterface<ContinuousTimeHybridMode> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const DiscreteMode& m) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridMode& m) const final override;
 };
 
-/** @brief VerboseDiscreteModeWriter for hybrid automata, discrete modes, and transitions. */
-class VerboseDiscreteModeWriter : public WriterInterface<DiscreteMode> {
+/** @brief VerboseContinuousTimeHybridModeWriter for hybrid automata, discrete modes, and transitions. */
+class VerboseContinuousTimeHybridModeWriter : public WriterInterface<ContinuousTimeHybridMode> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const DiscreteMode& m) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridMode& m) const final override;
 };
 
-inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
+inline Bool operator<(const ContinuousTimeHybridMode& mode1, const ContinuousTimeHybridMode& mode2) {
     return mode1.location() < mode2.location();
 }
 
@@ -151,8 +149,8 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! is the <em>continuous state space</em> of corresponding to
 //! each discrete state.
 //!
-//! For each %DiscreteMode, the dynamics is given by a
-//! %VectorField describing the continuous dynamics,
+//! For each %ContinuousTimeHybridMode, the dynamics is given by a
+//! %OrdinaryDifferentialAlgebraicEquation describing the continuous dynamics,
 //! and a %Set giving an invariants which must be satisified at
 //! all times.
 //!
@@ -170,17 +168,17 @@ inline Bool operator<(const DiscreteMode& mode1, const DiscreteMode& mode2) {
 //! elsewhere, even if this is permissive.
 //!
 //!
-//! \sa \ref DiscreteMode, \ref CompositeHybridAutomaton
-class HybridAutomaton
-    : public HybridAutomatonInterface {
-    friend class CompositeHybridAutomaton;
-    static Writer<HybridAutomaton> _default_writer;
+//! \sa \ref ContinuousTimeHybridMode, \ref CompositeContinuousTimeHybridAutomaton
+class ContinuousTimeHybridAutomaton
+    : public ContinuousTimeHybridAutomatonInterface, protected HybridModeRegistry<ContinuousTimeHybridMode> {
+    friend class CompositeContinuousTimeHybridAutomaton;
+    static Writer<ContinuousTimeHybridAutomaton> _default_writer;
 
   public:
     /** @brief Perform the system operation. */
-    static Void set_default_writer(Writer<HybridAutomaton> w) { _default_writer = w; }
+    static Void set_default_writer(Writer<ContinuousTimeHybridAutomaton> w) { _default_writer = w; }
     /** @brief Perform the system operation. */
-    static Writer<HybridAutomaton> default_writer() { return _default_writer; }
+    static Writer<ContinuousTimeHybridAutomaton> default_writer() { return _default_writer; }
 
   public:
     //! \brief The type used to represent time.
@@ -193,8 +191,6 @@ class HybridAutomaton
   protected:
     //! \brief The automaton name.
     Identifier _name;
-    //! \brief The list of the hybrid automaton's discrete modes.
-    Map<DiscreteLocation, DiscreteMode> _modes;
 
   protected:
     Void _new_mode(DiscreteLocation location,
@@ -233,21 +229,21 @@ class HybridAutomaton
     //! \name Constructors and destructors
 
     //! \brief Default constructor with "system" name.
-    HybridAutomaton();
+    ContinuousTimeHybridAutomaton();
 
     //! \brief Construct an empty automaton with the given name
-    HybridAutomaton(Identifier name);
+    ContinuousTimeHybridAutomaton(Identifier name);
 
     //! \brief Construct an empty automaton with the given name
-    HybridAutomaton(
+    ContinuousTimeHybridAutomaton(
         Identifier name,
         const List<StringVariable>& discrete_variables);
 
     //! \brief Construct dynamically-allocated copy. (Not currently implemented)
-    HybridAutomaton* clone() const { return new HybridAutomaton(*this); }
+    ContinuousTimeHybridAutomaton* clone() const { return new ContinuousTimeHybridAutomaton(*this); }
 
     //! \brief Destructor.
-    virtual ~HybridAutomaton() = default;
+    virtual ~ContinuousTimeHybridAutomaton() = default;
     //!@}
 
     //!@{
@@ -290,6 +286,13 @@ class HybridAutomaton
         /** @brief Perform the system operation. */
         this->_new_mode(location, List<RealAssignment>(), List<DottedRealAssignment>());
     }
+
+    /** @brief Declare a mode from an owned copy of its original ordinary dynamics.
+     *  Time, fixed parameters and free inputs retain their declared roles.
+     *  Guards and resets continue to use state and auxiliary variables only.
+     */
+    Void new_mode(DiscreteLocation, const OrdinaryDifferentialAlgebraicEquation&);
+    Void new_mode(DiscreteLocation, const OrdinaryDifferentialAlgebraicInclusion&);
 
     //! \brief Adds a discrete mode to the automaton.
     Void new_mode(const List<RealAssignment>& auxiliary, const List<DottedRealAssignment>& dynamic) {
@@ -350,7 +353,7 @@ class HybridAutomaton
                        const ContinuousPredicate& invariant,
                        DiscreteEvent event) {
         /** @brief Return the requested system property. */
-        DiscreteMode& mode = this->_modes.value(location);
+        ContinuousTimeHybridMode& mode = this->_modes.value(location);
         mode._invariants[event] = invariant;
         mode._kinds[event] = EventKind::INVARIANT;
     }
@@ -369,7 +372,7 @@ class HybridAutomaton
                    const ContinuousPredicate& guard,
                    EventKind kind) {
         /** @brief Return the requested system property. */
-        DiscreteMode& mode = this->_modes.value(location);
+        ContinuousTimeHybridMode& mode = this->_modes.value(location);
         mode._guards[event] = guard;
         mode._kinds[event] = kind;
     }
@@ -499,7 +502,7 @@ class HybridAutomaton
     const Identifier& name() const { return _name; }
 
     //! \brief The modes of the automaton.
-    const Map<DiscreteLocation, DiscreteMode>& modes() const;
+    const Map<DiscreteLocation, ContinuousTimeHybridMode>& modes() const;
 
     //! \brief The set of discrete locations.
     Set<DiscreteLocation> locations() const;
@@ -508,9 +511,9 @@ class HybridAutomaton
     Bool has_location(DiscreteLocation location) const;
 
     //! \brief The discrete mode with given discrete state.
-    const DiscreteMode& mode(DiscreteLocation location) const;
+    const ContinuousTimeHybridMode& mode(DiscreteLocation location) const;
     /** @brief Return the requested system property. */
-    DiscreteMode& mode(DiscreteLocation location);
+    ContinuousTimeHybridMode& mode(DiscreteLocation location);
 
     //! \brief Checks validity of the mode for the given \a location.
     //! Only checks for underspecified dynamics; overspecification is determined at build-time.
@@ -550,7 +553,7 @@ class HybridAutomaton
     //!@}
 
     //!@{
-    //! \name Functions for conformance to HybridAutomatonInterface
+    //! \name Functions for conformance to ContinuousTimeHybridAutomatonInterface
 
     //! \brief The continuous state space for each location.
     virtual HybridSpace state_space() const;
@@ -583,8 +586,11 @@ class HybridAutomaton
 
     //! \brief The function outputting the auxiliary variables \f$y=h(x)\f$ in the location.
     virtual EffectiveVectorMultivariateFunction auxiliary_function(DiscreteLocation location) const;
-    //! \brief The function outputting the differential equations \f$\dt{x}=f(x)\f$ in the location.
+    //! \brief The function outputting the differential equations over continuous_argument_space() in the location.
     virtual EffectiveVectorMultivariateFunction dynamic_function(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
+    virtual std::optional<RealVariable> time_variable(DiscreteLocation location) const;
     //! \brief The invariant function \f$i(x)\leq 0\f$ corresponding to the given event.
     virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const;
     //! \brief The guard function \f$g(x)\geq 0\f$ corresponding to the given event.
@@ -598,22 +604,22 @@ class HybridAutomaton
     OutputStream& _write(OutputStream&) const;
 };
 
-inline OutputStream& operator<<(OutputStream& os, const HybridAutomaton& ha) {
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) {
     return ha._write(os);
 }
 
 /** @brief CompactHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
-class CompactHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+class CompactHybridAutomatonWriter : public WriterInterface<ContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const HybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 /** @brief VerboseHybridAutomatonWriter for hybrid automata, discrete modes, and transitions. */
-class VerboseHybridAutomatonWriter : public WriterInterface<HybridAutomaton> {
+class VerboseHybridAutomatonWriter : public WriterInterface<ContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const HybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const ContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 } // namespace Ariadne
 
-#endif // ARIADNE_HYBRID_AUTOMATON_HPP
+#endif // ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP

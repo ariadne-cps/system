@@ -1,5 +1,5 @@
 /***************************************************************************
- *            hybrid_automaton-composite.hpp
+ *            composite_continuous_time_hybrid_automaton.hpp
  *
  *  Copyright  2004-20  Alberto Casagrande, Pieter Collins
  *
@@ -22,12 +22,12 @@
  *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file system/hybrid_automaton-composite.hpp
+/** @file system/composite_continuous_time_hybrid_automaton.hpp
  *  @brief Composition of hybrid automata.
  */
 
-#ifndef ARIADNE_COMPOSITE_HYBRID_AUTOMATON_HPP
-#define ARIADNE_COMPOSITE_HYBRID_AUTOMATON_HPP
+#ifndef ARIADNE_COMPOSITE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
+#define ARIADNE_COMPOSITE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP
 
 #include <iostream>
 #include <map>
@@ -41,8 +41,8 @@
 #include "symbolic/assignment.hpp"
 #include "symbolic/expression.hpp"
 #include "system/discrete_event.hpp"
-#include "system/hybrid_automaton.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 #include "utility/lru_cache.hpp"
 
 namespace Ariadne {
@@ -54,54 +54,54 @@ class HybridSpace;
 
 /** @brief DiscreteLocation for composition of hybrid automata. */
 class DiscreteLocation;
-/** @brief DiscreteMode for composition of hybrid automata. */
-class DiscreteMode;
-/** @brief HybridAutomaton for composition of hybrid automata. */
-class HybridAutomaton;
-/** @brief CompositeHybridAutomaton for composition of hybrid automata. */
-class CompositeHybridAutomaton;
+/** @brief ContinuousTimeHybridMode for composition of hybrid automata. */
+class ContinuousTimeHybridMode;
+/** @brief ContinuousTimeHybridAutomaton for composition of hybrid automata. */
+class ContinuousTimeHybridAutomaton;
+/** @brief CompositeContinuousTimeHybridAutomaton for composition of hybrid automata. */
+class CompositeContinuousTimeHybridAutomaton;
 
 //! \ingroup SystemModule
 //! \ingroup HybridAutomataSubModule
-//! \brief A hybrid automaton, formed by running a finite number of HybridAutomaton classes in parallel.
+//! \brief A hybrid automaton, formed by running a finite number of ContinuousTimeHybridAutomaton classes in parallel.
 //!
-//! \sa \ref HybridAutomaton
-class CompositeHybridAutomaton
-    : public HybridAutomatonInterface {
-    static Writer<CompositeHybridAutomaton> _default_writer;
+//! \sa \ref ContinuousTimeHybridAutomaton
+class CompositeContinuousTimeHybridAutomaton
+    : public ContinuousTimeHybridAutomatonInterface {
+    static Writer<CompositeContinuousTimeHybridAutomaton> _default_writer;
 
   public:
     /** @brief Perform the system operation. */
-    static Void set_default_writer(Writer<CompositeHybridAutomaton> w) { _default_writer = w; }
+    static Void set_default_writer(Writer<CompositeContinuousTimeHybridAutomaton> w) { _default_writer = w; }
     /** @brief Perform the system operation. */
-    static Writer<CompositeHybridAutomaton> default_writer() { return _default_writer; }
+    static Writer<CompositeContinuousTimeHybridAutomaton> default_writer() { return _default_writer; }
 
   public:
     typedef HybridTime TimeType;
-    typedef List<HybridAutomaton>::ConstIterator ConstIterator;
+    typedef List<ContinuousTimeHybridAutomaton>::ConstIterator ConstIterator;
 
   public:
     //!@{
     //! \name Constructors.
 
     //! \brief Default constructor creates "system" named automaton.
-    CompositeHybridAutomaton();
+    CompositeContinuousTimeHybridAutomaton();
     //! \brief Constructor with name.
-    CompositeHybridAutomaton(Identifier name);
+    CompositeContinuousTimeHybridAutomaton(Identifier name);
     //! \brief Convert a single atomic hybrid automaton to a composite hybrid automaton for analysis.
-    CompositeHybridAutomaton(const HybridAutomaton&);
+    CompositeContinuousTimeHybridAutomaton(const ContinuousTimeHybridAutomaton&);
     //! \brief Create the parallel composition of a list of atomic hybrid automata, with given name.
-    CompositeHybridAutomaton(
+    CompositeContinuousTimeHybridAutomaton(
         Identifier name,
-        const List<HybridAutomaton>&);
+        const List<ContinuousTimeHybridAutomaton>&);
     //! \brief Create the parallel composition of a list of atomic hybrid automata, with composed name.
-    CompositeHybridAutomaton(const List<HybridAutomaton>&);
+    CompositeContinuousTimeHybridAutomaton(const List<ContinuousTimeHybridAutomaton>&);
 
     //! \brief Construct dynamically-allocated copy. (Not currently implemented)
-    CompositeHybridAutomaton* clone() const { return new CompositeHybridAutomaton(*this); }
+    CompositeContinuousTimeHybridAutomaton* clone() const { return new CompositeContinuousTimeHybridAutomaton(*this); }
 
     //! \brief Virtual destructor.
-    virtual ~CompositeHybridAutomaton() = default;
+    virtual ~CompositeContinuousTimeHybridAutomaton() = default;
 
     //!@}
 
@@ -114,7 +114,7 @@ class CompositeHybridAutomaton
     //! \brief The number of component automata.
     Nat number_of_components() const;
     //! \brief The \a i<sup>th</sup> component automaton.
-    const HybridAutomaton& component(Nat i) const;
+    const ContinuousTimeHybridAutomaton& component(Nat i) const;
 
     //! \brief Iterator begin
     ConstIterator begin() const { return _components.begin(); }
@@ -127,7 +127,7 @@ class CompositeHybridAutomaton
     //! \name Methods for finding the modes, transitions and events of the composite automaton.
 
     //! The mode corresponding to the given location.
-    const DiscreteMode& mode(DiscreteLocation) const;
+    const ContinuousTimeHybridMode& mode(DiscreteLocation) const;
     //! \brief Tests if the automaton has a mode corresponding to the given location.
     Bool has_mode(DiscreteLocation) const;
     //! \brief Test if the hybrid automaton has a discrete mode corresponding to a subset of variables of the given location.
@@ -175,7 +175,7 @@ class CompositeHybridAutomaton
     //!@}
 
     //!@{
-    //! \name Functions for conformance to HybridAutomatonInterface
+    //! \name Functions for conformance to ContinuousTimeHybridAutomatonInterface
 
     //! \brief The continuous state space for each location.
     virtual HybridSpace state_space() const;
@@ -236,31 +236,31 @@ class CompositeHybridAutomaton
     Identifier _name;
 
   private:
-    List<HybridAutomaton> _components;
-    mutable LRUCache<DiscreteLocation, DiscreteMode> _modes_cache;
+    List<ContinuousTimeHybridAutomaton> _components;
+    mutable LRUCache<DiscreteLocation, ContinuousTimeHybridMode> _modes_cache;
     /** @brief Perform the system operation. */
     Void _cache_mode(DiscreteLocation) const;
 };
 
 /** @brief Perform the system operation. */
-CompositeHybridAutomaton parallel_composition(const List<HybridAutomaton>& components);
+CompositeContinuousTimeHybridAutomaton parallel_composition(const List<ContinuousTimeHybridAutomaton>& components);
 
-inline OutputStream& operator<<(OutputStream& os, const CompositeHybridAutomaton& ha) {
+inline OutputStream& operator<<(OutputStream& os, const CompositeContinuousTimeHybridAutomaton& ha) {
     return ha._write(os);
 }
 
 /** @brief CompactCompositeHybridAutomatonWriter for composition of hybrid automata. */
-class CompactCompositeHybridAutomatonWriter : public WriterInterface<CompositeHybridAutomaton> {
+class CompactCompositeHybridAutomatonWriter : public WriterInterface<CompositeContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const CompositeHybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const CompositeContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 /** @brief VerboseCompositeHybridAutomatonWriter for composition of hybrid automata. */
-class VerboseCompositeHybridAutomatonWriter : public WriterInterface<CompositeHybridAutomaton> {
+class VerboseCompositeHybridAutomatonWriter : public WriterInterface<CompositeContinuousTimeHybridAutomaton> {
     /** @brief Perform the system operation. */
-    virtual OutputStream& _write(OutputStream& os, const CompositeHybridAutomaton& ha) const final override;
+    virtual OutputStream& _write(OutputStream& os, const CompositeContinuousTimeHybridAutomaton& ha) const final override;
 };
 
 } // namespace Ariadne
 
-#endif // ARIADNE_HYBRID_AUTOMATON_HPP
+#endif // ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_HPP

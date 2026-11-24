@@ -1,0 +1,325 @@
+/***************************************************************************
+ *            hybrid/continuous_time_hybrid_automaton_interface.hpp
+ *
+ *  Copyright  2010-20  Pieter Collins
+ *
+ ****************************************************************************/
+
+/*
+ *  This file is part of Ariadne System.
+ *
+ *  Ariadne System is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Ariadne System is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Ariadne System.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/** @file system/continuous_time_hybrid_automaton_interface.hpp
+ *  @brief Interfaces and specification errors for hybrid automata.
+ */
+
+#ifndef ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP
+#define ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP
+
+#include <cassert>
+#include <optional>
+
+#include "function/function.hpp"
+#include "hybrid/discrete_location.hpp"
+#include "system/discrete_event.hpp"
+#include "system/hybrid_automaton_interface.hpp"
+
+namespace Ariadne {
+
+class OrdinaryDifferentialAlgebraicEquation;
+class OrdinaryDifferentialAlgebraicInclusion;
+
+/** @brief HybridTime for interfaces and specification errors for hybrid automata. */
+class HybridTime;
+/** @brief HybridSpace for interfaces and specification errors for hybrid automata. */
+class HybridSpace;
+/** @brief HybridGrid for interfaces and specification errors for hybrid automata. */
+class HybridGrid;
+/** @brief DiscreteEvent for interfaces and specification errors for hybrid automata. */
+class DiscreteEvent;
+
+/** @brief DiscreteLocation for interfaces and specification errors for hybrid automata. */
+class DiscreteLocation;
+
+template<class T>
+class Space;
+typedef Space<Real> RealSpace;
+
+/** @brief EventKind for interfaces and specification errors for hybrid automata. */
+enum class EventKind : std::uint8_t { INVARIANT,
+                                      PROGRESS,
+                                      PERMISSIVE,
+                                      URGENT,
+                                      IMPACT };
+inline OutputStream& operator<<(OutputStream&, const EventKind& evk);
+
+//! \defgroup SystemSpecificationErrors System specification errors
+//! \ingroup HybridAutomataSubModule
+//! \brief  Exception classes reporting system specification errors
+///!@{
+
+//! \ingroup SystemModule
+//! \brief Base class for an error in system specification.
+class SystemSpecificationError : public std::runtime_error {
+  public:
+    /** @brief Construct the object. */
+    SystemSpecificationError(const StringType& what) : std::runtime_error(what) {}
+};
+
+//! \brief A reachable discrete location does not have dynamics specified.
+class NonExistentModeError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    NonExistentModeError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief %Two modes cannot be distinguised, since they define different variables, but no defined variable differ.
+class IndistinguishableModeError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    IndistinguishableModeError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief A guard was defined twice in the same location.
+class MultipleGuardError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    MultipleGuardError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief An event was declared urgent (or impact) twice in the same context.
+class MultipleUrgentDeclarationError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    MultipleUrgentDeclarationError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief An event was declared urgent (or impact) but has another (permissive) guard restricting its activation.
+//! \details If an event has an urgent guard \f$g_1(x)\geq0\f$ in one component, and a permssive guard \f$g_2(x)\geq0\f$ in another,
+//! then compositionality requires that the event occurs
+class UrgentDeclarationWithMultipleGuardsException : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    UrgentDeclarationWithMultipleGuardsException(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief Two transitions kinds were specified for for an event in some location.
+class MultipleTransitionError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    MultipleTransitionError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief A set of variables has a loop of algebraic (rather than differential) dependencies
+//! in the continuous dynamics in a given mode.
+class AlgebraicLoopError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    AlgebraicLoopError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief The dynamics of a system is overspecified in some way.
+class OverspecifiedSystemError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    OverspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief A variable has multiple defining (algebraic and/or differential) equations in some mode.
+class OverspecifiedDynamicError : public OverspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    OverspecifiedDynamicError(const StringType& what) : OverspecifiedSystemError(what) {}
+};
+
+//! \brief A variable has multiple defining values (updates and/or algebraic equations) after some event in some mode.
+class OverspecifiedResetError : public OverspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    OverspecifiedResetError(const StringType& what) : OverspecifiedSystemError(what) {}
+};
+
+//! \brief The dynamics of a system is underspecified in some way.
+class UnderspecifiedSystemError : public SystemSpecificationError {
+  public:
+    /** @brief Construct the object. */
+    UnderspecifiedSystemError(const StringType& what) : SystemSpecificationError(what) {}
+};
+
+//! \brief A guard condition is missing for some event in some location.
+class MissingGuardError : public UnderspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    MissingGuardError(const StringType& what) : UnderspecifiedSystemError(what) {}
+};
+
+//! \brief The continuous dynamics in some mode refers to variables which have no specified behaviour.
+class UnderspecifiedDynamicError : public UnderspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    UnderspecifiedDynamicError(const StringType& what) : UnderspecifiedSystemError(what) {}
+};
+
+//! \brief A constraint (guard/invariant) in some location uses undefined variables.
+class UnderspecifiedConstraintError : public UnderspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    UnderspecifiedConstraintError(const StringType& what) : UnderspecifiedSystemError(what) {}
+};
+
+//! \brief The reset function for some event in some location refers to undefined variables.
+class UnderspecifiedResetError : public UnderspecifiedSystemError {
+  public:
+    /** @brief Construct the object. */
+    UnderspecifiedResetError(const StringType& what) : UnderspecifiedSystemError(what) {}
+};
+
+//! \brief The discrete locations of a system are ill-defined in some way.
+// Location specification errors belong to the hybrid domain.
+
+///!@}
+
+//! \ingroup SystemModule
+//! \ingroup HybridAutomataSubModule
+//! \brief Interface for hybrid systems required to perform analysis.
+class ContinuousTimeHybridAutomatonInterface : public HybridAutomatonInterface {
+  public:
+    //! \brief The type used to represent time.
+    typedef HybridTime TimeType;
+    //! \brief The type used to describe the state space.
+    typedef HybridSpace StateSpaceType;
+
+  public:
+    //! \brief Virtual destructor.
+    virtual ~ContinuousTimeHybridAutomatonInterface() = default;
+
+    //! \brief Cloning operator.
+    virtual ContinuousTimeHybridAutomatonInterface* clone() const = 0;
+
+    //!@{
+    //! \name Data access and queries.
+
+    //! \brief The name of the automaton.
+
+    //!@{
+    //! \name Methods for testing and extracting the discrete dynamics.
+
+    //! \brief Test if the hybrid automaton has a valid discrete mode \a location.
+
+    //! \brief The set of all events possible in the given \a location.
+
+    //! \brief The kind (permissive, urgent etc) of the event.
+    virtual EventKind event_kind(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief Test if the hybrid automaton has an invariant or urgent guard constraint in the \a location labelled by \a event.
+    virtual Bool has_invariant(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief Test if the hybrid automaton has a guard constraint in the \a location labelled by \a event.
+    virtual Bool has_guard(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief Test if the hybrid automaton has a discrete transition in \a source due to \a event.
+
+    //! \brief The target location of \a event starting in the \a source location.
+
+    //!@}
+
+    //!@{
+    //! \name Methods for extracting the continuous dynamics.
+
+    //! \brief The dimension of the state space in the given \a location.
+
+    //! \brief The function giving the auxiliary variables in the mode \a location.
+    virtual EffectiveVectorMultivariateFunction auxiliary_function(DiscreteLocation location) const = 0;
+
+    //! \brief The dynamic valid in the mode \a location.
+    virtual EffectiveVectorMultivariateFunction dynamic_function(DiscreteLocation location) const = 0;
+
+    /** @brief The original typed declaration, when supplied for this mode.
+     *  Borrowed immutable views are invalidated when the owner is replaced or destroyed.
+     *  Legacy state-only equation modes return null for both queries.
+     */
+    virtual const OrdinaryDifferentialAlgebraicEquation* equation(DiscreteLocation location) const;
+    virtual const OrdinaryDifferentialAlgebraicInclusion* inclusion(DiscreteLocation location) const;
+
+    /** @brief External global clock, independent of physical state and resets. */
+    virtual std::optional<RealVariable> time_variable(DiscreteLocation location) const;
+    /** @brief Arguments of guards, invariants, resets and equation fields:
+     *  [physical state, optional global time, constant parameters].
+     *  Measurable inclusion inputs are not guard/reset arguments.
+     */
+    virtual RealSpace continuous_argument_space(DiscreteLocation location) const;
+
+    //! \brief The constraint function defining the invariant or time-can-progress predicate \f$p(x)\leq0\f$.
+    virtual EffectiveScalarMultivariateFunction invariant_function(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief The constraint function defining the condition \f$c(x)\geq0\f$ under which a transition occurs.
+    virtual EffectiveScalarMultivariateFunction guard_function(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief The dynamic valid in the mode \a location.
+    virtual EffectiveVectorMultivariateFunction reset_function(DiscreteLocation location, DiscreteEvent event) const = 0;
+
+    //! \brief The hybrid state space.
+    virtual HybridSpace state_space() const = 0;
+
+    //! \brief The hybrid space of state and auxiliary variables.
+    virtual HybridSpace state_auxiliary_space() const = 0;
+
+    //! \brief The continuous state space in the \a location.
+    virtual RealSpace continuous_state_space(DiscreteLocation location) const = 0;
+
+    //! \brief The continuous state space in the \a location.
+    virtual RealSpace continuous_auxiliary_space(DiscreteLocation location) const = 0;
+
+    //!@}
+
+    //!@{
+    //! \name Input/output methods
+
+    //! \brief Write to an output stream.
+    virtual OutputStream& _write(OutputStream& os) const = 0;
+    //!@}
+};
+
+inline OutputStream& operator<<(OutputStream& os, const ContinuousTimeHybridAutomatonInterface& ha) {
+    /** @brief Perform the system operation. */
+    ha._write(os);
+    return os;
+}
+
+inline OutputStream& operator<<(OutputStream& os, const EventKind& evk) {
+    if (evk == EventKind::INVARIANT) {
+        os << "invariant";
+    }
+    /** @brief Perform the system operation. */
+    else if (evk == EventKind::PROGRESS) {
+        os << "progress";
+    }
+    /** @brief Perform the system operation. */
+    else if (evk == EventKind::PERMISSIVE) {
+        os << "permissive";
+    }
+    /** @brief Perform the system operation. */
+    else if (evk == EventKind::URGENT) {
+        os << "urgent";
+    } else {
+        os << "impact";
+    }
+    return os;
+}
+
+} // namespace Ariadne
+
+#endif // ARIADNE_CONTINUOUS_TIME_HYBRID_AUTOMATON_INTERFACE_HPP

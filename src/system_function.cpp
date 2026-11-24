@@ -30,7 +30,7 @@
 
 #include "function/functional.hpp"
 #include "symbolic/expression.hpp"
-#include "system/hybrid_automaton_interface.hpp"
+#include "system/continuous_time_hybrid_automaton_interface.hpp"
 #include "utility/container.hpp"
 
 namespace Ariadne {
@@ -71,7 +71,7 @@ List<RealAssignment>
             }
         }
         if (!found)
-            ARIADNE_THROW(AlgebraicLoopError, "HybridAutomaton::sort(List<RealAssignment>)",
+            ARIADNE_THROW(AlgebraicLoopError, "ContinuousTimeHybridAutomaton::sort(List<RealAssignment>)",
                           "Algebraic dependencies among variables " << lhs_list << " in auxiliary equations " << auxiliary);
     }
     return sorted_auxiliary;

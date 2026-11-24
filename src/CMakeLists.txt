@@ -1,12 +1,15 @@
 add_library(SYSTEM_SRC OBJECT
     system_function.cpp
-    vector_field.cpp
-    iterated_map.cpp
-    differential_inclusion.cpp
+    ordinary_dynamics.cpp
+    odae.cpp
+    difference_algebraic_equation.cpp
+    difference_algebraic_inclusion.cpp
+    discrete_time_hybrid_automaton.cpp
+    odai.cpp
     first_order_pde.cpp
-    differential_inclusion_grid.cpp
-    hybrid_automaton.cpp
-    hybrid_automaton-composite.cpp
+    odai_grid.cpp
+    continuous_time_hybrid_automaton.cpp
+    composite_continuous_time_hybrid_automaton.cpp
     hybrid_paving.cpp
 )
 target_include_directories(SYSTEM_SRC PRIVATE "${PROJECT_SOURCE_DIR}/include/system")

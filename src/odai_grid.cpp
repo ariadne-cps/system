@@ -1,5 +1,5 @@
 /***************************************************************************
- *            src/differential_inclusion_grid.cpp
+ *            src/odai_grid.cpp
  *
  *  Copyright  2026  Luca Geretti
  *
@@ -22,7 +22,7 @@
  *  along with Ariadne System. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @file src/differential_inclusion_grid.cpp
+/** @file src/odai_grid.cpp
  *  @brief Implement grid operations for differential inclusions.
  */
 
@@ -30,11 +30,11 @@
 // Grid is a representation supplied transitively by Hybrid's Paving dependency;
 // it does not introduce a dependency on evolution or analysis.
 #include "paving/grid.hpp"
-#include "system/differential_inclusion.hpp"
+#include "system/odai.hpp"
 
 namespace Ariadne {
 
-Grid DifferentialInclusion::grid() const {
+Grid OrdinaryDifferentialAlgebraicInclusion::grid() const {
     return Grid(this->dimension());
 }
 

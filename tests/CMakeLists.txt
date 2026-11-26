@@ -5,6 +5,7 @@ set(UNIT_TESTS
     test_vector_field
     test_hybrid_automaton
     test_hybrid_automaton_api
+    test_hybrid_provider_integration
     test_hybrid_automaton_composite
     test_differential_inclusion
     test_first_order_pde

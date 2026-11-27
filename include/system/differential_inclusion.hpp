@@ -38,9 +38,6 @@
 
 namespace Ariadne {
 
-/** @brief Grid for differential inclusions for continuous dynamics. */
-class Grid;
-
 /** @brief MissingInputException for differential inclusions for continuous dynamics. */
 class MissingInputException : public std::runtime_error {
   public:
@@ -79,8 +76,6 @@ class DifferentialInclusion {
     SizeType number_of_inputs() const { return _inputs.size(); }
     /** @brief Perform the system operation. */
     RealSpace state_space() const;
-    /** @brief Perform the system operation. */
-    Grid grid() const;
 
     //! \brief If the dynamics is affine in the inputs.
     Bool is_input_affine() const;

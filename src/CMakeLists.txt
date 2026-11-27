@@ -4,9 +4,7 @@ add_library(SYSTEM_SRC OBJECT
     iterated_map.cpp
     differential_inclusion.cpp
     first_order_pde.cpp
-    differential_inclusion_grid.cpp
     hybrid_automaton.cpp
     hybrid_automaton-composite.cpp
-    hybrid_paving.cpp
 )
 target_include_directories(SYSTEM_SRC PRIVATE "${PROJECT_SOURCE_DIR}/include/system")

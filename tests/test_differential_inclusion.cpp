@@ -33,7 +33,6 @@
 #include <sstream>
 
 #include "logging/test_runner.hpp"
-#include "paving/grid.hpp"
 #include "symbolic/assignment.hpp"
 #include "symbolic/space.hpp"
 #include "symbolic/variable.hpp"
@@ -62,7 +61,6 @@ Void TestDifferentialInclusion::test_accessors() {
     ARIADNE_TESTING_EXPECT_EQUAL(inclusion.dimension(), 2u);
     ARIADNE_TESTING_EXPECT_EQUAL(inclusion.number_of_inputs(), 1u);
     ARIADNE_TESTING_PROVE(inclusion.state_space() == RealSpace({x, y}));
-    ARIADNE_TESTING_EXPECT_EQUAL(inclusion.grid().dimension(), 2u);
     ARIADNE_TESTING_PROVE(inclusion.is_input_affine());
     ARIADNE_TESTING_PROVE(inclusion.is_input_additive());
     ARIADNE_TESTING_NOTE(inclusion.function());

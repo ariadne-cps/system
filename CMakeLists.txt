@@ -25,7 +25,7 @@ require_same_dependency_commit(Build CHAINS
 require_same_dependency_commit(Set CHAINS
     "hybrid|labelled|expression-set|set" "neural-set|set")
 require_same_dependency_commit(Threading CHAINS
-    "hybrid|labelled|drawing|paving|bdd|threading"
+    "hybrid|labelled|paving|bdd|threading"
     "neural-set|ann|threading")
 
 ariadne_setup_module(system)

@@ -23,18 +23,12 @@
  */
 
 /** @file tests/test_hybrid_provider_integration.cpp
- *  @brief Verify System state spaces against the decoupled Hybrid grid and paving APIs.
+ *  @brief Verify System state spaces against the decoupled generic Hybrid value families.
  */
 
-#include <memory>
-
-#include "hybrid/hybrid_grid.hpp"
-#include "hybrid/hybrid_grid_cell.hpp"
-#include "hybrid/hybrid_paving.hpp"
-#include "hybrid/hybrid_scalings.hpp"
+#include "hybrid/hybrid_space.hpp"
+#include "hybrid/value.hpp"
 #include "logging/test_runner.hpp"
-#include "paving/grid.hpp"
-#include "paving/robdd_paving.hpp"
 #include "symbolic/assignment.hpp"
 #include "system/hybrid_automaton.hpp"
 
@@ -46,7 +40,7 @@ class TestHybridProviderIntegration : public Ariadne::Testing::ContextFixture {
   public:
     using ContextFixture::ContextFixture;
 
-    Void test_system_spaces_and_ordered_grids() {
+    Void test_system_spaces_and_lazy_values() {
         const RealVariable x("x"), y("y");
         const DiscreteLocation first(1), second(2);
         HybridAutomaton automaton;
@@ -56,50 +50,47 @@ class TestHybridProviderIntegration : public Ariadne::Testing::ContextFixture {
         ARIADNE_TESTING_PROVE(spaces.has_location(first));
         ARIADNE_TESTING_PROVE(spaces.has_location(second));
 
-        const Map<Identifier, ExactDouble> factors{
-            {x.name(), 2.0_x}, {y.name(), 3.0_x}
-        };
-        HybridGrid grid{spaces, HybridScalings(factors)};
-        ARIADNE_TESTING_PROVE(grid[first] == Grid(Vector<ExactDouble>{2.0_x}));
-        ARIADNE_TESTING_PROVE(grid.grid(second) == Grid(Vector<ExactDouble>{3.0_x}));
-        ARIADNE_TESTING_PROVE(HybridGrid::make_grid(
-            grid.scalings(), first, RealSpace({y, x})) ==
-            Grid(Vector<ExactDouble>{3.0_x, 2.0_x}));
+        Hybrid<RealSpace> family(spaces,
+                                 [](const DiscreteLocation&, const RealSpace& space) { return space; });
+        ARIADNE_TESTING_PROVE(family.has_location(first));
+        ARIADNE_TESTING_PROVE(not family.has_value(first));
+        ARIADNE_TESTING_PROVE(not family.has_value(second));
+        ARIADNE_TESTING_PROVE(family[first].dimension() == 1u);
+        ARIADNE_TESTING_PROVE(family.has_value(first));
+        ARIADNE_TESTING_PROVE(family[second].dimension() == 1u);
     }
 
-    Void test_lazy_locations_and_shared_robdd_backend() {
+    Void test_lazy_locations_copy_and_absent_access() {
         const DiscreteLocation first(1), second(2), absent(3);
         const RealVariable x("x");
         MonolithicHybridSpace locations;
         locations.new_location(first, RealSpace({x}));
         locations.new_location(second, RealSpace({x}));
-        const HybridGrid grid{HybridSpace(locations)};
-        auto manager = std::make_shared<RobddManager>();
-        HybridPaving paving(grid, manager);
-        ARIADNE_TESTING_PROVE(paving.values().has_location(first));
-        ARIADNE_TESTING_PROVE(paving.values().has_location(second));
-        ARIADNE_TESTING_PROVE(not paving.values().has_location(absent));
-        ARIADNE_TESTING_PROVE(not paving.values().has_value(first));
-        ARIADNE_TESTING_PROVE(not paving.values().has_value(second));
+        Hybrid<int> family(HybridSpace(locations),
+                           [](const DiscreteLocation&, const RealSpace&) { return 42; });
+        ARIADNE_TESTING_PROVE(family.has_location(first));
+        ARIADNE_TESTING_PROVE(family.has_location(second));
+        ARIADNE_TESTING_PROVE(not family.has_location(absent));
+        ARIADNE_TESTING_PROVE(not family.has_value(first));
+        ARIADNE_TESTING_PROVE(not family.has_value(second));
 
-        const GridCell cell(grid[first], 0u, BinaryWord{});
-        paving.adjoin(HybridGridCell(first, RealSpace({x}), cell));
-        ARIADNE_TESTING_PROVE(paving.values().has_value(first));
-        ARIADNE_TESTING_PROVE(not paving.values().has_value(second));
-        ARIADNE_TESTING_PROVE(paving[first].superset(cell));
-        const PavingInterface& selected = static_cast<const PavingInterface&>(paving[first]);
-        ARIADNE_TESTING_PROVE(dynamic_cast<const RobddPaving*>(&selected) != nullptr);
+        ARIADNE_TESTING_PROVE(family[first] == 42);
+        ARIADNE_TESTING_PROVE(family.has_value(first));
+        ARIADNE_TESTING_PROVE(not family.has_value(second));
 
-        const HybridPaving copy(paving);
-        ARIADNE_TESTING_PROVE(copy[first].superset(cell));
-        ARIADNE_TESTING_PROVE(not copy.values().has_value(second));
-        ARIADNE_TESTING_EXPECT_EXCEPTION(paving[absent]);
+        const Hybrid<int> copy(family);
+        ARIADNE_TESTING_PROVE(copy[first] == 42);
+        ARIADNE_TESTING_PROVE(not copy.has_value(second));
+
+        const Hybrid<int>& const_family = family;
+        ARIADNE_TESTING_EXPECT_EXCEPTION(const_family[second]);
+        ARIADNE_TESTING_EXPECT_EXCEPTION(family[absent]);
     }
 };
 
 int main(int argc, char** argv) {
     ARIADNE_TESTING_SUITE("test_hybrid_provider_integration");
-    ARIADNE_TESTING_ADD_TEST(TestHybridProviderIntegration, test_system_spaces_and_ordered_grids);
-    ARIADNE_TESTING_ADD_TEST(TestHybridProviderIntegration, test_lazy_locations_and_shared_robdd_backend);
+    ARIADNE_TESTING_ADD_TEST(TestHybridProviderIntegration, test_system_spaces_and_lazy_values);
+    ARIADNE_TESTING_ADD_TEST(TestHybridProviderIntegration, test_lazy_locations_copy_and_absent_access);
     return Ariadne::Testing::run_logging_suite(ariadne_test_suite, argc, argv);
 }

@@ -41,8 +41,6 @@ namespace Ariadne {
 class HybridTime;
 /** @brief HybridSpace for interfaces and specification errors for hybrid automata. */
 class HybridSpace;
-/** @brief HybridGrid for interfaces and specification errors for hybrid automata. */
-class HybridGrid;
 /** @brief DiscreteEvent for interfaces and specification errors for hybrid automata. */
 class DiscreteEvent;
 
